@@ -1,61 +1,130 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, Plus, QrCode, Trophy, BarChart2, User, Handshake } from 'lucide-react';
+import { Layers, Plus, QrCode, Trophy, BarChart2, User, Handshake, Menu, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from 'framer-motion';
+
+const NAV_LINKS = [
+  { to: '/dashboard', icon: Layers, label: 'My Cards' },
+  { to: '/card-show', icon: Handshake, label: 'Card Show' },
+  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
+  { to: '/analytics', icon: BarChart2, label: 'Analytics' },
+  { to: '/profile', icon: User, label: 'Profile' },
+];
 
 export default function Navbar() {
   const location = useLocation();
   const isLanding = location.pathname === '/';
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isLanding ? 'bg-transparent' : 'bg-background/80 backdrop-blur-xl border-b border-border/50'}`}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
-            <QrCode className="w-4 h-4 text-primary" />
-          </div>
-          <span className="font-display text-xl font-bold text-foreground tracking-tight">Origins</span>
-        </Link>
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isLanding && !menuOpen ? 'bg-transparent' : 'bg-background/95 backdrop-blur-xl border-b border-border/50'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setMenuOpen(false)}>
+            <div className="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
+              <QrCode className="w-4 h-4 text-primary" />
+            </div>
+            <span className="font-display text-xl font-bold text-foreground tracking-tight">Origins</span>
+          </Link>
 
-        <div className="flex items-center gap-3">
-          <Link to="/dashboard">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <Layers className="w-4 h-4 mr-2" />
-              My Cards
-            </Button>
-          </Link>
-          <Link to="/leaderboard">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <Trophy className="w-4 h-4 mr-2" />
-              Leaderboard
-            </Button>
-          </Link>
-          <Link to="/analytics">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <BarChart2 className="w-4 h-4 mr-2" />
-              Analytics
-            </Button>
-          </Link>
-          <Link to="/card-show">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <Handshake className="w-4 h-4 mr-2" />
-              Card Show
-            </Button>
-          </Link>
-          <Link to="/profile">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </Button>
-          </Link>
-          <Link to="/register">
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Register Card
-            </Button>
-          </Link>
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center gap-1">
+            {NAV_LINKS.map(({ to, icon: Icon, label }) => (
+              <Link key={to} to={to}>
+                <Button
+                  variant="ghost" size="sm"
+                  className={`transition-colors ${isActive(to) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {label}
+                </Button>
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Register button — visible on md+ */}
+            <Link to="/register" className="hidden md:block">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-1.5" />
+                Register Card
+              </Button>
+            </Link>
+
+            {/* Hamburger — visible below lg */}
+            <button
+              onClick={() => setMenuOpen(prev => !prev)}
+              className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              aria-label="Toggle menu"
+            >
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm lg:hidden"
+              onClick={() => setMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              className="fixed top-0 right-0 bottom-0 z-40 w-72 bg-card border-l border-border/50 flex flex-col lg:hidden shadow-2xl"
+            >
+              <div className="flex items-center justify-between px-5 h-16 border-b border-border/50 shrink-0">
+                <span className="font-display font-bold text-foreground">Menu</span>
+                <button onClick={() => setMenuOpen(false)} className="text-muted-foreground hover:text-foreground p-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+                {NAV_LINKS.map(({ to, icon: Icon, label }) => (
+                  <Link key={to} to={to} onClick={() => setMenuOpen(false)}>
+                    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive(to) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}>
+                      <Icon className="w-5 h-5 shrink-0" />
+                      <span className="font-medium">{label}</span>
+                    </div>
+                  </Link>
+                ))}
+              </nav>
+
+              <div className="px-4 pb-6 shrink-0">
+                <Link to="/register" onClick={() => setMenuOpen(false)}>
+                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Register a Card
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-xl border-t border-border/50">
+        <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
+          {NAV_LINKS.slice(0, 5).map(({ to, icon: Icon, label }) => (
+            <Link key={to} to={to} className="flex-1">
+              <div className={`flex flex-col items-center gap-0.5 py-1 px-1 rounded-xl transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium leading-tight">{label}</span>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
-    </nav>
+    </>
   );
 }
