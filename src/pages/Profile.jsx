@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import SocialLink from '../components/profile/SocialLink';
 import EditProfileModal from '../components/profile/EditProfileModal';
 import EmptyState from '../components/shared/EmptyState';
+import ReferralSection from '../components/profile/ReferralSection';
 
 const SOCIAL_CONFIG = [
   { key: 'youtube',       label: 'YouTube',         baseUrl: 'https://youtube.com/@' },
@@ -143,6 +144,8 @@ export default function Profile() {
             </EmptyState>
           )}
         </motion.div>
+
+        <ReferralSection />
       </div>
 
       {showEdit && <EditProfileModal user={user} onClose={() => setShowEdit(false)} />}

@@ -47,9 +47,10 @@ const PLANS = [
   },
 ];
 
-export default function UpgradeModal({ onClose, defaultPlan = 'stories' }) {
+export default function UpgradeModal({ onClose, defaultPlan = 'stories', creatorCouponId = null }) {
   const [selected, setSelected] = useState(defaultPlan);
   const [loading, setLoading] = useState(false);
+  const [useTrial, setUseTrial] = useState(!creatorCouponId);
 
   const handleUpgrade = async () => {
     if (window.self !== window.top) {
@@ -62,6 +63,8 @@ export default function UpgradeModal({ onClose, defaultPlan = 'stories' }) {
       successUrl: currentUrl + '?upgraded=1',
       cancelUrl: currentUrl,
       plan: selected,
+      ...(creatorCouponId ? { couponId: creatorCouponId } : {}),
+      ...(!creatorCouponId && useTrial ? { trialDays: 7 } : {}),
     });
     if (res.data?.url) window.location.href = res.data.url;
     setLoading(false);
@@ -138,6 +141,15 @@ export default function UpgradeModal({ onClose, defaultPlan = 'stories' }) {
           )}
         </Button>
 
+        {!creatorCouponId && (
+          <div className="flex items-center gap-2 mb-3">
+            <input type="checkbox" id="trial" checked={useTrial} onChange={e => setUseTrial(e.target.checked)} className="accent-primary" />
+            <label htmlFor="trial" className="text-xs text-muted-foreground cursor-pointer">Start with a <span className="text-primary font-semibold">7-day free trial</span> — cancel anytime before being charged.</label>
+          </div>
+        )}
+        {creatorCouponId && (
+          <div className="text-xs text-center text-primary font-medium mb-3">🎨 Creator discount applied — 50% off for 3 months!</div>
+        )}
         <p className="text-xs text-muted-foreground text-center">Cancel anytime. Billed monthly via Stripe.</p>
       </div>
     </div>

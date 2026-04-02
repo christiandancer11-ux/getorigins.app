@@ -15,10 +15,10 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { successUrl, cancelUrl, plan = 'stories' } = await req.json();
+    const { successUrl, cancelUrl, plan = 'stories', couponId, trialDays } = await req.json();
     const priceId = PRICES[plan] || PRICES.stories;
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams = {
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
@@ -30,8 +30,19 @@ Deno.serve(async (req) => {
         user_email: user.email,
         plan,
       },
-    });
+    };
 
+    // Apply creator coupon if provided
+    if (couponId) {
+      sessionParams.discounts = [{ coupon: couponId }];
+    }
+
+    // Apply trial if requested (and no coupon — Stripe doesn't allow both)
+    if (trialDays && !couponId) {
+      sessionParams.subscription_data = { trial_period_days: trialDays };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
     return Response.json({ url: session.url });
   } catch (error) {
     console.error('createCheckout error:', error.message);

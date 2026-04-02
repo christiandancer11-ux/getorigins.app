@@ -18,6 +18,7 @@ import Profile from './pages/Profile';
 import CardShow from './pages/CardShow';
 import MarketValue from './pages/MarketValue';
 import Trending from './pages/Trending';
+import AdminCodes from './pages/AdminCodes';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
         <Route path="/card-show" element={<CardShow />} />
         <Route path="/market" element={<MarketValue />} />
         <Route path="/trending" element={<Trending />} />
+        <Route path="/admin/codes" element={<AdminCodes />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

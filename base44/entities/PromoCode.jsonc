@@ -1,0 +1,50 @@
+{
+  "name": "PromoCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "The promo/referral code string (uppercase)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "referral",
+        "creator",
+        "admin_gift",
+        "trial"
+      ],
+      "description": "referral=7 days free both parties; creator=50% off 3mo; admin_gift=3mo free all features; trial=7 day trial"
+    },
+    "created_by_email": {
+      "type": "string",
+      "description": "Email of user who owns/created this code (for referral tracking)"
+    },
+    "max_uses": {
+      "type": "number",
+      "description": "Max number of times this code can be used. null = unlimited"
+    },
+    "use_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many times this code has been used"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the code is currently active"
+    },
+    "stripe_coupon_id": {
+      "type": "string",
+      "description": "Stripe coupon ID to apply at checkout (for creator/discount codes)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes about this code"
+    }
+  },
+  "required": [
+    "code",
+    "type"
+  ]
+}
