@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, Plus, QrCode, Trophy, BarChart2, User, Handshake, Menu, X } from 'lucide-react';
+import { Layers, Plus, QrCode, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
   { to: '/dashboard', icon: Layers, label: 'My Cards' },
   { to: '/card-show', icon: Handshake, label: 'Card Show' },
+  { to: '/market', icon: TrendingUp, label: 'Market' },
   { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
   { to: '/analytics', icon: BarChart2, label: 'Analytics' },
   { to: '/profile', icon: User, label: 'Profile' },

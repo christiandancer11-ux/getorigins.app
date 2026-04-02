@@ -1,0 +1,196 @@
+import React, { useState, useMemo } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { TrendingUp, Search, Loader2, BarChart2, Handshake, ShoppingCart, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { motion, AnimatePresence } from 'framer-motion';
+import MarketSummaryCards from '../components/market/MarketSummaryCards';
+import SoldListingsTable from '../components/market/SoldListingsTable';
+import CardShowComps from '../components/market/CardShowComps';
+
+export default function MarketValue() {
+  const [searchInput, setSearchInput] = useState('');
+  const [activeSearch, setActiveSearch] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  // Pull all card show trades for in-app comps
+  const { data: allTrades = [] } = useQuery({
+    queryKey: ['card-trades'],
+    queryFn: () => base44.entities.CardTrade.list('-created_date', 500),
+  });
+
+  const showTrades = useMemo(() => {
+    if (!activeSearch) return [];
+    const q = activeSearch.toLowerCase();
+    return allTrades.filter(t =>
+      [t.card_name, t.set_name, t.year, t.card_number].filter(Boolean)
+        .some(v => v.toLowerCase().includes(q))
+    );
+  }, [allTrades, activeSearch]);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchInput.trim()) return;
+    setActiveSearch(searchInput.trim());
+    setLoading(true);
+    setResult(null);
+    setError(null);
+    const res = await base44.functions.invoke('fetchCardComps', { card_name: searchInput.trim() });
+    if (res.data?.error) {
+      setError(res.data.error);
+    } else {
+      setResult(res.data);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto">
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-4">
+            <TrendingUp className="w-3.5 h-3.5" />
+            Live Market Data
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-2">Market Value</h1>
+          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+            Search any sports card or TCG card to see recent sold prices from eBay, 130point.com, and real in-person card show trades.
+          </p>
+        </motion.div>
+
+        {/* Search */}
+        <motion.form
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          onSubmit={handleSearch}
+          className="flex gap-2 mb-10"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              placeholder="e.g. 2011 Mike Trout Topps Update RC, Charizard Base Set, Patrick Mahomes Prizm..."
+              className="pl-9 bg-secondary border-border h-11"
+            />
+          </div>
+          <Button type="submit" disabled={loading || !searchInput.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-5 shrink-0">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+            <span className="ml-2 hidden sm:inline">{loading ? 'Searching...' : 'Search'}</span>
+          </Button>
+        </motion.form>
+
+        {/* Loading */}
+        {loading && (
+          <div className="text-center py-16">
+            <div className="inline-flex flex-col items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-primary animate-pulse" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground mb-1">Researching market prices...</p>
+                <p className="text-sm text-muted-foreground">Pulling sold data from eBay & 130point.com</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20 mb-6">
+            <AlertCircle className="w-5 h-5 text-destructive mt-0.5 shrink-0" />
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
+
+        {/* Results */}
+        <AnimatePresence mode="wait">
+          {result && !loading && (
+            <motion.div key={activeSearch} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+
+              {/* Summary header */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Results for</p>
+                <h2 className="font-display text-xl font-bold text-foreground">{activeSearch}</h2>
+                {result.search_query_used && result.search_query_used !== activeSearch && (
+                  <p className="text-xs text-muted-foreground mt-0.5">Searched as: <span className="italic">{result.search_query_used}</span></p>
+                )}
+              </div>
+
+              {/* Market summary stats */}
+              <MarketSummaryCards result={result} showTradesCount={showTrades.length} />
+
+              {/* Market Summary text */}
+              {result.market_summary && (
+                <div className="rounded-2xl bg-card border border-border/50 p-5">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <BarChart2 className="w-3.5 h-3.5" />Market Analysis
+                  </p>
+                  <p className="text-sm text-foreground leading-relaxed">{result.market_summary}</p>
+                </div>
+              )}
+
+              {/* eBay & 130point sold listings */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <SoldListingsTable
+                  title="eBay Sold Listings"
+                  icon={ShoppingCart}
+                  sales={result.ebay_recent_sales || []}
+                  avg={result.ebay_avg}
+                  low={result.ebay_low}
+                  high={result.ebay_high}
+                  salesCount={result.ebay_sales_count}
+                  accentColor="text-blue-400"
+                  bgColor="bg-blue-400/10"
+                  borderColor="border-blue-400/20"
+                />
+                <SoldListingsTable
+                  title="130point.com Sales"
+                  icon={TrendingUp}
+                  sales={result.point130_recent_sales || []}
+                  avg={result.point130_avg}
+                  low={result.point130_low}
+                  high={result.point130_high}
+                  salesCount={null}
+                  accentColor="text-emerald-400"
+                  bgColor="bg-emerald-400/10"
+                  borderColor="border-emerald-400/20"
+                />
+              </div>
+
+              {/* In-person Card Show Comps */}
+              <CardShowComps trades={showTrades} query={activeSearch} />
+
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Empty state before search */}
+        {!result && !loading && !error && (
+          <div className="text-center py-16 px-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
+              <TrendingUp className="w-7 h-7 text-primary" />
+            </div>
+            <h3 className="font-semibold text-foreground mb-2">Search for any card</h3>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              Enter a player name, card set, year, or grade to pull live market data from eBay, 130point, and real card show trades logged by the community.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
+              {['2011 Mike Trout Topps Update RC', 'LeBron James Prizm PSA 10', 'Charizard Base Set Holo', 'Patrick Mahomes Rookie'].map(ex => (
+                <button key={ex} onClick={() => setSearchInput(ex)}
+                  className="text-xs px-3 py-1.5 rounded-full bg-secondary border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
