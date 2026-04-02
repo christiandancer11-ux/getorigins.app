@@ -1,0 +1,53 @@
+{
+  "name": "Card",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the card (e.g. player name or card title)"
+    },
+    "set_name": {
+      "type": "string",
+      "description": "The set or collection the card belongs to"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "baseball",
+        "basketball",
+        "football",
+        "hockey",
+        "soccer",
+        "pokemon",
+        "magic_the_gathering",
+        "yugioh",
+        "other"
+      ],
+      "description": "Sport or TCG type"
+    },
+    "year": {
+      "type": "string",
+      "description": "Year of the card"
+    },
+    "card_number": {
+      "type": "string",
+      "description": "Card number in the set"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Photo of the card"
+    },
+    "unique_code": {
+      "type": "string",
+      "description": "Unique code for QR generation"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description or notes about the card"
+    }
+  },
+  "required": [
+    "name",
+    "unique_code"
+  ]
+}
