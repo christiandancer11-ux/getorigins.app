@@ -1,21 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, QrCode, Download, MessageCircle, Share2 } from 'lucide-react';
+import { ArrowLeft, Plus, QrCode, Download, MessageCircle, Share2, Pencil } from 'lucide-react';
 import QRCodeDisplay from '../components/shared/QRCodeDisplay';
 import SportBadge from '../components/shared/SportBadge';
 import VideoMessageCard from '../components/shared/VideoMessageCard';
 import AddMessageForm from '../components/card-detail/AddMessageForm';
 import EmptyState from '../components/shared/EmptyState';
 import ShareCardModal from '../components/card-detail/ShareCardModal';
+import EditCardModal from '../components/card-detail/EditCardModal';
 
 export default function CardDetail() {
   const { id } = useParams();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
 
   const { data: card, isLoading: cardLoading } = useQuery({
     queryKey: ['card', id],
@@ -103,6 +110,12 @@ export default function CardDetail() {
                 <Share2 className="w-4 h-4 mr-2" />
                 Share Story
               </Button>
+              {currentUser && card.created_by === currentUser.email && (
+                <Button onClick={() => setShowEdit(true)} variant="outline" className="border-border/50 hover:border-primary/30">
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit Details
+                </Button>
+              )}
             </div>
 
             {showQR && (
@@ -158,6 +171,9 @@ export default function CardDetail() {
 
       {showShare && (
         <ShareCardModal card={card} messages={messages} onClose={() => setShowShare(false)} />
+      )}
+      {showEdit && (
+        <EditCardModal card={card} onClose={() => setShowEdit(false)} />
       )}
     </div>
   );
