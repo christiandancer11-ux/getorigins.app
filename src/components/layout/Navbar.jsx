@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Layers, Plus, QrCode, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,10 +16,21 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isLanding = location.pathname === '/';
   const [menuOpen, setMenuOpen] = useState(false);
+  // Track last visited path per tab so tapping active tab returns to root
+  const tabRoots = useRef(NAV_LINKS.reduce((acc, l) => ({ ...acc, [l.to]: l.to }), {}));
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+
+  const handleTabPress = (to) => {
+    if (isActive(to)) {
+      navigate(to); // return to tab root
+    } else {
+      navigate(to);
+    }
+  };
 
   return (
     <>
@@ -119,12 +130,12 @@ export default function Navbar() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-center justify-around px-1 py-2 max-w-lg mx-auto overflow-x-auto">
           {NAV_LINKS.slice(0, 6).map(({ to, icon: Icon, label }) => (
-            <Link key={to} to={to} className="flex-1 min-w-0 select-none">
+            <button key={to} onClick={() => handleTabPress(to)} className="flex-1 min-w-0 select-none">
               <div className={`flex flex-col items-center gap-0.5 py-1 px-0.5 rounded-xl transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium leading-tight truncate w-full text-center">{label}</span>
               </div>
-            </Link>
+            </button>
           ))}
         </div>
       </div>

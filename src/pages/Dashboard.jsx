@@ -1,13 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Layers } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import CardGridItem from '../components/dashboard/CardGridItem';
 import EmptyState from '../components/shared/EmptyState';
+import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
+
   const { data: cards = [], isLoading } = useQuery({
     queryKey: ['my-cards'],
     queryFn: () => base44.entities.Card.list('-created_date'),
@@ -20,9 +23,15 @@ export default function Dashboard() {
 
   const getMessageCount = (cardId) => messages.filter(m => m.card_id === cardId).length;
 
+  const { containerRef, isRefreshing, PullIndicator } = usePullToRefresh(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['my-cards'] });
+    await queryClient.invalidateQueries({ queryKey: ['all-messages'] });
+  });
+
   return (
-    <div className="min-h-screen pt-24 pb-12 px-6">
+    <div ref={containerRef} className="min-h-screen pt-24 pb-12 px-6">
       <div className="max-w-6xl mx-auto">
+        <PullIndicator />
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>

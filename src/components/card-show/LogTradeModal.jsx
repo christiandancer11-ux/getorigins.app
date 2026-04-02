@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import NativeSelect from '@/components/shared/NativeSelect';
 import { X, Upload, Loader2, Search, TrendingUp, CheckCircle2, AlertTriangle, XCircle, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -123,6 +123,18 @@ export default function LogTradeModal({ onClose }) {
 
   const mutation = useMutation({
     mutationFn: (data) => base44.entities.CardTrade.create(data),
+    onMutate: async (newTrade) => {
+      await queryClient.cancelQueries({ queryKey: ['card-trades'] });
+      const previous = queryClient.getQueryData(['card-trades']);
+      queryClient.setQueryData(['card-trades'], (old = []) => [
+        { ...newTrade, id: `optimistic-${Date.now()}`, created_date: new Date().toISOString() },
+        ...old,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(['card-trades'], context?.previous);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['card-trades'] });
       onClose();
@@ -225,17 +237,11 @@ export default function LogTradeModal({ onClose }) {
               </div>
               <div>
                 <Label className="text-foreground mb-1 block">Sport / Category</Label>
-                <Select value={form.sport} onValueChange={v => set('sport', v)}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select..." /></SelectTrigger>
-                  <SelectContent>{SPORTS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                </Select>
+                <NativeSelect value={form.sport} onValueChange={v => set('sport', v)} options={SPORTS} placeholder="Select..." />
               </div>
               <div className="col-span-2">
                 <Label className="text-foreground mb-1 block">Condition / Grade</Label>
-                <Select value={form.condition} onValueChange={v => set('condition', v)}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-                  <SelectContent>{CONDITIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                </Select>
+                <NativeSelect value={form.condition} onValueChange={v => set('condition', v)} options={CONDITIONS} placeholder="Select grade..." />
               </div>
             </div>
 

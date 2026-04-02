@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
 import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -17,10 +18,15 @@ export default function CardShow() {
   const [sport, setSport] = useState('all');
   const [showUpgrade, setShowUpgrade] = useState(false);
   const { isPro, loading: subLoading } = useSubscription();
+  const queryClient = useQueryClient();
 
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['card-trades'],
     queryFn: () => base44.entities.CardTrade.list('-created_date', 200),
+  });
+
+  const { containerRef, PullIndicator } = usePullToRefresh(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['card-trades'] });
   });
 
   const filtered = useMemo(() => {
@@ -69,9 +75,9 @@ export default function CardShow() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-6">
+    <div ref={containerRef} className="min-h-screen pt-24 pb-12 px-6">
       <div className="max-w-3xl mx-auto">
-
+        <PullIndicator />
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">

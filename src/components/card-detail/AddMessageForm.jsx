@@ -58,6 +58,18 @@ export default function AddMessageForm({ cardId, onClose }) {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.VideoMessage.create(data),
+    onMutate: async (newMsg) => {
+      await queryClient.cancelQueries({ queryKey: ['card-messages', cardId] });
+      const previous = queryClient.getQueryData(['card-messages', cardId]);
+      queryClient.setQueryData(['card-messages', cardId], (old = []) => [
+        { ...newMsg, id: `optimistic-${Date.now()}`, created_date: new Date().toISOString() },
+        ...old,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(['card-messages', cardId], context?.previous);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['card-messages', cardId] });
       onClose();

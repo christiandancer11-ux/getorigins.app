@@ -91,4 +91,9 @@
     padding-top: env(safe-area-inset-top);
     -webkit-tap-highlight-color: transparent;
   }
+
+  button, a, [role="tab"], [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }

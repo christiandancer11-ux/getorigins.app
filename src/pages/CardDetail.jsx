@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, QrCode, Download, MessageCircle, Share2, Pencil } from 'lucide-react';
+import MobileHeader from '../components/layout/MobileHeader';
 import QRCodeDisplay from '../components/shared/QRCodeDisplay';
 import SportBadge from '../components/shared/SportBadge';
 import VideoMessageCard from '../components/shared/VideoMessageCard';
@@ -59,8 +60,9 @@ export default function CardDetail() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-6">
+      <MobileHeader title={card.name} backTo="/dashboard" />
       <div className="max-w-4xl mx-auto">
-        <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
+        <Link to="/dashboard" className="hidden lg:inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to My Cards
         </Link>

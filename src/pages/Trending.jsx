@@ -7,6 +7,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import UpgradeModal from '@/components/shared/UpgradeModal';
 import TrendingCategoryPicker, { CATEGORIES } from '@/components/trending/TrendingCategoryPicker';
 import TrendingCardRow from '@/components/trending/TrendingCardRow';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh.jsx';
 
 export default function Trending() {
   const { isExpert, loading: subLoading } = useSubscription();
@@ -48,6 +49,13 @@ export default function Trending() {
       fetchCategory(selectedCategory);
     }
   }, [isExpert]);
+
+  const { containerRef, PullIndicator } = usePullToRefresh(async () => {
+    if (isExpert) {
+      setTrendingData(prev => { const u = { ...prev }; delete u[selectedCategory]; return u; });
+      await fetchCategory(selectedCategory);
+    }
+  });
 
   if (subLoading) {
     return (
@@ -109,7 +117,8 @@ export default function Trending() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div ref={containerRef} className="max-w-3xl mx-auto px-4 py-8">
+      <PullIndicator />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
