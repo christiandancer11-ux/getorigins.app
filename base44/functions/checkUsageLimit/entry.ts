@@ -8,7 +8,6 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Run subscription check and message count in parallel
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -19,15 +18,18 @@ Deno.serve(async (req) => {
 
     const activeSub = subs.find(s => s.status === 'active');
     if (activeSub) {
-      return Response.json({ allowed: true, isPro: true, plan: activeSub.plan || 'stories', remaining: null });
+      // Pro users: unlimited stories + all features
+      return Response.json({ allowed: true, isPro: true, plan: 'pro', remaining: null });
     }
 
+    // Free tier: 5 story messages/videos per day
     const count = allMessages.filter(m => new Date(m.created_date) >= today).length;
     const remaining = FREE_DAILY_LIMIT - count;
 
     return Response.json({
       allowed: count < FREE_DAILY_LIMIT,
       isPro: false,
+      plan: 'free',
       remaining: Math.max(0, remaining),
       used: count,
       limit: FREE_DAILY_LIMIT,

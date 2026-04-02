@@ -1,54 +1,27 @@
 import React, { useState } from 'react';
-import { X, Zap, Loader2, CheckCircle, MessageSquare, TrendingUp, Flame } from 'lucide-react';
+import { X, Zap, Loader2, CheckCircle, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
-const PLANS = [
-  {
-    id: 'stories',
-    name: 'Stories',
-    price: '$3.99',
-    icon: MessageSquare,
-    color: 'text-primary',
-    bg: 'bg-primary/10',
-    border: 'border-primary/30',
-    features: [
-      'Unlimited story messages & videos per day',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Origins Pro',
-    price: '$7.99',
-    icon: TrendingUp,
-    color: 'text-amber-400',
-    bg: 'bg-amber-400/10',
-    border: 'border-amber-400/30',
-    features: [
-      'Everything in Stories',
-      'Card Show Trades — log & browse real comps',
-      'Market Value & AI Card Scanner',
-    ],
-  },
-  {
-    id: 'expert',
-    name: 'Expert Bundle',
-    price: '$14.99',
-    icon: Flame,
-    color: 'text-orange-400',
-    bg: 'bg-orange-400/10',
-    border: 'border-orange-400/30',
-    badge: 'Most Powerful',
-    features: [
-      'Everything in Origins Pro',
-      'Trending — Top 100 hottest cards per category',
-      'Live data from eBay, 130point & Origins trades',
-    ],
-  },
-];
+const PRO_PLAN = {
+  id: 'pro',
+  name: 'Origins Pro Bundle',
+  price: '$9.99',
+  icon: Flame,
+  color: 'text-amber-400',
+  bg: 'bg-amber-400/10',
+  border: 'border-amber-400/30',
+  badge: 'All Features',
+  features: [
+    'Unlimited story messages & videos per day',
+    'Card Show Trades — log & browse real comps',
+    'Market Value & AI Card Scanner',
+    'Trending — Top 100 hottest cards per category',
+    'Live data from eBay, 130point & Origins trades',
+  ],
+};
 
-export default function UpgradeModal({ onClose, defaultPlan = 'stories', creatorCouponId = null }) {
-  const [selected, setSelected] = useState(defaultPlan);
+export default function UpgradeModal({ onClose, creatorCouponId = null }) {
   const [loading, setLoading] = useState(false);
   const [useTrial, setUseTrial] = useState(!creatorCouponId);
 
@@ -62,7 +35,7 @@ export default function UpgradeModal({ onClose, defaultPlan = 'stories', creator
     const res = await base44.functions.invoke('createCheckout', {
       successUrl: currentUrl + '?upgraded=1',
       cancelUrl: currentUrl,
-      plan: selected,
+      plan: 'pro',
       ...(creatorCouponId ? { couponId: creatorCouponId } : {}),
       ...(!creatorCouponId && useTrial ? { trialDays: 7 } : {}),
     });
@@ -70,7 +43,7 @@ export default function UpgradeModal({ onClose, defaultPlan = 'stories', creator
     setLoading(false);
   };
 
-  const selectedPlan = PLANS.find(p => p.id === selected);
+  const Icon = PRO_PLAN.icon;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -80,64 +53,50 @@ export default function UpgradeModal({ onClose, defaultPlan = 'stories', creator
         </button>
 
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/30 flex items-center justify-center mb-4">
-            <Zap className="w-6 h-6 text-primary" />
+          <div className="w-12 h-12 rounded-2xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center mb-4">
+            <Zap className="w-6 h-6 text-amber-400" />
           </div>
-          <h2 className="text-2xl font-display font-bold text-foreground mb-1">Upgrade Origins</h2>
-          <p className="text-sm text-muted-foreground">Choose the plan that fits your collecting style.</p>
+          <h2 className="text-2xl font-display font-bold text-foreground mb-1">Origins Pro Bundle</h2>
+          <p className="text-sm text-muted-foreground">Everything you need to collect smarter.</p>
         </div>
 
-        <div className="space-y-3 mb-6">
-          {PLANS.map(plan => {
-            const Icon = plan.icon;
-            const isSelected = selected === plan.id;
-            return (
-              <button
-                key={plan.id}
-                onClick={() => setSelected(plan.id)}
-                className={`w-full text-left rounded-xl border p-4 transition-all ${isSelected ? `${plan.bg} ${plan.border} border-2` : 'border-border/50 bg-secondary/30 hover:bg-secondary/60'}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg ${plan.bg} border ${plan.border} flex items-center justify-center shrink-0`}>
-                      <Icon className={`w-4 h-4 ${plan.color}`} />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-foreground">{plan.name}</span>
-                        {plan.badge && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-400/20 text-orange-400 border border-orange-400/30">{plan.badge}</span>
-                        )}
-                      </div>
-                      <ul className="mt-1.5 space-y-0.5">
-                        {plan.features.map(f => (
-                          <li key={f} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                            <CheckCircle className="w-3 h-3 text-primary shrink-0 mt-0.5" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className={`text-lg font-bold ${plan.color}`}>{plan.price}</span>
-                    <p className="text-[10px] text-muted-foreground">/month</p>
-                  </div>
+        <div className={`rounded-xl border-2 ${PRO_PLAN.bg} ${PRO_PLAN.border} p-5 mb-6`}>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-lg ${PRO_PLAN.bg} border ${PRO_PLAN.border} flex items-center justify-center shrink-0`}>
+                <Icon className={`w-5 h-5 ${PRO_PLAN.color}`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-base text-foreground">{PRO_PLAN.name}</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-400 border border-amber-400/30">{PRO_PLAN.badge}</span>
                 </div>
-              </button>
-            );
-          })}
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className={`text-2xl font-bold ${PRO_PLAN.color}`}>{PRO_PLAN.price}</span>
+              <p className="text-[10px] text-muted-foreground">/month</p>
+            </div>
+          </div>
+          <ul className="space-y-2">
+            {PRO_PLAN.features.map(f => (
+              <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <CheckCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                {f}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <Button
           onClick={handleUpgrade}
           disabled={loading}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12 text-base font-semibold mb-3"
+          className="w-full bg-amber-400 text-background hover:bg-amber-400/90 h-12 text-base font-semibold mb-3"
         >
           {loading ? (
             <><Loader2 className="w-4 h-4 animate-spin mr-2" />Redirecting...</>
           ) : (
-            `Subscribe to ${selectedPlan?.name} — ${selectedPlan?.price}/mo`
+            `Subscribe — $9.99/mo`
           )}
         </Button>
 

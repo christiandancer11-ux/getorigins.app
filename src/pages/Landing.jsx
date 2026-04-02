@@ -17,35 +17,17 @@ const PLANS = [
     price: '$0',
     description: 'Get started, no card required.',
     color: 'text-muted-foreground',
-    features: ['Register cards & generate QR codes', 'Up to 5 messages/day', 'Leaderboard & analytics', 'Community trade feed'],
+    features: ['Register cards & generate QR codes', 'Up to 5 story messages/videos per day', 'Leaderboard & analytics'],
   },
   {
-    name: 'Stories',
-    price: '$3.99',
+    name: 'Origins Pro Bundle',
+    price: '$9.99',
     sub: '/mo',
-    description: 'For collectors who want to tell their story.',
-    color: 'text-primary',
-    highlight: false,
-    features: ['Unlimited messages & videos per day', 'All Free features'],
-  },
-  {
-    name: 'Origins Pro',
-    price: '$7.99',
-    sub: '/mo',
-    description: 'For serious collectors who want market edge.',
+    description: 'Everything you need to collect smarter.',
     color: 'text-amber-400',
     highlight: true,
-    badge: 'Most Popular',
-    features: ['Everything in Stories', 'Market Value Scanner', 'Live eBay & 130point comps', 'AI Card Scanner', 'Card Show Trade Logs'],
-  },
-  {
-    name: 'Expert Bundle',
-    price: '$14.99',
-    sub: '/mo',
-    description: 'The full toolkit for power collectors.',
-    color: 'text-orange-400',
-    badge: 'Best Value',
-    features: ['Everything in Pro', 'Trending — Top 100 hottest cards', 'Live data across 7 categories', 'F1, Pokémon, One Piece & more'],
+    badge: 'All Features',
+    features: ['Unlimited story messages & videos per day', 'Market Value & AI Card Scanner', 'Card Show Trades — real comp logs', 'Trending — Top 100 hottest cards', 'Live eBay, 130point & Origins data'],
   },
 ];
 
@@ -175,7 +157,7 @@ export default function Landing() {
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">Simple Pricing</h2>
             <p className="text-muted-foreground max-w-lg mx-auto">Start free. Upgrade when you're ready for more.</p>
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
             {PLANS.map((plan, i) => (
               <motion.div key={plan.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                 className={`relative rounded-2xl border p-6 flex flex-col ${plan.highlight ? 'border-amber-400/40 bg-amber-400/5' : 'border-border/50 bg-card'}`}>

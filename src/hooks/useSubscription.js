@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
-// Tier hierarchy: free < stories < pro < expert
-// isPro    = pro OR expert (market + card show access)
-// hasStories = stories OR pro OR expert (unlimited messages)
-// isExpert = expert only (trending access)
+// Plan structure:
+// free  = up to 5 story messages/videos per day (no subscription needed)
+// pro   = Origins Pro Bundle — unlimited stories + market, card show, trending ($9.99/mo)
 
 async function fetchSubscriptionStatus() {
   const res = await base44.functions.invoke('checkUsageLimit', {});
@@ -15,19 +14,21 @@ export function useSubscription() {
   const { data, isLoading } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: fetchSubscriptionStatus,
-    staleTime: 5 * 60 * 1000,   // treat as fresh for 5 minutes — no re-fetch on every nav
-    gcTime: 10 * 60 * 1000,     // keep in cache for 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: 1,
   });
 
-  const plan = isLoading ? null : (data?.plan || (data?.isPro ? 'stories' : false));
+  const isPro = !isLoading && data?.isPro === true;
 
   return {
-    plan,
+    plan: isLoading ? null : (isPro ? 'pro' : 'free'),
     loading: isLoading,
-    isExpert: plan === 'expert',
-    isPro: plan === 'pro' || plan === 'expert',
-    hasStories: plan === 'stories' || plan === 'pro' || plan === 'expert',
+    isPro,
+    // Legacy aliases so existing pages don't break
+    isExpert: isPro,
+    hasStories: true, // everyone can post stories (free tier allows 5/day)
     remaining: data?.remaining ?? null,
+    allowed: data?.allowed ?? true,
   };
 }

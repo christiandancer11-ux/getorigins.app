@@ -4,9 +4,7 @@ import Stripe from 'npm:stripe@14.21.0';
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
 const PRICES = {
-  stories: "price_1THrj4LrQAPNF8DfzUUNrRX5", // $3.99/mo
-  pro:     "price_1THrhNLrQAPNF8DfX0HRbkgA", // $7.99/mo
-  expert:  "price_1THs5qLrQAPNF8DfjWHXluli", // $14.99/mo
+  pro: "price_1THtGPLrQAPNF8DfbqIwgLvu", // $9.99/mo — Origins Pro Bundle
 };
 
 Deno.serve(async (req) => {
@@ -15,8 +13,8 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { successUrl, cancelUrl, plan = 'stories', couponId, trialDays } = await req.json();
-    const priceId = PRICES[plan] || PRICES.stories;
+    const { successUrl, cancelUrl, plan = 'pro', couponId, trialDays } = await req.json();
+    const priceId = PRICES[plan] || PRICES.pro;
 
     const sessionParams = {
       mode: 'subscription',
@@ -32,12 +30,10 @@ Deno.serve(async (req) => {
       },
     };
 
-    // Apply creator coupon if provided
     if (couponId) {
       sessionParams.discounts = [{ coupon: couponId }];
     }
 
-    // Apply trial if requested (and no coupon — Stripe doesn't allow both)
     if (trialDays && !couponId) {
       sessionParams.subscription_data = { trial_period_days: trialDays };
     }

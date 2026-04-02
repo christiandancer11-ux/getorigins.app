@@ -17,11 +17,9 @@
     "plan": {
       "type": "string",
       "enum": [
-        "stories",
-        "pro",
-        "expert"
+        "pro"
       ],
-      "description": "stories = unlimited messages; pro = messages + market + card show; expert = all + trending"
+      "description": "pro = Origins Pro Bundle (market, card show, trending)"
     },
     "status": {
       "type": "string",
