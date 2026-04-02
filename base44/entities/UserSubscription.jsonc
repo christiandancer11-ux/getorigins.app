@@ -1,0 +1,35 @@
+{
+  "name": "UserSubscription",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the subscribed user"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe customer ID"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Stripe subscription ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "cancelled"
+      ],
+      "default": "inactive",
+      "description": "Subscription status"
+    },
+    "current_period_end": {
+      "type": "string",
+      "description": "ISO date when subscription ends"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}
