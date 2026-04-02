@@ -87,5 +87,8 @@
 
   body {
     @apply bg-background text-foreground font-inter;
+    overscroll-behavior: none;
+    padding-top: env(safe-area-inset-top);
+    -webkit-tap-highlight-color: transparent;
   }
 }

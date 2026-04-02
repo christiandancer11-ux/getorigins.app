@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Pencil, MessageCircle, QrCode } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Pencil, MessageCircle, QrCode, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import SocialLink from '../components/profile/SocialLink';
@@ -22,6 +22,24 @@ const SOCIAL_CONFIG = [
 
 export default function Profile() {
   const [showEdit, setShowEdit] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    // Delete all user's cards, messages, trades
+    const [myCards, myTrades] = await Promise.all([
+      base44.entities.Card.list('-created_date'),
+      base44.entities.CardTrade.list('-created_date'),
+    ]);
+    await Promise.all([
+      ...myCards.map(c => base44.entities.Card.delete(c.id)),
+      ...myTrades.map(t => base44.entities.CardTrade.delete(t.id)),
+    ]);
+    queryClient.clear();
+    base44.auth.logout('/');
+  };
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['current-user'],
@@ -146,6 +164,36 @@ export default function Profile() {
         </motion.div>
 
         <ReferralSection />
+
+        {/* Delete Account */}
+        <div className="mt-6 pt-6 border-t border-border/30 text-center">
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors underline underline-offset-2"
+            >
+              Delete Account
+            </button>
+          ) : (
+            <div className="rounded-2xl bg-destructive/10 border border-destructive/20 p-5 text-left">
+              <div className="flex items-start gap-3 mb-4">
+                <Trash2 className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground text-sm">Delete your account?</p>
+                  <p className="text-xs text-muted-foreground mt-1">This will permanently delete all your cards, trades, and data. This cannot be undone.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" size="sm" className="flex-1 border-border/50" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>
+                  Cancel
+                </Button>
+                <Button size="sm" className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDeleteAccount} disabled={deleting}>
+                  {deleting ? 'Deleting...' : 'Yes, Delete Everything'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {showEdit && <EditProfileModal user={user} onClose={() => setShowEdit(false)} />}

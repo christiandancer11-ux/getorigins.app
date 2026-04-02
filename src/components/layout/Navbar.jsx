@@ -115,10 +115,11 @@ export default function Navbar() {
       </AnimatePresence>
 
       {/* Mobile Bottom Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-xl border-t border-border/50">
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-xl border-t border-border/50"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-center justify-around px-1 py-2 max-w-lg mx-auto overflow-x-auto">
           {NAV_LINKS.slice(0, 6).map(({ to, icon: Icon, label }) => (
-            <Link key={to} to={to} className="flex-1 min-w-0">
+            <Link key={to} to={to} className="flex-1 min-w-0 select-none">
               <div className={`flex flex-col items-center gap-0.5 py-1 px-0.5 rounded-xl transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium leading-tight truncate w-full text-center">{label}</span>
