@@ -8,6 +8,8 @@ const CATEGORIES = [
   { id: 'f1',         label: 'F1',          emoji: '🏎️' },
   { id: 'pokemon',    label: 'Pokémon',     emoji: '⚡' },
   { id: 'one_piece',  label: 'One Piece',   emoji: '☠️' },
+  { id: 'mtg',        label: 'MTG',         emoji: '🧙' },
+  { id: 'yugioh',     label: 'Yu-Gi-Oh!',   emoji: '🃏' },
 ];
 
 export { CATEGORIES };

@@ -8,6 +8,8 @@ const CATEGORY_MAP = {
   f1:          { sport: 'f1',        label: 'F1 Cards' },
   pokemon:     { sport: 'pokemon',   label: 'Pokémon Cards' },
   one_piece:   { sport: 'one_piece', label: 'One Piece Cards' },
+  mtg:         { sport: 'magic_the_gathering', label: 'Magic: The Gathering Cards' },
+  yugioh:      { sport: 'yugioh',   label: 'Yu-Gi-Oh! Cards' },
 };
 
 Deno.serve(async (req) => {
