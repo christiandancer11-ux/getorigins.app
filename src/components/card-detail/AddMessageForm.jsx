@@ -5,12 +5,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Loader2, Video, X } from 'lucide-react';
+import { Upload, Loader2, Video, X, ShieldAlert, ShieldCheck } from 'lucide-react';
+
+async function moderateContent({ message, video_url }) {
+  let prompt = `You are a content moderation system for a family-friendly sports card collecting app used by collectors of all ages including children.
+
+Review the following user-submitted content and determine if it contains anything offensive, vulgar, hateful, sexually explicit, violent, or otherwise inappropriate.
+
+Text message: "${message || '(none)'}"
+Video attached: ${video_url ? 'Yes' : 'No'}
+${video_url ? `Video URL: ${video_url}` : ''}
+
+Respond with a JSON object:
+{
+  "approved": true or false,
+  "reason": "brief reason if rejected, empty string if approved"
+}
+
+Be strict. Reject anything that would be inappropriate for a child to see or read.`;
+
+  const fileUrls = video_url ? [video_url] : undefined;
+
+  const result = await base44.integrations.Core.InvokeLLM({
+    prompt,
+    file_urls: fileUrls,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        approved: { type: "boolean" },
+        reason: { type: "string" },
+      },
+    },
+  });
+
+  return result;
+}
 
 export default function AddMessageForm({ cardId, onClose }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({ owner_name: '', message: '', video_url: '' });
   const [uploading, setUploading] = useState(false);
+  const [moderating, setModerating] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.VideoMessage.create(data),
@@ -24,15 +60,30 @@ export default function AddMessageForm({ cardId, onClose }) {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
+    setRejectionReason('');
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setForm(prev => ({ ...prev, video_url: file_url }));
     setUploading(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setRejectionReason('');
+    setModerating(true);
+
+    const result = await moderateContent({ message: form.message, video_url: form.video_url });
+
+    setModerating(false);
+
+    if (!result.approved) {
+      setRejectionReason(result.reason || 'Your message was flagged as inappropriate and could not be posted.');
+      return;
+    }
+
     createMutation.mutate({ ...form, card_id: cardId });
   };
+
+  const isLoading = moderating || createMutation.isPending;
 
   return (
     <div className="rounded-2xl bg-card border border-border/50 p-6">
@@ -48,7 +99,7 @@ export default function AddMessageForm({ cardId, onClose }) {
           <Label className="text-foreground">Your Name *</Label>
           <Input
             value={form.owner_name}
-            onChange={e => setForm(prev => ({ ...prev, owner_name: e.target.value }))}
+            onChange={e => { setForm(prev => ({ ...prev, owner_name: e.target.value })); setRejectionReason(''); }}
             placeholder="e.g. John D."
             required
             className="mt-1.5 bg-secondary border-border"
@@ -59,7 +110,7 @@ export default function AddMessageForm({ cardId, onClose }) {
           <Label className="text-foreground">Message</Label>
           <Textarea
             value={form.message}
-            onChange={e => setForm(prev => ({ ...prev, message: e.target.value }))}
+            onChange={e => { setForm(prev => ({ ...prev, message: e.target.value })); setRejectionReason(''); }}
             placeholder="Share a memory, story, or note about this card..."
             rows={3}
             className="mt-1.5 bg-secondary border-border"
@@ -91,13 +142,35 @@ export default function AddMessageForm({ cardId, onClose }) {
           )}
         </div>
 
+        {/* Rejection Banner */}
+        {rejectionReason && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+            <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-semibold mb-0.5">Content Not Allowed</p>
+              <p className="text-destructive/80">{rejectionReason}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Moderation notice */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <ShieldCheck className="w-3.5 h-3.5 text-primary/60 shrink-0" />
+          All messages are reviewed for appropriate content before posting.
+        </div>
+
         <Button
           type="submit"
-          disabled={!form.owner_name || createMutation.isPending}
+          disabled={!form.owner_name || isLoading}
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-          Post Message
+          {moderating ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" />Reviewing content...</>
+          ) : createMutation.isPending ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" />Posting...</>
+          ) : (
+            'Post Message'
+          )}
         </Button>
       </form>
     </div>
