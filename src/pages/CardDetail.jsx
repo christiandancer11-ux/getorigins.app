@@ -3,17 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, QrCode, Download, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Plus, QrCode, Download, MessageCircle, Share2 } from 'lucide-react';
 import QRCodeDisplay from '../components/shared/QRCodeDisplay';
 import SportBadge from '../components/shared/SportBadge';
 import VideoMessageCard from '../components/shared/VideoMessageCard';
 import AddMessageForm from '../components/card-detail/AddMessageForm';
 import EmptyState from '../components/shared/EmptyState';
+import ShareCardModal from '../components/card-detail/ShareCardModal';
 
 export default function CardDetail() {
   const { id } = useParams();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showShare, setShowShare] = useState(false);
 
   const { data: card, isLoading: cardLoading } = useQuery({
     queryKey: ['card', id],
@@ -97,6 +99,10 @@ export default function CardDetail() {
                   Download QR
                 </Button>
               </a>
+              <Button onClick={() => setShowShare(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Story
+              </Button>
             </div>
 
             {showQR && (
@@ -149,6 +155,10 @@ export default function CardDetail() {
           )}
         </div>
       </div>
+
+      {showShare && (
+        <ShareCardModal card={card} messages={messages} onClose={() => setShowShare(false)} />
+      )}
     </div>
   );
 }
