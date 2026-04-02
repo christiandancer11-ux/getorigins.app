@@ -38,7 +38,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setMenuOpen(false)}>
-            <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7c10218ce_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.png" alt="Origins" className="h-10 w-10 rounded-lg" />
+            <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7231ac246_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.jpeg" alt="Origins" className="h-10 w-10 rounded-lg" />
           </Link>
 
           {/* Desktop Nav */}

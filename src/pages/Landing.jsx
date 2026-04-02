@@ -233,7 +233,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-border/50 py-8 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-          <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7c10218ce_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.png" alt="Origins" className="h-7 w-7 rounded-md" />
+          <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7231ac246_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.jpeg" alt="Origins" className="h-7 w-7 rounded-md" />
           <div className="flex items-center gap-4">
             <button onClick={() => setShowRedeem(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">Redeem Code</button>
             <p className="text-xs text-muted-foreground">Every card has a story.</p>
