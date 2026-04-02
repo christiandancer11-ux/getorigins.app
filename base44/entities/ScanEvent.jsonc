@@ -1,0 +1,25 @@
+{
+  "name": "ScanEvent",
+  "type": "object",
+  "properties": {
+    "card_id": {
+      "type": "string",
+      "description": "Reference to the Card entity"
+    },
+    "card_owner_email": {
+      "type": "string",
+      "description": "Email of the card's original creator"
+    },
+    "hour_of_day": {
+      "type": "number",
+      "description": "Hour of the day (0-23) when the scan occurred"
+    },
+    "visitor_id": {
+      "type": "string",
+      "description": "Anonymous visitor fingerprint for unique visitor tracking"
+    }
+  },
+  "required": [
+    "card_id"
+  ]
+}

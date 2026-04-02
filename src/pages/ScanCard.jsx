@@ -21,10 +21,24 @@ export default function ScanCard() {
     },
   });
 
-  // Increment scan count once per page load
+  // Increment scan count and log scan event once per page load
   useEffect(() => {
     if (card?.id) {
       base44.entities.Card.update(card.id, { scan_count: (card.scan_count || 0) + 1 });
+
+      // Generate or retrieve anonymous visitor ID
+      let visitorId = localStorage.getItem('origins_visitor_id');
+      if (!visitorId) {
+        visitorId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem('origins_visitor_id', visitorId);
+      }
+
+      base44.entities.ScanEvent.create({
+        card_id: card.id,
+        card_owner_email: card.created_by,
+        hour_of_day: new Date().getHours(),
+        visitor_id: visitorId,
+      });
     }
   }, [card?.id]);
 
