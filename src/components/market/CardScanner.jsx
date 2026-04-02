@@ -14,6 +14,7 @@ export default function CardScanner() {
   const [error, setError] = useState(null);
   const [showListings, setShowListings] = useState(false);
   const fileRef = useRef();
+  const galleryRef = useRef();
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -50,24 +51,35 @@ export default function CardScanner() {
     <div className="space-y-6">
       {/* Upload area */}
       {step === STEP.IDLE && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          {/* Drop zone */}
           <div
-            onClick={() => fileRef.current?.click()}
+            onClick={() => galleryRef.current?.click()}
             className="flex flex-col items-center justify-center gap-4 p-10 rounded-2xl border-2 border-dashed border-border hover:border-primary/40 bg-secondary/20 cursor-pointer transition-colors group"
           >
             <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <Camera className="w-7 h-7 text-primary" />
             </div>
             <div className="text-center">
-              <p className="font-semibold text-foreground mb-1">Take or upload a card photo</p>
-              <p className="text-sm text-muted-foreground">AI will identify the card and pull live market value from eBay, 130point, and Origins trades</p>
-            </div>
-            <div className="flex gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary border border-border/50"><Camera className="w-3 h-3" />Camera</span>
-              <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary border border-border/50"><Upload className="w-3 h-3" />Gallery</span>
+              <p className="font-semibold text-foreground mb-1">Tap to choose a photo</p>
+              <p className="text-sm text-muted-foreground">AI identifies the card and pulls live market value from eBay, 130point, and Origins trades</p>
             </div>
           </div>
+
+          {/* Two explicit buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} className="border-border/50 gap-2">
+              <Camera className="w-4 h-4" />Take Photo
+            </Button>
+            <Button type="button" variant="outline" onClick={() => galleryRef.current?.click()} className="border-border/50 gap-2">
+              <Upload className="w-4 h-4" />Upload from Gallery
+            </Button>
+          </div>
+
+          {/* Camera input */}
           <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handleFile(e.target.files[0])} />
+          {/* Gallery input — no capture attribute so it opens the file picker */}
+          <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files[0])} />
         </motion.div>
       )}
 
