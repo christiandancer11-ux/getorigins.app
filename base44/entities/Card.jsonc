@@ -44,6 +44,16 @@
     "description": {
       "type": "string",
       "description": "Optional description or notes about the card"
+    },
+    "scan_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this card's QR code has been scanned"
+    },
+    "share_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this card's story has been shared"
     }
   },
   "required": [

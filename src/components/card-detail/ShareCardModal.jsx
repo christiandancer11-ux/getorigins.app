@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, Check, Download, ExternalLink, QrCode } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import html2canvas from 'html2canvas';
+import { base44 } from '@/api/base44Client';
 
 const PLATFORMS = [
   {
@@ -159,6 +160,13 @@ export default function ShareCardModal({ card, messages, onClose }) {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const previewRef = useRef(null);
+
+  // Increment share count when modal opens
+  useEffect(() => {
+    if (card?.id) {
+      base44.entities.Card.update(card.id, { share_count: (card.share_count || 0) + 1 });
+    }
+  }, []);
 
   const shareLink = `${window.location.origin}/scan/${card.unique_code}`;
 

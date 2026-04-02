@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, Plus, QrCode } from 'lucide-react';
+import { Layers, Plus, QrCode, Trophy } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
@@ -22,6 +22,12 @@ export default function Navbar() {
             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
               <Layers className="w-4 h-4 mr-2" />
               My Cards
+            </Button>
+          </Link>
+          <Link to="/leaderboard">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Trophy className="w-4 h-4 mr-2" />
+              Leaderboard
             </Button>
           </Link>
           <Link to="/register">

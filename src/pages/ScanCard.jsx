@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -20,6 +20,13 @@ export default function ScanCard() {
       return cards[0] || null;
     },
   });
+
+  // Increment scan count once per page load
+  useEffect(() => {
+    if (card?.id) {
+      base44.entities.Card.update(card.id, { scan_count: (card.scan_count || 0) + 1 });
+    }
+  }, [card?.id]);
 
   const { data: messages = [] } = useQuery({
     queryKey: ['card-messages', card?.id],

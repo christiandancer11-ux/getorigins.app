@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import RegisterCard from './pages/RegisterCard';
 import CardDetail from './pages/CardDetail';
 import ScanCard from './pages/ScanCard';
+import Leaderboard from './pages/Leaderboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
         <Route path="/register" element={<RegisterCard />} />
         <Route path="/cards/:id" element={<CardDetail />} />
         <Route path="/scan/:code" element={<ScanCard />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
