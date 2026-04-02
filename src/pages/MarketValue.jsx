@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { TrendingUp, Search, Loader2, BarChart2, Handshake, ShoppingCart, AlertCircle, Camera } from 'lucide-react';
+import { TrendingUp, Search, Loader2, BarChart2, Handshake, ShoppingCart, AlertCircle, Camera, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,6 +9,8 @@ import MarketSummaryCards from '../components/market/MarketSummaryCards';
 import SoldListingsTable from '../components/market/SoldListingsTable';
 import CardShowComps from '../components/market/CardShowComps';
 import CardScanner from '../components/market/CardScanner';
+import UpgradeModal from '../components/shared/UpgradeModal';
+import { useSubscription } from '../hooks/useSubscription';
 
 const TABS = [
   { id: 'search', label: 'Search', icon: Search },
@@ -22,6 +24,8 @@ export default function MarketValue() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const { isPro, loading: subLoading } = useSubscription();
 
   const { data: allTrades = [] } = useQuery({
     queryKey: ['card-trades'],
@@ -49,6 +53,34 @@ export default function MarketValue() {
     else setResult(res.data);
     setLoading(false);
   };
+
+  if (subLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <>
+        <div className="min-h-screen pt-24 pb-12 px-4 flex items-center justify-center">
+          <div className="max-w-md w-full text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
+              <Lock className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-2">Pro Feature</h2>
+            <p className="text-sm text-muted-foreground mb-6">Market Value — including live eBay comps, 130point data, and the AI Card Scanner — is part of Origins Pro.</p>
+            <Button onClick={() => setShowUpgrade(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8">
+              View Plans
+            </Button>
+          </div>
+        </div>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} defaultPlan="pro" />}
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6">

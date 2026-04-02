@@ -14,6 +14,14 @@
       "type": "string",
       "description": "Stripe subscription ID"
     },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "stories",
+        "pro"
+      ],
+      "description": "stories = unlimited messages only; pro = messages + market + card show"
+    },
     "status": {
       "type": "string",
       "enum": [

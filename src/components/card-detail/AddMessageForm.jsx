@@ -113,10 +113,10 @@ export default function AddMessageForm({ cardId, onClose }) {
           </div>
           <h4 className="font-semibold text-foreground mb-2">Daily Limit Reached</h4>
           <p className="text-sm text-muted-foreground mb-5">
-            You've used all 5 free messages for today. Upgrade to Pro for unlimited access.
+            You've used all 5 free messages for today. Upgrade for unlimited access.
           </p>
           <Button onClick={() => setShowUpgrade(true)} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-            Upgrade to Pro — $3.99/mo
+            View Plans — from $3.99/mo
           </Button>
         </div>
         {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}

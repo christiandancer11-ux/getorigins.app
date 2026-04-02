@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
     const activeSub = subs.find(s => s.status === 'active');
     if (activeSub) {
-      return Response.json({ allowed: true, isPro: true, remaining: null });
+      return Response.json({ allowed: true, isPro: true, plan: activeSub.plan || 'stories', remaining: null });
     }
 
     // Count today's messages by this user

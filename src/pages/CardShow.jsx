@@ -1,18 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Users } from 'lucide-react';
+import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import LogTradeModal from '../components/card-show/LogTradeModal';
 import TradeCard from '../components/card-show/TradeCard';
 import TradeFilters from '../components/card-show/TradeFilters';
 import EmptyState from '../components/shared/EmptyState';
+import UpgradeModal from '../components/shared/UpgradeModal';
+import { useSubscription } from '../hooks/useSubscription';
 
 export default function CardShow() {
   const [showLog, setShowLog] = useState(false);
   const [search, setSearch] = useState('');
   const [sport, setSport] = useState('all');
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const { isPro, loading: subLoading } = useSubscription();
 
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['card-trades'],
@@ -35,6 +39,34 @@ export default function CardShow() {
     ? (trades.reduce((s, t) => s + (t.total_value || 0), 0) / trades.length).toFixed(0)
     : 0;
   const tradesWithComps = trades.filter(t => t.ebay_comp_avg).length;
+
+  if (subLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <>
+        <div className="min-h-screen pt-24 pb-12 px-6 flex items-center justify-center">
+          <div className="max-w-md w-full text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
+              <Lock className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-2">Pro Feature</h2>
+            <p className="text-sm text-muted-foreground mb-6">Card Show Trades is part of Origins Pro. Upgrade to log deals, browse real comps, and see what cards are actually selling for.</p>
+            <Button onClick={() => setShowUpgrade(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8">
+              View Plans
+            </Button>
+          </div>
+        </div>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} defaultPlan="pro" />}
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-6">
@@ -122,6 +154,7 @@ export default function CardShow() {
       </div>
 
       {showLog && <LogTradeModal onClose={() => setShowLog(false)} />}
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
     </div>
   );
 }

@@ -2,7 +2,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import Stripe from 'npm:stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
-const PRICE_ID = "price_1THq51LrQAPNF8DfglxD1djR";
+
+const PRICES = {
+  stories: "price_1THrj4LrQAPNF8DfzUUNrRX5", // $3.99/mo
+  pro:     "price_1THrhNLrQAPNF8DfX0HRbkgA", // $7.99/mo
+};
 
 Deno.serve(async (req) => {
   try {
@@ -10,18 +14,20 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { successUrl, cancelUrl } = await req.json();
+    const { successUrl, cancelUrl, plan = 'stories' } = await req.json();
+    const priceId = PRICES[plan] || PRICES.stories;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: PRICE_ID, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
       customer_email: user.email,
       metadata: {
         base44_app_id: Deno.env.get("BASE44_APP_ID"),
         user_email: user.email,
+        plan,
       },
     });
 

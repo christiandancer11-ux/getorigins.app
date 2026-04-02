@@ -21,6 +21,7 @@ Deno.serve(async (req) => {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       const userEmail = session.metadata?.user_email;
+      const plan = session.metadata?.plan || 'stories';
       if (!userEmail) return Response.json({ received: true });
 
       const subscription = await stripe.subscriptions.retrieve(session.subscription);
@@ -32,6 +33,7 @@ Deno.serve(async (req) => {
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           status: 'active',
+          plan,
           current_period_end: periodEnd,
         });
       } else {
@@ -40,6 +42,7 @@ Deno.serve(async (req) => {
           stripe_customer_id: session.customer,
           stripe_subscription_id: session.subscription,
           status: 'active',
+          plan,
           current_period_end: periodEnd,
         });
       }
