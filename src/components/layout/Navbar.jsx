@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, Plus, QrCode, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp } from 'lucide-react';
+import { Layers, Plus, QrCode, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { to: '/dashboard', icon: Layers, label: 'My Cards' },
   { to: '/card-show', icon: Handshake, label: 'Card Show' },
   { to: '/market', icon: TrendingUp, label: 'Market' },
+  { to: '/trending', icon: Flame, label: 'Trending' },
   { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
   { to: '/analytics', icon: BarChart2, label: 'Analytics' },
   { to: '/profile', icon: User, label: 'Profile' },
@@ -115,12 +116,12 @@ export default function Navbar() {
 
       {/* Mobile Bottom Tab Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-xl border-t border-border/50">
-        <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
-          {NAV_LINKS.slice(0, 5).map(({ to, icon: Icon, label }) => (
-            <Link key={to} to={to} className="flex-1">
-              <div className={`flex flex-col items-center gap-0.5 py-1 px-1 rounded-xl transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
+        <div className="flex items-center justify-around px-1 py-2 max-w-lg mx-auto overflow-x-auto">
+          {NAV_LINKS.slice(0, 6).map(({ to, icon: Icon, label }) => (
+            <Link key={to} to={to} className="flex-1 min-w-0">
+              <div className={`flex flex-col items-center gap-0.5 py-1 px-0.5 rounded-xl transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium leading-tight">{label}</span>
+                <span className="text-[10px] font-medium leading-tight truncate w-full text-center">{label}</span>
               </div>
             </Link>
           ))}

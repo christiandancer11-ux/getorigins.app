@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Zap, Loader2, CheckCircle, MessageSquare, TrendingUp } from 'lucide-react';
+import { X, Zap, Loader2, CheckCircle, MessageSquare, TrendingUp, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
@@ -14,7 +14,6 @@ const PLANS = [
     border: 'border-primary/30',
     features: [
       'Unlimited story messages & videos per day',
-      'All cards, no restrictions',
     ],
   },
   {
@@ -25,11 +24,25 @@ const PLANS = [
     color: 'text-amber-400',
     bg: 'bg-amber-400/10',
     border: 'border-amber-400/30',
-    badge: 'Best Value',
     features: [
       'Everything in Stories',
       'Card Show Trades — log & browse real comps',
       'Market Value & AI Card Scanner',
+    ],
+  },
+  {
+    id: 'expert',
+    name: 'Expert Bundle',
+    price: '$14.99',
+    icon: Flame,
+    color: 'text-orange-400',
+    bg: 'bg-orange-400/10',
+    border: 'border-orange-400/30',
+    badge: 'Most Powerful',
+    features: [
+      'Everything in Origins Pro',
+      'Trending — Top 100 hottest cards per category',
+      'Live data from eBay, 130point & Origins trades',
     ],
   },
 ];
@@ -58,7 +71,7 @@ export default function UpgradeModal({ onClose, defaultPlan = 'stories' }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-md bg-card border border-border/50 rounded-2xl p-7 shadow-2xl">
+      <div className="relative w-full max-w-md bg-card border border-border/50 rounded-2xl p-7 shadow-2xl max-h-[90vh] overflow-y-auto">
         <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
           <X className="w-5 h-5" />
         </button>
@@ -90,7 +103,7 @@ export default function UpgradeModal({ onClose, defaultPlan = 'stories' }) {
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm text-foreground">{plan.name}</span>
                         {plan.badge && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-400 border border-amber-400/30">{plan.badge}</span>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-400/20 text-orange-400 border border-orange-400/30">{plan.badge}</span>
                         )}
                       </div>
                       <ul className="mt-1.5 space-y-0.5">

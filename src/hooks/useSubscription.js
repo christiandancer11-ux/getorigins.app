@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
-// Returns:
-//   isPro  = true  → has "pro" plan (market + card show + unlimited stories)
-//   hasStories = true → has at least "stories" plan (unlimited messages)
-//   loading = true while fetching
+// Tier hierarchy: free < stories < pro < expert
+// isPro    = pro OR expert (market + card show access)
+// hasStories = stories OR pro OR expert (unlimited messages)
+// isExpert = expert only (trending access)
 
 export function useSubscription() {
-  const [plan, setPlan] = useState(null); // null=loading, false=free, 'stories', 'pro'
+  const [plan, setPlan] = useState(null); // null=loading, false=free, 'stories', 'pro', 'expert'
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +24,8 @@ export function useSubscription() {
   return {
     plan,
     loading,
-    isPro: plan === 'pro',
-    hasStories: plan === 'stories' || plan === 'pro',
+    isExpert: plan === 'expert',
+    isPro: plan === 'pro' || plan === 'expert',
+    hasStories: plan === 'stories' || plan === 'pro' || plan === 'expert',
   };
 }

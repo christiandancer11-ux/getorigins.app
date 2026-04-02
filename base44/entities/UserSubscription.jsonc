@@ -18,9 +18,10 @@
       "type": "string",
       "enum": [
         "stories",
-        "pro"
+        "pro",
+        "expert"
       ],
-      "description": "stories = unlimited messages only; pro = messages + market + card show"
+      "description": "stories = unlimited messages; pro = messages + market + card show; expert = all + trending"
     },
     "status": {
       "type": "string",

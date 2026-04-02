@@ -17,6 +17,7 @@ import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import CardShow from './pages/CardShow';
 import MarketValue from './pages/MarketValue';
+import Trending from './pages/Trending';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/card-show" element={<CardShow />} />
         <Route path="/market" element={<MarketValue />} />
+        <Route path="/trending" element={<Trending />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

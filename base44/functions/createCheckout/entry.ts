@@ -6,6 +6,7 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 const PRICES = {
   stories: "price_1THrj4LrQAPNF8DfzUUNrRX5", // $3.99/mo
   pro:     "price_1THrhNLrQAPNF8DfX0HRbkgA", // $7.99/mo
+  expert:  "price_1THs5qLrQAPNF8DfjWHXluli", // $14.99/mo
 };
 
 Deno.serve(async (req) => {
