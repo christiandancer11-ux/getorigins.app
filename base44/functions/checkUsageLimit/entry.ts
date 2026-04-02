@@ -8,19 +8,21 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Check subscription
-    const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
+    // Run subscription check and message count in parallel
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [subs, allMessages] = await Promise.all([
+      base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email }),
+      base44.asServiceRole.entities.VideoMessage.filter({ created_by: user.email }),
+    ]);
+
     const activeSub = subs.find(s => s.status === 'active');
     if (activeSub) {
       return Response.json({ allowed: true, isPro: true, plan: activeSub.plan || 'stories', remaining: null });
     }
 
-    // Count today's messages by this user
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const allMessages = await base44.asServiceRole.entities.VideoMessage.filter({ created_by: user.email });
-    const todayMessages = allMessages.filter(m => new Date(m.created_date) >= today);
-    const count = todayMessages.length;
+    const count = allMessages.filter(m => new Date(m.created_date) >= today).length;
     const remaining = FREE_DAILY_LIMIT - count;
 
     return Response.json({

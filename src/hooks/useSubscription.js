@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
 // Tier hierarchy: free < stories < pro < expert
@@ -6,26 +6,28 @@ import { base44 } from '@/api/base44Client';
 // hasStories = stories OR pro OR expert (unlimited messages)
 // isExpert = expert only (trending access)
 
-export function useSubscription() {
-  const [plan, setPlan] = useState(null); // null=loading, false=free, 'stories', 'pro', 'expert'
-  const [loading, setLoading] = useState(true);
+async function fetchSubscriptionStatus() {
+  const res = await base44.functions.invoke('checkUsageLimit', {});
+  return res.data;
+}
 
-  useEffect(() => {
-    base44.functions.invoke('checkUsageLimit', {})
-      .then(res => {
-        const data = res.data;
-        if (data?.isPro) setPlan(data.plan || 'stories');
-        else setPlan(false);
-      })
-      .catch(() => setPlan(false))
-      .finally(() => setLoading(false));
-  }, []);
+export function useSubscription() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['subscription-status'],
+    queryFn: fetchSubscriptionStatus,
+    staleTime: 5 * 60 * 1000,   // treat as fresh for 5 minutes — no re-fetch on every nav
+    gcTime: 10 * 60 * 1000,     // keep in cache for 10 minutes
+    retry: 1,
+  });
+
+  const plan = isLoading ? null : (data?.plan || (data?.isPro ? 'stories' : false));
 
   return {
     plan,
-    loading,
+    loading: isLoading,
     isExpert: plan === 'expert',
     isPro: plan === 'pro' || plan === 'expert',
     hasStories: plan === 'stories' || plan === 'pro' || plan === 'expert',
+    remaining: data?.remaining ?? null,
   };
 }

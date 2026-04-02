@@ -30,10 +30,12 @@ export default function MarketValue() {
   const { data: allTrades = [] } = useQuery({
     queryKey: ['card-trades'],
     queryFn: () => base44.entities.CardTrade.list('-created_date', 500),
+    enabled: !!activeSearch,   // only fetch once a search is triggered
+    staleTime: 2 * 60 * 1000, // cache for 2 minutes
   });
 
   const showTrades = useMemo(() => {
-    if (!activeSearch) return [];
+    if (!activeSearch || !allTrades.length) return [];
     const q = activeSearch.toLowerCase();
     return allTrades.filter(t =>
       [t.card_name, t.set_name, t.year, t.card_number].filter(Boolean)
