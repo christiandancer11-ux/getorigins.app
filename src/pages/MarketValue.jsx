@@ -124,7 +124,7 @@ export default function MarketValue() {
                   <Input
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
-                    placeholder="e.g. 2011 Mike Trout Topps Update RC, Charizard Base Set, Patrick Mahomes Prizm..."
+                    placeholder="e.g. 2011 Mike Trout RC, Charizard Base Set Holo, Black Lotus MTG, Blue-Eyes White Dragon LOB..."
                     className="pl-9 bg-secondary border-border h-11"
                   />
                 </div>
@@ -193,7 +193,7 @@ export default function MarketValue() {
                     Enter a player name, set, year, or grade — or switch to <button onClick={() => setActiveTab('scan')} className="text-primary underline">Scan & Value</button> to photograph a card directly.
                   </p>
                   <div className="flex flex-wrap justify-center gap-2 mt-6">
-                    {['2011 Mike Trout Topps Update RC', 'LeBron James Prizm PSA 10', 'Charizard Base Set Holo', 'Patrick Mahomes Rookie'].map(ex => (
+                    {['2011 Mike Trout Topps Update RC', 'LeBron James Prizm PSA 10', 'Charizard Base Set Holo', 'Patrick Mahomes Rookie', 'Blue-Eyes White Dragon LOB 1st Edition', 'Black Lotus Alpha MTG', 'Pikachu Illustrator PSA 10', 'One Piece Luffy OP01'].map(ex => (
                       <button key={ex} onClick={() => setSearchInput(ex)}
                         className="text-xs px-3 py-1.5 rounded-full bg-secondary border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
                         {ex}
