@@ -1,5 +1,5 @@
 import React from 'react';
-import { Handshake, MapPin, DollarSign } from 'lucide-react';
+import { Handshake, MapPin, DollarSign, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const CONDITION_LABELS = {
@@ -48,11 +48,21 @@ export default function CardShowComps({ trades, query }) {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-base font-bold text-amber-400 flex items-center gap-0.5">
+                  <p className="text-base font-bold text-amber-400 flex items-center gap-0.5 justify-end">
                     <DollarSign className="w-3.5 h-3.5" />{(t.total_value || t.cash_paid || 0).toFixed(2)}
                   </p>
                   {t.ebay_comp_avg && (
                     <p className="text-xs text-muted-foreground">eBay avg ${t.ebay_comp_avg}</p>
+                  )}
+                  {t.verified === true && (
+                    <div className="flex items-center gap-0.5 text-xs text-green-400 mt-1 justify-end">
+                      <ShieldCheck className="w-3 h-3" />Verified
+                    </div>
+                  )}
+                  {t.verified === false && (
+                    <div className="flex items-center gap-0.5 text-xs text-muted-foreground mt-1 justify-end">
+                      <ShieldOff className="w-3 h-3" />Unverified
+                    </div>
                   )}
                 </div>
               </div>

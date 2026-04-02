@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Upload, Loader2, Search, TrendingUp } from 'lucide-react';
+import { X, Upload, Loader2, Search, TrendingUp, CheckCircle2, AlertTriangle, XCircle, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SPORTS = [
@@ -40,20 +40,67 @@ const EMPTY = {
   event_name: '', notes: '',
 };
 
+// Verify image clarity using AI vision
+async function checkImageClarity(imageUrl) {
+  const result = await base44.integrations.Core.InvokeLLM({
+    prompt: `Analyze this image of a trading card. Answer two questions:
+1. Is the card clearly visible and identifiable (not blurry, not dark, not obstructed, card text/artwork readable)?
+2. Can you tell what card this is (player name, set, or title visible)?
+
+Return JSON: { "clear": true/false, "reason": "short explanation" }`,
+    file_urls: [imageUrl],
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        clear: { type: 'boolean' },
+        reason: { type: 'string' },
+      },
+    },
+  });
+  return result;
+}
+
+// Verify trade is within fair market value (>= 70% of avg)
+function getVerificationStatus(totalValue, comps) {
+  if (!comps) return null;
+  const marketRef = comps.ebay_avg ?? comps.point130_avg ?? null;
+  if (marketRef == null || marketRef === 0) return null;
+  const tv = parseFloat(totalValue);
+  if (isNaN(tv) || tv <= 0) return null;
+  const pct = (tv / marketRef) * 100;
+  return { pct: Math.round(pct), marketRef, tv, passes: pct >= 70 };
+}
+
 export default function LogTradeModal({ onClose }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(EMPTY);
   const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState(null);
   const [fetchingComps, setFetchingComps] = useState(false);
   const [comps, setComps] = useState(null);
+  const [verifyError, setVerifyError] = useState(null);
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
+  const totalValue = (
+    parseFloat(form.cash_paid || 0) + parseFloat(form.trade_card_value || 0)
+  ).toFixed(2);
+
+  const verification = getVerificationStatus(totalValue, comps);
+
+  // IMAGE UPLOAD — check clarity first
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
+    setImageError(null);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const check = await checkImageClarity(file_url);
+    if (!check.clear) {
+      setImageError(check.reason || 'Image is not clear enough. Please retake the photo.');
+      setUploading(false);
+      return;
+    }
     set('image_url', file_url);
     setUploading(false);
   };
@@ -62,6 +109,7 @@ export default function LogTradeModal({ onClose }) {
     if (!form.card_name) return;
     setFetchingComps(true);
     setComps(null);
+    setVerifyError(null);
     const res = await base44.functions.invoke('fetchCardComps', {
       card_name: form.card_name,
       set_name: form.set_name,
@@ -73,10 +121,6 @@ export default function LogTradeModal({ onClose }) {
     setFetchingComps(false);
   };
 
-  const totalValue = (
-    parseFloat(form.cash_paid || 0) + parseFloat(form.trade_card_value || 0)
-  ).toFixed(2);
-
   const mutation = useMutation({
     mutationFn: (data) => base44.entities.CardTrade.create(data),
     onSuccess: () => {
@@ -87,6 +131,17 @@ export default function LogTradeModal({ onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setVerifyError(null);
+
+    // Fair market value check — block if below 70%
+    if (verification && !verification.passes) {
+      setVerifyError(
+        `Trade value ($${verification.tv}) is ${verification.pct}% of market average ($${verification.marketRef.toFixed(0)}). ` +
+        `Minimum is 70% ($${(verification.marketRef * 0.7).toFixed(0)}). This trade cannot be added to Origins Market Value.`
+      );
+      return;
+    }
+
     mutation.mutate({
       ...form,
       cash_paid: form.cash_paid ? parseFloat(form.cash_paid) : undefined,
@@ -96,6 +151,8 @@ export default function LogTradeModal({ onClose }) {
       ebay_comp_high: comps?.ebay_high,
       ebay_comp_avg: comps?.ebay_avg,
       market_data_raw: comps?.market_summary,
+      verified: verification ? verification.passes : null,
+      market_pct: verification?.pct ?? null,
     });
   };
 
@@ -118,19 +175,33 @@ export default function LogTradeModal({ onClose }) {
           </div>
 
           <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+
             {/* Card Image */}
             <div>
               <Label className="text-foreground mb-1.5 block">Card Photo</Label>
               {form.image_url ? (
                 <div className="flex items-center gap-3">
                   <img src={form.image_url} alt="card" className="w-16 h-24 object-cover rounded-lg border border-border/50" />
-                  <button type="button" onClick={() => set('image_url', '')} className="text-xs text-muted-foreground hover:text-destructive underline">Remove</button>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs text-green-400 mb-1"><CheckCircle2 className="w-3.5 h-3.5" />Image verified — clear</div>
+                    <button type="button" onClick={() => { set('image_url', ''); setImageError(null); }} className="text-xs text-muted-foreground hover:text-destructive underline">Remove</button>
+                  </div>
                 </div>
               ) : (
-                <label className="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/30 cursor-pointer bg-secondary/30 transition-colors">
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  {uploading ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : <><Upload className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Take or upload a photo</span></>}
-                </label>
+                <>
+                  <label className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed cursor-pointer bg-secondary/30 transition-colors ${imageError ? 'border-destructive/50 hover:border-destructive/70' : 'border-border hover:border-primary/30'}`}>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    {uploading
+                      ? <><Loader2 className="w-5 h-5 animate-spin text-primary" /><span className="text-sm text-muted-foreground">Checking image clarity...</span></>
+                      : <><Upload className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Take or upload a photo of the card</span></>}
+                  </label>
+                  {imageError && (
+                    <div className="flex items-start gap-2 mt-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                      <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                      <p className="text-xs text-destructive">{imageError} Please retake the photo in better lighting.</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -171,26 +242,33 @@ export default function LogTradeModal({ onClose }) {
             {/* Market Comps */}
             <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />Market Comps</p>
+                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />Market Comps
+                </p>
                 <Button type="button" size="sm" variant="outline" onClick={handleFetchComps} disabled={!form.card_name || fetchingComps} className="border-border/50 text-xs">
                   {fetchingComps ? <><Loader2 className="w-3 h-3 animate-spin mr-1" />Searching...</> : <><Search className="w-3 h-3 mr-1" />Fetch Comps</>}
                 </Button>
               </div>
               {comps ? (
                 <div className="space-y-1.5">
-                  <div className="flex gap-4 text-sm">
-                    {comps.ebay_low != null && <span className="text-muted-foreground">Low: <span className="text-green-400 font-semibold">${comps.ebay_low}</span></span>}
-                    {comps.ebay_avg != null && <span className="text-muted-foreground">Avg: <span className="text-primary font-semibold">${comps.ebay_avg}</span></span>}
-                    {comps.ebay_high != null && <span className="text-muted-foreground">High: <span className="text-foreground font-semibold">${comps.ebay_high}</span></span>}
+                  <div className="flex gap-4 text-sm flex-wrap">
+                    {comps.ebay_low != null && <span className="text-muted-foreground">eBay Low: <span className="text-green-400 font-semibold">${comps.ebay_low}</span></span>}
+                    {comps.ebay_avg != null && <span className="text-muted-foreground">eBay Avg: <span className="text-primary font-semibold">${comps.ebay_avg}</span></span>}
+                    {comps.point130_avg != null && <span className="text-muted-foreground">130pt Avg: <span className="text-emerald-400 font-semibold">${comps.point130_avg}</span></span>}
                   </div>
-                  {comps.market_summary && <p className="text-xs text-muted-foreground leading-relaxed">{comps.market_summary}</p>}
+                  {comps.ebay_avg != null && (
+                    <p className="text-xs text-muted-foreground">
+                      Min fair value (70%): <span className="text-amber-400 font-semibold">${(comps.ebay_avg * 0.7).toFixed(0)}</span>
+                    </p>
+                  )}
+                  {comps.market_summary && <p className="text-xs text-muted-foreground leading-relaxed mt-1">{comps.market_summary}</p>}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">Fill in card details then click "Fetch Comps" to pull recent eBay & 130point sold prices.</p>
+                <p className="text-xs text-muted-foreground">Fill in card details then click "Fetch Comps" to pull recent eBay & 130point sold prices and verify fair market value.</p>
               )}
             </div>
 
-            {/* Trade Details */}
+            {/* Trade Type */}
             <div>
               <Label className="text-foreground mb-1.5 block">Trade Type *</Label>
               <div className="grid grid-cols-3 gap-2">
@@ -223,16 +301,47 @@ export default function LogTradeModal({ onClose }) {
               </div>
             )}
 
+            {/* Deal value + verification status */}
             {parseFloat(totalValue) > 0 && (
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">
-                <span className="text-sm font-semibold text-foreground">Total Deal Value</span>
-                <span className="text-lg font-bold text-primary">${totalValue}</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">
+                  <span className="text-sm font-semibold text-foreground">Total Deal Value</span>
+                  <span className="text-lg font-bold text-primary">${totalValue}</span>
+                </div>
+
+                {/* Verification badge */}
+                {verification && (
+                  <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-sm ${verification.passes ? 'bg-green-400/10 border-green-400/20' : 'bg-destructive/10 border-destructive/20'}`}>
+                    {verification.passes
+                      ? <ShieldCheck className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
+                      : <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />}
+                    <div>
+                      <p className={`font-semibold ${verification.passes ? 'text-green-400' : 'text-destructive'}`}>
+                        {verification.passes ? '✓ Fair Market Value Verified' : '⚠ Below Fair Market Value'}
+                      </p>
+                      <p className={`text-xs mt-0.5 ${verification.passes ? 'text-green-400/70' : 'text-destructive/80'}`}>
+                        Trade is {verification.pct}% of market avg (${verification.marketRef.toFixed(0)}).
+                        {verification.passes
+                          ? ' This trade qualifies for Origins Market Value.'
+                          : ` Minimum is 70% ($${(verification.marketRef * 0.7).toFixed(0)}). Trade will be saved but excluded from Origins Market Value.`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Verification error on submit */}
+            {verifyError && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                <p className="text-xs text-destructive">{verifyError}</p>
               </div>
             )}
 
             <div>
               <Label className="text-foreground mb-1 block">Event / Location</Label>
-              <Input value={form.event_name} onChange={e => set('event_name', e.target.value)} placeholder="e.g. Chicago Card Show, National Sports Collectors Convention" className="bg-secondary border-border" />
+              <Input value={form.event_name} onChange={e => set('event_name', e.target.value)} placeholder="e.g. Chicago Card Show" className="bg-secondary border-border" />
             </div>
 
             <div>
@@ -243,7 +352,7 @@ export default function LogTradeModal({ onClose }) {
 
           <div className="px-6 py-4 border-t border-border/50 flex gap-3 shrink-0">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1 border-border/50">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={!form.card_name || !form.trade_type || mutation.isPending} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button onClick={handleSubmit} disabled={!form.card_name || !form.trade_type || mutation.isPending || uploading} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
               {mutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving...</> : 'Log Trade'}
             </Button>
           </div>

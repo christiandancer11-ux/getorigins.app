@@ -57,7 +57,7 @@
     },
     "image_url": {
       "type": "string",
-      "description": "Photo of the traded card"
+      "description": "Photo of the traded card (AI-verified clear)"
     },
     "trade_type": {
       "type": "string",
@@ -107,6 +107,14 @@
     "market_data_raw": {
       "type": "string",
       "description": "Raw market comp summary from research"
+    },
+    "verified": {
+      "type": "boolean",
+      "description": "True if trade value is at or above 70% of market average (qualifies for Origins Market Value)"
+    },
+    "market_pct": {
+      "type": "number",
+      "description": "Trade value as a percentage of market average"
     }
   },
   "required": [
