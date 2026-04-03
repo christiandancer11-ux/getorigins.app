@@ -14,9 +14,12 @@ const heatColor = (score) => {
   return 'text-muted-foreground';
 };
 
-export default function TrendingCardRow({ card, highlight }) {
+export default function TrendingCardRow({ card, highlight, onClick }) {
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 transition-colors ${highlight ? 'bg-primary/5' : 'hover:bg-secondary/30'}`}>
+    <div
+      onClick={onClick}
+      className={`flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 transition-colors cursor-pointer ${highlight ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-secondary/30'}`}
+    >
       {/* Rank */}
       <div className="w-8 text-center shrink-0">
         {card.rank <= 3 ? (

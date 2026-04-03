@@ -7,6 +7,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import UpgradeModal from '@/components/shared/UpgradeModal';
 import TrendingCategoryPicker, { CATEGORIES } from '@/components/trending/TrendingCategoryPicker';
 import TrendingCardRow from '@/components/trending/TrendingCardRow';
+import TrendingCardDetailSheet from '@/components/trending/TrendingCardDetailSheet';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh.jsx';
 
 const VIEW_MODES = [
@@ -26,6 +27,7 @@ export default function Trending() {
   const [loadingCategory, setLoadingCategory] = useState(null);
   const [visibleCount, setVisibleCount] = useState({});
   const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
 
   const cacheKey = `${selectedCategory}__${selectedViewMode}`;
   const currentData = trendingData[cacheKey];
@@ -226,7 +228,7 @@ export default function Trending() {
             {/* Card list */}
             <div className="rounded-2xl border border-border/40 overflow-hidden bg-card">
               {currentData.cards?.slice(0, currentVisible).map((card, i) => (
-                <TrendingCardRow key={card.rank} card={card} highlight={i < 3} />
+                <TrendingCardRow key={card.rank} card={card} highlight={i < 3} onClick={() => setSelectedCard(card)} />
               ))}
             </div>
 
@@ -251,6 +253,14 @@ export default function Trending() {
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      {selectedCard && (
+        <TrendingCardDetailSheet
+          card={selectedCard}
+          viewMode={selectedViewMode}
+          onClose={() => setSelectedCard(null)}
+        />
+      )}
     </div>
   );
 }
