@@ -112,6 +112,7 @@ Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria
           prompt: buildPrompt(start, end),
           add_context_from_internet: true,
           response_json_schema: cardSchema,
+          model: 'gemini_3_flash',
         })
       )
     );
