@@ -28,12 +28,7 @@ const WALKTHROUGH_STEPS = [
     icon: '🏆',
     isPremium: false,
   },
-  {
-    title: 'Price Alerts (Free)',
-    description: 'Get notified when specific cards drop below or rise above your target price on the market.',
-    icon: '🔔',
-    isPremium: false,
-  },
+
   {
     title: 'Origins Pro Bundle',
     description: 'Unlock premium features: live market data, trending cards, card show deal tracking, and more.',
@@ -50,6 +45,12 @@ const WALKTHROUGH_STEPS = [
     title: 'Trending & Market Data',
     description: '(Pro) See which cards are trending, market prices, and investment opportunities in real-time.',
     icon: '📈',
+    isPremium: true,
+  },
+  {
+    title: 'Price Alerts',
+    description: '(Pro) Get notified when specific cards drop below or rise above your target price on the market.',
+    icon: '🔔',
     isPremium: true,
   },
   {
