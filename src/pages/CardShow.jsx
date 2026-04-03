@@ -20,11 +20,15 @@ export default function CardShow() {
   const [sport, setSport] = useState('all');
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [userBanned, setUserBanned] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
   const { isPro, loading: subLoading } = useSubscription();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(u => { if (u?.trade_banned) setUserBanned(true); });
+    base44.auth.me().then(u => {
+      if (u?.trade_banned) setUserBanned(true);
+      if (u?.email) setCurrentUserEmail(u.email);
+    });
   }, []);
 
   const { data: trades = [], isLoading } = useQuery({
@@ -158,7 +162,7 @@ export default function CardShow() {
         </div>
 
         {activeTab === 'live' ? (
-          <TradeLiveFeed />
+          <TradeLiveFeed currentUserEmail={currentUserEmail} />
         ) : (
           <>
             {/* Filters */}

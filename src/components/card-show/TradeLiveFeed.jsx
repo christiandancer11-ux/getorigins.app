@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, DollarSign, MapPin, CreditCard, ShieldCheck, AlertTriangle } from 'lucide-react';
 import SportBadge from '../shared/SportBadge';
+import TradeInteractions from './TradeInteractions';
 
 const CONDITION_LABELS = {
   raw: 'Raw', psa_10: 'PSA 10', psa_9: 'PSA 9', psa_8: 'PSA 8', psa_7: 'PSA 7',
@@ -24,7 +25,7 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function LiveTradeItem({ trade, isNew }) {
+function LiveTradeItem({ trade, isNew, currentUserEmail }) {
   const dealBadge = () => {
     if (!trade.ebay_comp_avg || !trade.total_value) return null;
     const ratio = trade.total_value / trade.ebay_comp_avg;
@@ -40,8 +41,9 @@ function LiveTradeItem({ trade, isNew }) {
       initial={{ opacity: 0, y: -16, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      className={`flex gap-3 p-3.5 rounded-xl border transition-colors ${isNew ? 'border-primary/40 bg-primary/5' : 'border-border/40 bg-card'}`}
+      className={`rounded-xl border overflow-hidden transition-colors ${isNew ? 'border-primary/40 bg-primary/5' : 'border-border/40 bg-card'}`}
     >
+      <div className="flex gap-3 p-3.5">
       {/* Image */}
       <div className="shrink-0">
         {trade.image_url ? (
@@ -88,11 +90,13 @@ function LiveTradeItem({ trade, isNew }) {
           <span className="shrink-0 ml-auto">{timeAgo(trade.created_date)}</span>
         </div>
       </div>
+      </div>
+      <TradeInteractions tradeId={trade.id} currentUserEmail={currentUserEmail} />
     </motion.div>
   );
 }
 
-export default function TradeLiveFeed() {
+export default function TradeLiveFeed({ currentUserEmail }) {
   const [trades, setTrades] = useState([]);
   const [newIds, setNewIds] = useState(new Set());
   const initialized = useRef(false);
@@ -144,7 +148,7 @@ export default function TradeLiveFeed() {
         <div className="space-y-2">
           <AnimatePresence initial={false}>
             {trades.map(trade => (
-              <LiveTradeItem key={trade.id} trade={trade} isNew={newIds.has(trade.id)} />
+              <LiveTradeItem key={trade.id} trade={trade} isNew={newIds.has(trade.id)} currentUserEmail={currentUserEmail} />
             ))}
           </AnimatePresence>
         </div>
