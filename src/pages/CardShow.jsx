@@ -2,18 +2,20 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
-import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Lock, Ban } from 'lucide-react';
+import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Lock, Ban, Radio, LayoutList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import LogTradeModal from '../components/card-show/LogTradeModal';
 import TradeCard from '../components/card-show/TradeCard';
 import TradeFilters from '../components/card-show/TradeFilters';
+import TradeLiveFeed from '../components/card-show/TradeLiveFeed';
 import EmptyState from '../components/shared/EmptyState';
 import UpgradeModal from '../components/shared/UpgradeModal';
 import { useSubscription } from '../hooks/useSubscription';
 
 export default function CardShow() {
   const [showLog, setShowLog] = useState(false);
+  const [activeTab, setActiveTab] = useState('browse');
   const [search, setSearch] = useState('');
   const [sport, setSport] = useState('all');
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -132,47 +134,75 @@ export default function CardShow() {
           )}
         </motion.div>
 
-        {/* Filters */}
-        <div className="mb-6">
-          <TradeFilters
-            search={search}
-            sport={sport}
-            onSearchChange={setSearch}
-            onSportChange={setSport}
-          />
+        {/* Tabs */}
+        <div className="flex gap-1 p-1 bg-secondary/40 rounded-xl border border-border/40 w-fit mb-6">
+          {[
+            { id: 'browse', label: 'Browse', icon: LayoutList },
+            { id: 'live', label: 'Live Feed', icon: Radio },
+          ].map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === id ? 'bg-card text-foreground shadow border border-border/40' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+              {id === 'live' && (
+                <span className="relative flex h-1.5 w-1.5 ml-0.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400"></span>
+                </span>
+              )}
+            </button>
+          ))}
         </div>
 
-        {/* Content */}
-        {isLoading ? (
-          <div className="space-y-4">
-            {Array(4).fill(0).map((_, i) => (
-              <div key={i} className="h-36 rounded-2xl bg-card border border-border/50 animate-pulse" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          trades.length === 0 ? (
-            <EmptyState
-              icon={Handshake}
-              title="No trades logged yet"
-              description="Be the first to log a card show trade. Your deal will be visible to all collectors for real-time comps."
-            >
-              <Button onClick={() => setShowLog(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Log First Trade
-              </Button>
-            </EmptyState>
-          ) : (
-            <div className="text-center py-16 text-sm text-muted-foreground">No trades match your search.</div>
-          )
+        {activeTab === 'live' ? (
+          <TradeLiveFeed />
         ) : (
-          <div className="space-y-4">
-            {filtered.map((trade, i) => (
-              <TradeCard key={trade.id} trade={trade} index={i} />
-            ))}
-            <p className="text-center text-xs text-muted-foreground pt-2">
-              Showing {filtered.length} of {trades.length} trades
-            </p>
-          </div>
+          <>
+            {/* Filters */}
+            <div className="mb-6">
+              <TradeFilters
+                search={search}
+                sport={sport}
+                onSearchChange={setSearch}
+                onSportChange={setSport}
+              />
+            </div>
+
+            {isLoading ? (
+              <div className="space-y-4">
+                {Array(4).fill(0).map((_, i) => (
+                  <div key={i} className="h-36 rounded-2xl bg-card border border-border/50 animate-pulse" />
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              trades.length === 0 ? (
+                <EmptyState
+                  icon={Handshake}
+                  title="No trades logged yet"
+                  description="Be the first to log a card show trade. Your deal will be visible to all collectors for real-time comps."
+                >
+                  <Button onClick={() => setShowLog(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Log First Trade
+                  </Button>
+                </EmptyState>
+              ) : (
+                <div className="text-center py-16 text-sm text-muted-foreground">No trades match your search.</div>
+              )
+            ) : (
+              <div className="space-y-4">
+                {filtered.map((trade, i) => (
+                  <TradeCard key={trade.id} trade={trade} index={i} />
+                ))}
+                <p className="text-center text-xs text-muted-foreground pt-2">
+                  Showing {filtered.length} of {trades.length} trades
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
