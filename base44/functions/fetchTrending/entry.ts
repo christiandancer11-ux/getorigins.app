@@ -79,11 +79,22 @@ Deno.serve(async (req) => {
 
     const modeInstruction = VIEW_MODE_INSTRUCTIONS[viewMode] || VIEW_MODE_INSTRUCTIONS.hottest;
 
+    const trendingCutoffISO = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+
     const buildPrompt = (startRank, endRank) =>
       `You are a sports card market expert. List ranks #${startRank} to #${endRank} for the category "${label}", focused on: ${modeInstruction}.
 
 Context from Origins community trades:
 ${internalSummary}
+
+=== STRICT MARKET DATA QUALITY RULES ===
+When sourcing eBay or external market prices for estimated_value_avg:
+1. CONFIRMED SALES ONLY: Only use listings that are verified as SOLD. Exclude unsold, expired, relisted, or unaccepted-offer listings.
+2. OUTLIER FILTERING: If a single eBay sale is more than 100% above the established market average for that card:
+   - Exclude it from value calculations UNLESS there are 2+ confirmed sales within 20-30% of each other AND all occurred more than 12 hours ago (before ${trendingCutoffISO})
+   - A lone outlier sale within the last 12 hours must be excluded — it may be a manipulation attempt
+   - Use 130point.com as a cross-reference to validate values
+3. BASE VALUES ON THE MEDIAN of qualifying confirmed sales, not on single high outliers.
 
 Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence explaining why it ranks here for this specific filter), trend (up/down/stable).`;
 
