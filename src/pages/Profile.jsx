@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, MessageCircle, QrCode, Trash2 } from 'lucide-react';
+import { Pencil, MessageCircle, QrCode, Trash2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import SocialLink from '../components/profile/SocialLink';
@@ -165,8 +165,21 @@ export default function Profile() {
 
         <ReferralSection />
 
-        {/* Delete Account */}
+        {/* Account Actions */}
         <div className="mt-6 pt-6 border-t border-border/30 text-center">
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-border/50 text-muted-foreground hover:text-foreground mb-4"
+            onClick={() => base44.auth.logout('/')}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Log Out
+          </Button>
+        </div>
+
+        {/* Delete Account */}
+        <div className="mt-2 text-center">
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}
