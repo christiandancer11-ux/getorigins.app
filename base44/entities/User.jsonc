@@ -49,6 +49,32 @@
     "whatnot": {
       "type": "string",
       "description": "Whatnot Live seller URL or username"
+    },
+    "trade_fraud_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of out-of-range trade submissions that were denied by AI review"
+    },
+    "trade_banned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user is temporarily banned from logging trades/sales"
+    },
+    "trade_ban_reason": {
+      "type": "string",
+      "description": "Reason for the trade ban, set by admin or system"
     }
-  }
+  },
+  "required": [
+    "bio",
+    "avatar_url",
+    "youtube",
+    "twitch",
+    "x_twitter",
+    "tiktok",
+    "instagram",
+    "ebay_store",
+    "fanatics_live",
+    "whatnot"
+  ]
 }

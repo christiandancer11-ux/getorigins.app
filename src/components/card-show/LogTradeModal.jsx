@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import NativeSelect from '@/components/shared/NativeSelect';
-import { X, Upload, Loader2, Search, TrendingUp, CheckCircle2, AlertTriangle, XCircle, ShieldCheck } from 'lucide-react';
+import { X, Upload, Loader2, Search, TrendingUp, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Ban, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SPORTS = [
@@ -40,35 +40,23 @@ const EMPTY = {
   event_name: '', notes: '',
 };
 
-// Verify image clarity using AI vision
 async function checkImageClarity(imageUrl) {
-  const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `Analyze this image of a trading card. Answer two questions:
-1. Is the card clearly visible and identifiable (not blurry, not dark, not obstructed, card text/artwork readable)?
-2. Can you tell what card this is (player name, set, or title visible)?
-
+  return base44.integrations.Core.InvokeLLM({
+    prompt: `Analyze this image of a trading card. Is the card clearly visible and identifiable (not blurry, not dark, not obstructed)?
 Return JSON: { "clear": true/false, "reason": "short explanation" }`,
     file_urls: [imageUrl],
-    response_json_schema: {
-      type: 'object',
-      properties: {
-        clear: { type: 'boolean' },
-        reason: { type: 'string' },
-      },
-    },
+    response_json_schema: { type: 'object', properties: { clear: { type: 'boolean' }, reason: { type: 'string' } } },
   });
-  return result;
 }
 
-// Verify trade is within fair market value (>= 70% of avg)
-function getVerificationStatus(totalValue, comps) {
+function getVerification(totalValue, comps) {
   if (!comps) return null;
   const marketRef = comps.ebay_avg ?? comps.point130_avg ?? null;
   if (marketRef == null || marketRef === 0) return null;
   const tv = parseFloat(totalValue);
   if (isNaN(tv) || tv <= 0) return null;
   const pct = (tv / marketRef) * 100;
-  return { pct: Math.round(pct), marketRef, tv, passes: pct >= 70 };
+  return { pct: Math.round(pct), marketRef, tv, inRange: pct >= 70 && pct <= 100 };
 }
 
 export default function LogTradeModal({ onClose }) {
@@ -78,7 +66,11 @@ export default function LogTradeModal({ onClose }) {
   const [imageError, setImageError] = useState(null);
   const [fetchingComps, setFetchingComps] = useState(false);
   const [comps, setComps] = useState(null);
-  const [verifyError, setVerifyError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
+  const [aiReviewing, setAiReviewing] = useState(false);
+  const [aiResult, setAiResult] = useState(null); // { approved, reason, banned, attempts_remaining }
+  const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
@@ -86,9 +78,18 @@ export default function LogTradeModal({ onClose }) {
     parseFloat(form.cash_paid || 0) + parseFloat(form.trade_card_value || 0)
   ).toFixed(2);
 
-  const verification = getVerificationStatus(totalValue, comps);
+  const verification = getVerification(totalValue, comps);
 
-  // IMAGE UPLOAD — check clarity first
+  // Check if user is banned on mount
+  useEffect(() => {
+    base44.auth.me().then(user => {
+      if (user?.trade_banned) {
+        setIsBanned(true);
+        setBanReason(user.trade_ban_reason || 'You have been temporarily banned from logging trades.');
+      }
+    });
+  }, []);
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -109,7 +110,8 @@ export default function LogTradeModal({ onClose }) {
     if (!form.card_name) return;
     setFetchingComps(true);
     setComps(null);
-    setVerifyError(null);
+    setSubmitError(null);
+    setAiResult(null);
     const res = await base44.functions.invoke('fetchCardComps', {
       card_name: form.card_name,
       set_name: form.set_name,
@@ -141,32 +143,83 @@ export default function LogTradeModal({ onClose }) {
     },
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setVerifyError(null);
+  const buildTradePayload = () => ({
+    ...form,
+    cash_paid: form.cash_paid ? parseFloat(form.cash_paid) : undefined,
+    trade_card_value: form.trade_card_value ? parseFloat(form.trade_card_value) : undefined,
+    total_value: parseFloat(totalValue),
+    ebay_comp_low: comps?.ebay_low,
+    ebay_comp_high: comps?.ebay_high,
+    ebay_comp_avg: comps?.ebay_avg,
+    market_data_raw: comps?.market_summary,
+    verified: verification ? verification.inRange : null,
+    market_pct: verification?.pct ?? null,
+  });
 
-    // Fair market value check — block if below 70%
-    if (verification && !verification.passes) {
-      setVerifyError(
-        `Trade value ($${verification.tv}) is ${verification.pct}% of market average ($${verification.marketRef.toFixed(0)}). ` +
-        `Minimum is 70% ($${(verification.marketRef * 0.7).toFixed(0)}). This trade cannot be added to Origins Market Value.`
-      );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError(null);
+    setAiResult(null);
+
+    if (isBanned) return;
+
+    // In-range: log directly
+    if (!verification || verification.inRange) {
+      mutation.mutate(buildTradePayload());
       return;
     }
 
-    mutation.mutate({
-      ...form,
-      cash_paid: form.cash_paid ? parseFloat(form.cash_paid) : undefined,
-      trade_card_value: form.trade_card_value ? parseFloat(form.trade_card_value) : undefined,
-      total_value: parseFloat(totalValue),
-      ebay_comp_low: comps?.ebay_low,
-      ebay_comp_high: comps?.ebay_high,
-      ebay_comp_avg: comps?.ebay_avg,
-      market_data_raw: comps?.market_summary,
-      verified: verification ? verification.passes : null,
-      market_pct: verification?.pct ?? null,
+    // Out of range — send to AI review
+    setAiReviewing(true);
+    const res = await base44.functions.invoke('reviewOutOfRangeTrade', {
+      trade_data: buildTradePayload(),
+      comps,
     });
+    setAiReviewing(false);
+
+    const result = res.data;
+
+    if (result.banned) {
+      setIsBanned(true);
+      setBanReason('You have been temporarily banned after multiple denied out-of-range submissions. Please contact an admin to appeal.');
+      setAiResult(result);
+      return;
+    }
+
+    if (!result.approved) {
+      setAiResult(result);
+      return;
+    }
+
+    // AI approved out-of-range — already logged by backend, just close
+    queryClient.invalidateQueries({ queryKey: ['card-trades'] });
+    onClose();
   };
+
+  // Banned state
+  if (isBanned) {
+    return (
+      <AnimatePresence>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={e => e.target === e.currentTarget && onClose()}>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-card border border-destructive/30 rounded-2xl shadow-2xl p-8 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-destructive/15 border border-destructive/30 flex items-center justify-center mx-auto mb-5">
+              <Ban className="w-8 h-8 text-destructive" />
+            </div>
+            <h2 className="font-display text-xl font-bold text-foreground mb-2">Trade Logging Suspended</h2>
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{banReason}</p>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6 text-left">
+              <p className="text-xs text-destructive font-semibold mb-1">To be reinstated:</p>
+              <p className="text-xs text-muted-foreground">Contact an Origins admin and provide proof that your submissions were legitimate. Your account data will be reviewed before the ban is lifted.</p>
+            </div>
+            <Button variant="outline" onClick={onClose} className="w-full border-border/50">Close</Button>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -262,15 +315,15 @@ export default function LogTradeModal({ onClose }) {
                     {comps.ebay_avg != null && <span className="text-muted-foreground">eBay Avg: <span className="text-primary font-semibold">${comps.ebay_avg}</span></span>}
                     {comps.point130_avg != null && <span className="text-muted-foreground">130pt Avg: <span className="text-emerald-400 font-semibold">${comps.point130_avg}</span></span>}
                   </div>
-                  {comps.ebay_avg != null && (
+                  {(comps.ebay_avg ?? comps.point130_avg) && (
                     <p className="text-xs text-muted-foreground">
-                      Min fair value (70%): <span className="text-amber-400 font-semibold">${(comps.ebay_avg * 0.7).toFixed(0)}</span>
+                      Valid range (70%–100%): <span className="text-amber-400 font-semibold">${((comps.ebay_avg ?? comps.point130_avg) * 0.7).toFixed(0)}</span> – <span className="text-amber-400 font-semibold">${(comps.ebay_avg ?? comps.point130_avg).toFixed(0)}</span>
                     </p>
                   )}
                   {comps.market_summary && <p className="text-xs text-muted-foreground leading-relaxed mt-1">{comps.market_summary}</p>}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">Fill in card details then click "Fetch Comps" to pull recent eBay & 130point sold prices and verify fair market value.</p>
+                <p className="text-xs text-muted-foreground">Fill in card details then click "Fetch Comps" to pull recent eBay & 130point sold prices.</p>
               )}
             </div>
 
@@ -307,7 +360,7 @@ export default function LogTradeModal({ onClose }) {
               </div>
             )}
 
-            {/* Deal value + verification status */}
+            {/* Deal value + verification badge */}
             {parseFloat(totalValue) > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">
@@ -315,21 +368,23 @@ export default function LogTradeModal({ onClose }) {
                   <span className="text-lg font-bold text-primary">${totalValue}</span>
                 </div>
 
-                {/* Verification badge */}
                 {verification && (
-                  <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-sm ${verification.passes ? 'bg-green-400/10 border-green-400/20' : 'bg-destructive/10 border-destructive/20'}`}>
-                    {verification.passes
+                  <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl border text-sm ${
+                    verification.inRange
+                      ? 'bg-green-400/10 border-green-400/20'
+                      : 'bg-amber-400/10 border-amber-400/20'
+                  }`}>
+                    {verification.inRange
                       ? <ShieldCheck className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                      : <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />}
+                      : <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />}
                     <div>
-                      <p className={`font-semibold ${verification.passes ? 'text-green-400' : 'text-destructive'}`}>
-                        {verification.passes ? '✓ Fair Market Value Verified' : '⚠ Below Fair Market Value'}
+                      <p className={`font-semibold text-sm ${verification.inRange ? 'text-green-400' : 'text-amber-400'}`}>
+                        {verification.inRange ? '✓ Within Fair Market Range' : `⚠ Outside Fair Market Range (${verification.pct}%)`}
                       </p>
-                      <p className={`text-xs mt-0.5 ${verification.passes ? 'text-green-400/70' : 'text-destructive/80'}`}>
-                        Trade is {verification.pct}% of market avg (${verification.marketRef.toFixed(0)}).
-                        {verification.passes
-                          ? ' This trade qualifies for Origins Market Value.'
-                          : ` Minimum is 70% ($${(verification.marketRef * 0.7).toFixed(0)}). Trade will be saved but excluded from Origins Market Value.`}
+                      <p className={`text-xs mt-0.5 ${verification.inRange ? 'text-green-400/70' : 'text-amber-400/70'}`}>
+                        {verification.inRange
+                          ? `Trade is ${verification.pct}% of market avg — qualifies for Origins Market Value.`
+                          : `Value is outside 70%–100% range. Submitting will trigger an AI review. Repeated fraudulent submissions result in a ban.`}
                       </p>
                     </div>
                   </div>
@@ -337,11 +392,26 @@ export default function LogTradeModal({ onClose }) {
               </div>
             )}
 
-            {/* Verification error on submit */}
-            {verifyError && (
+            {/* AI review result */}
+            {aiResult && !aiResult.approved && (
+              <div className="flex items-start gap-2.5 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                <Bot className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-destructive mb-1">AI Review — Submission Denied</p>
+                  <p className="text-xs text-destructive/80 leading-relaxed">{aiResult.reason}</p>
+                  {aiResult.attempts_remaining > 0 && (
+                    <p className="text-xs text-amber-400 mt-2 font-medium">
+                      ⚠ Warning: {aiResult.attempts_remaining} more denied submission{aiResult.attempts_remaining !== 1 ? 's' : ''} will result in a temporary ban.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {submitError && (
               <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20">
                 <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                <p className="text-xs text-destructive">{verifyError}</p>
+                <p className="text-xs text-destructive">{submitError}</p>
               </div>
             )}
 
@@ -351,15 +421,25 @@ export default function LogTradeModal({ onClose }) {
             </div>
 
             <div>
-              <Label className="text-foreground mb-1 block">Notes</Label>
+              <Label className="text-foreground mb-1 block">Notes {verification && !verification.inRange && <span className="text-amber-400 text-xs">— explain the out-of-range value here</span>}</Label>
               <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Any extra details..." rows={2} className="bg-secondary border-border resize-none" />
             </div>
           </form>
 
           <div className="px-6 py-4 border-t border-border/50 flex gap-3 shrink-0">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1 border-border/50">Cancel</Button>
-            <Button onClick={handleSubmit} disabled={!form.card_name || !form.trade_type || mutation.isPending || uploading} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
-              {mutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving...</> : 'Log Trade'}
+            <Button
+              onClick={handleSubmit}
+              disabled={!form.card_name || !form.trade_type || mutation.isPending || uploading || aiReviewing}
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {aiReviewing
+                ? <><Bot className="w-4 h-4 animate-pulse mr-2" />AI Reviewing...</>
+                : mutation.isPending
+                  ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving...</>
+                  : verification && !verification.inRange
+                    ? 'Submit for AI Review'
+                    : 'Log Trade'}
             </Button>
           </div>
         </motion.div>

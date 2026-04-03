@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
-import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Lock } from 'lucide-react';
+import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Lock, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import LogTradeModal from '../components/card-show/LogTradeModal';
@@ -17,8 +17,13 @@ export default function CardShow() {
   const [search, setSearch] = useState('');
   const [sport, setSport] = useState('all');
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [userBanned, setUserBanned] = useState(false);
   const { isPro, loading: subLoading } = useSubscription();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(u => { if (u?.trade_banned) setUserBanned(true); });
+  }, []);
 
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['card-trades'],
@@ -78,6 +83,18 @@ export default function CardShow() {
     <div ref={containerRef} className="min-h-screen pt-24 pb-12 px-6">
       <div className="max-w-3xl mx-auto">
         <PullIndicator />
+
+        {/* Ban Banner */}
+        {userBanned && (
+          <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/30">
+            <Ban className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-destructive">Trade Logging Suspended</p>
+              <p className="text-xs text-destructive/80 mt-0.5">Your account has been temporarily banned from logging trades due to multiple out-of-range submissions. Please contact an admin to appeal and have your access reinstated.</p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -90,7 +107,7 @@ export default function CardShow() {
                 Real in-person trade comps — log deals, see what cards are actually selling for at shows.
               </p>
             </div>
-            <Button onClick={() => setShowLog(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
+            <Button onClick={() => setShowLog(true)} disabled={userBanned} className="bg-primary text-primary-foreground hover:bg-primary/90 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
               <Plus className="w-4 h-4 mr-2" />
               Log a Trade
             </Button>
