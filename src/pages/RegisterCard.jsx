@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useMutation } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AiAutoFillButton from '@/components/register/AiAutoFillButton';
+import ImageAgreementModal from '@/components/register/ImageAgreementModal';
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -24,6 +25,14 @@ export default function RegisterCard() {
     name: '', set_name: '', sport: '', year: '', card_number: '', description: '', image_url: '', price_paid: '', estimated_value: '',
   });
   const [uploading, setUploading] = useState(false);
+  const [showAgreement, setShowAgreement] = useState(false);
+
+  useEffect(() => {
+    const hasAgreed = localStorage.getItem('origins_image_agreement_accepted');
+    if (!hasAgreed) {
+      setShowAgreement(true);
+    }
+  }, []);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Card.create(data),
@@ -59,7 +68,13 @@ export default function RegisterCard() {
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-6">
+    <>
+      <ImageAgreementModal 
+        isOpen={showAgreement}
+        onAgree={() => setShowAgreement(false)}
+        onDisagree={() => navigate('/dashboard')}
+      />
+      <div className="min-h-screen pt-24 pb-12 px-6">
       <div className="max-w-xl mx-auto">
         <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />Back to My Cards
@@ -165,5 +180,6 @@ export default function RegisterCard() {
         </form>
       </div>
     </div>
+    </>
   );
 }
