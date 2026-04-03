@@ -66,51 +66,57 @@ const PieTooltip = ({ active, payload }) => {
 };
 
 export default function CollectionStats({ cards }) {
-  const owned = cards.filter(c => !c.status || c.status === 'owned');
+  const owned = React.useMemo(() => cards.filter(c => !c.status || c.status === 'owned'), [cards]);
 
   // Total value
-  const totalValue = owned.reduce((sum, c) => sum + (c.estimated_value || 0), 0);
-  const cardsWithValue = owned.filter(c => c.estimated_value > 0).length;
+  const totalValue = React.useMemo(() => owned.reduce((sum, c) => sum + (c.estimated_value || 0), 0), [owned]);
+  const cardsWithValue = React.useMemo(() => owned.filter(c => c.estimated_value > 0).length, [owned]);
 
   // Sport breakdown
-  const sportMap = {};
-  owned.forEach(c => {
-    const key = c.sport || 'other';
-    if (!sportMap[key]) sportMap[key] = { count: 0, value: 0 };
-    sportMap[key].count++;
-    sportMap[key].value += c.estimated_value || 0;
-  });
-  const sportData = Object.entries(sportMap)
-    .map(([key, d]) => ({ name: SPORT_LABELS[key] || key, count: d.count, value: Math.round(d.value), fill: SPORT_COLORS[key] || '#6b7280' }))
-    .sort((a, b) => b.count - a.count);
+  const sportData = React.useMemo(() => {
+    const sportMap = {};
+    owned.forEach(c => {
+      const key = c.sport || 'other';
+      if (!sportMap[key]) sportMap[key] = { count: 0, value: 0 };
+      sportMap[key].count++;
+      sportMap[key].value += c.estimated_value || 0;
+    });
+    return Object.entries(sportMap)
+      .map(([key, d]) => ({ name: SPORT_LABELS[key] || key, count: d.count, value: Math.round(d.value), fill: SPORT_COLORS[key] || '#6b7280' }))
+      .sort((a, b) => b.count - a.count);
+  }, [owned]);
 
   // Rarity breakdown
-  const rarityMap = {};
-  owned.forEach(c => {
-    if (!c.rarity) return;
-    if (!rarityMap[c.rarity]) rarityMap[c.rarity] = { count: 0, value: 0 };
-    rarityMap[c.rarity].count++;
-    rarityMap[c.rarity].value += c.estimated_value || 0;
-  });
-  const rarityData = Object.entries(rarityMap)
-    .map(([key, d]) => ({ name: RARITY_LABELS[key] || key, count: d.count, value: Math.round(d.value), fill: RARITY_COLORS[key] || '#6b7280' }));
+  const rarityData = React.useMemo(() => {
+    const rarityMap = {};
+    owned.forEach(c => {
+      if (!c.rarity) return;
+      if (!rarityMap[c.rarity]) rarityMap[c.rarity] = { count: 0, value: 0 };
+      rarityMap[c.rarity].count++;
+      rarityMap[c.rarity].value += c.estimated_value || 0;
+    });
+    return Object.entries(rarityMap)
+      .map(([key, d]) => ({ name: RARITY_LABELS[key] || key, count: d.count, value: Math.round(d.value), fill: RARITY_COLORS[key] || '#6b7280' }));
+  }, [owned]);
 
   // Value over time (cumulative by month added)
-  const now = new Date();
-  const sixMonthsAgo = subMonths(now, 5);
-  const months = eachMonthOfInterval({ start: sixMonthsAgo, end: now });
-  const valueOverTime = months.map(month => {
-    const monthStr = format(month, 'MMM yy');
-    const cumValue = owned
-      .filter(c => {
-        const d = c.created_date ? parseISO(c.created_date) : null;
-        return d && startOfMonth(d) <= startOfMonth(month);
-      })
-      .reduce((sum, c) => sum + (c.estimated_value || 0), 0);
-    return { month: monthStr, value: Math.round(cumValue) };
-  });
+  const valueOverTime = React.useMemo(() => {
+    const now = new Date();
+    const sixMonthsAgo = subMonths(now, 5);
+    const months = eachMonthOfInterval({ start: sixMonthsAgo, end: now });
+    return months.map(month => {
+      const monthStr = format(month, 'MMM yy');
+      const cumValue = owned
+        .filter(c => {
+          const d = c.created_date ? parseISO(c.created_date) : null;
+          return d && startOfMonth(d) <= startOfMonth(month);
+        })
+        .reduce((sum, c) => sum + (c.estimated_value || 0), 0);
+      return { month: monthStr, value: Math.round(cumValue) };
+    });
+  }, [owned]);
 
-  const hasValueData = valueOverTime.some(d => d.value > 0);
+  const hasValueData = React.useMemo(() => valueOverTime.some(d => d.value > 0), [valueOverTime]);
 
   return (
     <div className="space-y-6">

@@ -114,64 +114,66 @@ export default function CardValueBreakdown({ cards }) {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-xl bg-card border border-border/40 overflow-hidden"
         >
-          <div className="divide-y divide-border/40">
-            {sortedCards.map((card, index) => {
+          <div className="divide-y divide-border/40 max-h-[600px] overflow-y-auto">
+            {sortedCards.slice(0, 50).map((card, index) => {
               const percentage = totalValue > 0 ? ((card.estimated_value || 0) / totalValue) * 100 : 0;
               return (
-                <motion.div
+                <div
                   key={card.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.02 }}
                   className="p-4 hover:bg-secondary/50 transition-colors"
                 >
                   <div className="flex items-start gap-4">
-                    {/* Card image/thumbnail */}
-                    {card.image_url && (
-                      <div className="w-14 h-20 rounded-lg overflow-hidden border border-border/40 shrink-0">
-                        <img src={card.image_url} alt={card.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
+                     {/* Card image/thumbnail */}
+                     {card.image_url && (
+                       <div className="w-14 h-20 rounded-lg overflow-hidden border border-border/40 shrink-0">
+                         <img src={card.image_url} alt={card.name} className="w-full h-full object-cover" />
+                       </div>
+                     )}
 
-                    {/* Card details */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground truncate">{card.name}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {card.set_name && <>{card.set_name}</> }
-                        {card.year && <> • {card.year}</>}
-                        {card.rarity && <> • {card.rarity.replace('_', ' ')}</>}
-                      </p>
-                      
-                      {/* Percentage bar */}
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 h-2 rounded-full bg-secondary/60 overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] text-muted-foreground w-10 text-right">{percentage.toFixed(1)}%</span>
-                      </div>
-                    </div>
+                     {/* Card details */}
+                     <div className="flex-1 min-w-0">
+                       <p className="font-semibold text-foreground truncate">{card.name}</p>
+                       <p className="text-xs text-muted-foreground mt-1">
+                         {card.set_name && <>{card.set_name}</> }
+                         {card.year && <> • {card.year}</>}
+                         {card.rarity && <> • {card.rarity.replace('_', ' ')}</>}
+                       </p>
 
-                    {/* Value & Gain/Loss */}
-                    <div className="text-right shrink-0">
-                      <p className="text-lg font-bold text-primary">${(card.estimated_value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                      {card.price_paid ? (
-                        <div className="mt-1 text-[10px]">
-                          <p className="text-muted-foreground">Paid: ${card.price_paid.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                          <p className={card.estimated_value - card.price_paid >= 0 ? 'text-green-400' : 'text-red-400'}>
-                            {card.estimated_value - card.price_paid >= 0 ? '+' : ''}{(card.estimated_value - card.price_paid).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-[10px] text-muted-foreground mt-1">{percentage.toFixed(1)}% of total</p>
-                      )}
-                    </div>
+                       {/* Percentage bar */}
+                       <div className="mt-2 flex items-center gap-2">
+                         <div className="flex-1 h-2 rounded-full bg-secondary/60 overflow-hidden">
+                           <div
+                             className="h-full bg-primary rounded-full transition-all"
+                             style={{ width: `${percentage}%` }}
+                           />
+                         </div>
+                         <span className="text-[10px] text-muted-foreground w-10 text-right">{percentage.toFixed(1)}%</span>
+                       </div>
+                     </div>
+
+                     {/* Value & Gain/Loss */}
+                     <div className="text-right shrink-0">
+                       <p className="text-lg font-bold text-primary">${(card.estimated_value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                       {card.price_paid ? (
+                         <div className="mt-1 text-[10px]">
+                           <p className="text-muted-foreground">Paid: ${card.price_paid.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                           <p className={card.estimated_value - card.price_paid >= 0 ? 'text-green-400' : 'text-red-400'}>
+                             {card.estimated_value - card.price_paid >= 0 ? '+' : ''}{(card.estimated_value - card.price_paid).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                           </p>
+                         </div>
+                       ) : (
+                         <p className="text-[10px] text-muted-foreground mt-1">{percentage.toFixed(1)}% of total</p>
+                       )}
+                     </div>
+                   </div>
                   </div>
-                </motion.div>
               );
             })}
+            {sortedCards.length > 50 && (
+              <div className="p-3 text-center text-xs text-muted-foreground bg-secondary/20">
+                Showing 50 of {sortedCards.length} cards · Scroll to see more
+              </div>
+            )}
           </div>
         </motion.div>
       )}

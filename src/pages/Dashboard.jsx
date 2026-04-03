@@ -32,12 +32,21 @@ export default function Dashboard() {
 
   const { data: allCards = [], isLoading } = useQuery({
     queryKey: ['my-cards'],
-    queryFn: () => base44.entities.Card.list('-created_date'),
+    queryFn: () => base44.entities.Card.list('-created_date', 500),
+    staleTime: 60000,
   });
 
   const { data: messages = [] } = useQuery({
-    queryKey: ['all-messages'],
-    queryFn: () => base44.entities.VideoMessage.list(),
+    queryKey: ['user-messages', currentUserEmail],
+    queryFn: async () => {
+      if (!currentUserEmail) return [];
+      const userCards = allCards.map(c => c.id);
+      if (userCards.length === 0) return [];
+      const allMsgs = await base44.entities.VideoMessage.list();
+      return allMsgs.filter(m => userCards.includes(m.card_id));
+    },
+    enabled: !!currentUserEmail && allCards.length > 0,
+    staleTime: 60000,
   });
 
   const refresh = () => {
@@ -49,9 +58,20 @@ export default function Dashboard() {
 
   const getMessageCount = (cardId) => messages.filter(m => m.card_id === cardId).length;
 
-  const ownedCards = allCards.filter(c => !c.status || c.status === 'owned');
-  const soldTradedCards = allCards.filter(c => c.status === 'sold' || c.status === 'traded');
-  const totalValue = ownedCards.reduce((sum, c) => sum + (c.estimated_value || 0), 0);
+  const ownedCards = React.useMemo(
+    () => allCards.filter(c => !c.status || c.status === 'owned'),
+    [allCards]
+  );
+  
+  const soldTradedCards = React.useMemo(
+    () => allCards.filter(c => c.status === 'sold' || c.status === 'traded'),
+    [allCards]
+  );
+  
+  const totalValue = React.useMemo(
+    () => ownedCards.reduce((sum, c) => sum + (c.estimated_value || 0), 0),
+    [ownedCards]
+  );
 
   return (
     <div ref={containerRef} className="min-h-screen pt-24 pb-12 px-4 sm:px-6">
