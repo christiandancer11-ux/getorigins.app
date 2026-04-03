@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { QrCode, Video, History, ArrowRight, Layers, Sparkles, TrendingUp, Handshake, BarChart2, Flame, MessageSquare, CheckCircle, Tag, Gift } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
+import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
+import { useAuth } from '@/lib/AuthContext';
 
 const HOW_IT_WORKS = [
   { icon: QrCode, title: 'Generate QR Stickers', description: 'Register your card — AI identifies it from your photo and generates a unique QR code sticker for the back.' },
@@ -56,6 +58,16 @@ function FeatureCard({ feature, index }) {
 
 export default function Landing() {
   const [showRedeem, setShowRedeem] = useState(false);
+  const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Show walkthrough only for newly registered users (no completion flag + just logged in)
+    if (user && !localStorage.getItem('origins_onboarding_complete')) {
+      const timer = setTimeout(() => setShowWalkthrough(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen">
@@ -242,6 +254,7 @@ export default function Landing() {
       </footer>
 
       {showRedeem && <RedeemCodeModal onClose={() => setShowRedeem(false)} />}
+      {showWalkthrough && <OnboardingWalkthrough isOpen={showWalkthrough} onClose={() => setShowWalkthrough(false)} />}
     </div>
   );
 }
