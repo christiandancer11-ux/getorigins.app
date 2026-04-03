@@ -20,9 +20,10 @@ Deno.serve(async (req) => {
 
     // Verify expert subscription
     const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
+    const isAdmin = user.role === 'admin';
     const activeSub = subs.find(s => s.status === 'active');
-    if (!activeSub || activeSub.plan !== 'expert') {
-      return Response.json({ error: 'Expert subscription required' }, { status: 403 });
+    if (!isAdmin && (!activeSub || !['pro', 'expert'].includes(activeSub.plan))) {
+      return Response.json({ error: 'Pro subscription required' }, { status: 403 });
     }
 
     const { category } = await req.json();
