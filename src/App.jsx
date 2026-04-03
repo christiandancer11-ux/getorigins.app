@@ -25,6 +25,8 @@ import CollectorProfile from './pages/CollectorProfile';
 import BOLOAlerts from './pages/BOLOAlerts';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
+import Support from './pages/Support';
+import Marketing from './pages/Marketing';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +69,8 @@ const AuthenticatedApp = () => {
         <Route path="/bolo" element={<BOLOAlerts />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfUse />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/features" element={<Marketing />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
