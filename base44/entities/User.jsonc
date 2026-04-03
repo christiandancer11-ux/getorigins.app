@@ -63,6 +63,16 @@
     "trade_ban_reason": {
       "type": "string",
       "description": "Reason for the trade ban, set by admin or system"
+    },
+    "dealer_tag": {
+      "type": "string",
+      "enum": [
+        "none",
+        "card_show_dealer",
+        "card_shop_owner"
+      ],
+      "default": "none",
+      "description": "Certified dealer/shop tag \u2014 required to submit BOLO alerts"
     }
   },
   "required": [

@@ -22,6 +22,7 @@ import AdminCodes from './pages/AdminCodes';
 import PriceAlerts from './pages/PriceAlerts';
 import TradeDashboard from './pages/TradeDashboard';
 import CollectorProfile from './pages/CollectorProfile';
+import BOLOAlerts from './pages/BOLOAlerts';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
         <Route path="/alerts" element={<PriceAlerts />} />
         <Route path="/trade-dashboard" element={<TradeDashboard />} />
         <Route path="/collector/:email" element={<CollectorProfile />} />
+        <Route path="/bolo" element={<BOLOAlerts />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

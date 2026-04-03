@@ -1,0 +1,94 @@
+{
+  "name": "BOLOAlert",
+  "type": "object",
+  "properties": {
+    "reporter_email": {
+      "type": "string",
+      "description": "Email of the dealer/shop owner who submitted the alert"
+    },
+    "reporter_name": {
+      "type": "string",
+      "description": "Display name of the reporter"
+    },
+    "reporter_type": {
+      "type": "string",
+      "enum": [
+        "card_show_dealer",
+        "card_shop_owner"
+      ],
+      "description": "Type of certified reporter"
+    },
+    "incident_type": {
+      "type": "string",
+      "enum": [
+        "stolen_at_show",
+        "shop_break_in",
+        "other"
+      ],
+      "description": "How the cards were stolen"
+    },
+    "incident_date": {
+      "type": "string",
+      "description": "ISO date of the theft"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Name of the event/shop/location"
+    },
+    "location_lat": {
+      "type": "number",
+      "description": "Latitude of incident"
+    },
+    "location_lng": {
+      "type": "number",
+      "description": "Longitude of incident"
+    },
+    "card_list": {
+      "type": "string",
+      "description": "Full list of stolen cards (text)"
+    },
+    "total_value": {
+      "type": "number",
+      "description": "Estimated total value of stolen cards"
+    },
+    "slab_cert_numbers": {
+      "type": "string",
+      "description": "AI-extracted PSA/BGS/SGC cert numbers from images"
+    },
+    "suspect_description": {
+      "type": "string",
+      "description": "Description of the suspect if known"
+    },
+    "image_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photos of stolen cards"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "resolved",
+        "cancelled"
+      ],
+      "default": "active",
+      "description": "Current status of the alert"
+    },
+    "notifications_sent": {
+      "type": "number",
+      "default": 0,
+      "description": "How many users were notified"
+    }
+  },
+  "required": [
+    "reporter_email",
+    "reporter_type",
+    "incident_type",
+    "location_lat",
+    "location_lng",
+    "card_list",
+    "total_value"
+  ]
+}
