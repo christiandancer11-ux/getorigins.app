@@ -5,6 +5,7 @@ const CATEGORIES = [
   { id: 'baseball',   label: 'Baseball',    emoji: '⚾' },
   { id: 'basketball', label: 'Basketball',  emoji: '🏀' },
   { id: 'soccer',     label: 'Soccer',      emoji: '⚽' },
+  { id: 'hockey',     label: 'Hockey',      emoji: '🏒' },
   { id: 'f1',         label: 'F1',          emoji: '🏎️' },
   { id: 'pokemon',    label: 'Pokémon',     emoji: '⚡' },
   { id: 'one_piece',  label: 'One Piece',   emoji: '☠️' },
