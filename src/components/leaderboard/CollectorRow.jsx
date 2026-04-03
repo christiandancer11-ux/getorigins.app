@@ -1,6 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy } from 'lucide-react';
 
 const RANK_STYLES = {
   1: { trophy: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30', badge: '🥇' },
@@ -8,7 +8,7 @@ const RANK_STYLES = {
   3: { trophy: 'text-amber-600',  bg: 'bg-amber-600/10 border-amber-600/30',  badge: '🥉' },
 };
 
-export default function CollectorRow({ collector, rank, valueLabel, index }) {
+export default function CollectorRow({ collector, rank, valueLabel, index, formatValue }) {
   const style = RANK_STYLES[rank];
   const isTop3 = rank <= 3;
 
@@ -18,7 +18,7 @@ export default function CollectorRow({ collector, rank, valueLabel, index }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.04 }}
       className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
-        isTop3 ? style.bg : 'bg-card border-border/50'
+        isTop3 ? style.bg : 'bg-card border-border/50 hover:border-border'
       }`}
     >
       {/* Rank */}
@@ -39,14 +39,18 @@ export default function CollectorRow({ collector, rank, valueLabel, index }) {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-foreground truncate">{collector.name}</p>
-        <p className="text-xs text-muted-foreground">{collector.cardCount} card{collector.cardCount !== 1 ? 's' : ''}</p>
+        <Link to={`/collector/${encodeURIComponent(collector.email)}`} className="font-semibold text-foreground truncate hover:text-primary transition-colors block">
+          {collector.name}
+        </Link>
+        {collector.cardCount != null && (
+          <p className="text-xs text-muted-foreground">{collector.cardCount} card{collector.cardCount !== 1 ? 's' : ''}</p>
+        )}
       </div>
 
       {/* Score */}
       <div className="text-right shrink-0">
         <p className={`text-xl font-bold font-display ${isTop3 ? 'text-primary' : 'text-foreground'}`}>
-          {collector.score.toLocaleString()}
+          {formatValue ? formatValue(collector.score) : collector.score.toLocaleString()}
         </p>
         <p className="text-xs text-muted-foreground">{valueLabel}</p>
       </div>

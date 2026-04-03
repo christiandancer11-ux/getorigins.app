@@ -103,6 +103,35 @@ export default function LogTradeModal({ onClose }) {
       return;
     }
     set('image_url', file_url);
+
+    // AI auto-identify card details
+    const identified = await base44.integrations.Core.InvokeLLM({
+      prompt: `Look at this trading card image and extract as much detail as possible.
+Return a JSON with these fields (leave empty string if not visible):
+- card_name: player name or card title
+- set_name: set or product name (e.g. "Topps Chrome", "Prizm")
+- year: year printed on the card
+- card_number: card number if visible (e.g. "PSA 10" grading label or "/150" print run)
+- sport: one of: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh, other`,
+      file_urls: [file_url],
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          card_name: { type: 'string' }, set_name: { type: 'string' },
+          year: { type: 'string' }, card_number: { type: 'string' }, sport: { type: 'string' },
+        },
+      },
+    });
+
+    setForm(prev => ({
+      ...prev,
+      image_url: file_url,
+      card_name: identified.card_name || prev.card_name,
+      set_name: identified.set_name || prev.set_name,
+      year: identified.year || prev.year,
+      card_number: identified.card_number || prev.card_number,
+      sport: identified.sport && ['baseball','basketball','football','hockey','soccer','pokemon','magic_the_gathering','yugioh','other'].includes(identified.sport) ? identified.sport : prev.sport,
+    }));
     setUploading(false);
   };
 
@@ -257,8 +286,8 @@ export default function LogTradeModal({ onClose }) {
                   <label className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed cursor-pointer bg-secondary/30 transition-colors ${imageError ? 'border-destructive/50 hover:border-destructive/70' : 'border-border hover:border-primary/30'}`}>
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     {uploading
-                      ? <><Loader2 className="w-5 h-5 animate-spin text-primary" /><span className="text-sm text-muted-foreground">Checking image clarity...</span></>
-                      : <><Upload className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Take or upload a photo of the card</span></>}
+                      ? <><Loader2 className="w-5 h-5 animate-spin text-primary" /><span className="text-sm text-muted-foreground">Analyzing card with AI...</span></>
+                      : <><Upload className="w-4 h-4 text-muted-foreground" /><span className="text-sm text-muted-foreground">Upload photo — AI will auto-fill card details</span></>}
                   </label>
                   {imageError && (
                     <div className="flex items-start gap-2 mt-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">

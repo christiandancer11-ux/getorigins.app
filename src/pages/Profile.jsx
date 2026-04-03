@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, MessageCircle, QrCode, Trash2, LogOut } from 'lucide-react';
+import { Pencil, MessageCircle, QrCode, Trash2, LogOut, Handshake, DollarSign, ShieldCheck, CreditCard, MapPin, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import SportBadge from '../components/shared/SportBadge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import SocialLink from '../components/profile/SocialLink';
@@ -58,7 +60,15 @@ export default function Profile() {
     enabled: !!user,
   });
 
+  const { data: myTrades = [] } = useQuery({
+    queryKey: ['my-trades-profile'],
+    queryFn: () => base44.entities.CardTrade.filter({ created_by: user.email }, '-created_date', 50),
+    enabled: !!user,
+  });
+
   const myMessageCount = messages.filter(m => cards.some(c => c.id === m.card_id)).length;
+  const tradeVolume = myTrades.reduce((s, t) => s + (t.total_value || 0), 0);
+  const verifiedTrades = myTrades.filter(t => t.verified).length;
   const hasSocials = user && SOCIAL_CONFIG.some(s => user[s.key]);
 
   if (isLoading) {
@@ -101,7 +111,7 @@ export default function Profile() {
           </div>
 
           {/* Quick stats */}
-          <div className="flex gap-6 mt-5 pt-5 border-t border-border/50">
+          <div className="flex gap-4 mt-5 pt-5 border-t border-border/50 flex-wrap">
             <div className="text-center">
               <p className="text-2xl font-bold font-display text-foreground">{cards.length}</p>
               <p className="text-xs text-muted-foreground flex items-center gap-1 justify-center mt-0.5"><QrCode className="w-3 h-3" />Cards</p>
@@ -111,10 +121,12 @@ export default function Profile() {
               <p className="text-xs text-muted-foreground flex items-center gap-1 justify-center mt-0.5"><MessageCircle className="w-3 h-3" />Messages</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold font-display text-foreground">
-                {cards.reduce((s, c) => s + (c.scan_count || 0), 0)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">Total Views</p>
+              <p className="text-2xl font-bold font-display text-green-400">{myTrades.length}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 justify-center mt-0.5"><Handshake className="w-3 h-3" />Trades</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold font-display text-primary">${tradeVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 justify-center mt-0.5"><DollarSign className="w-3 h-3" />Volume</p>
             </div>
           </div>
         </motion.div>
@@ -162,6 +174,48 @@ export default function Profile() {
             </EmptyState>
           )}
         </motion.div>
+
+        {/* Trade History */}
+        {myTrades.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="rounded-2xl bg-card border border-border/50 p-6 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-semibold text-foreground flex items-center gap-2"><Handshake className="w-4 h-4 text-primary" />Trade History</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{myTrades.length} trades · ${tradeVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })} total · {verifiedTrades} verified</p>
+              </div>
+              <Link to={`/collector/${encodeURIComponent(user?.email || '')}`}
+                className="flex items-center gap-1 text-xs text-primary hover:underline">
+                Public view <ExternalLink className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              {myTrades.map(trade => (
+                <div key={trade.id} className="flex gap-3 p-3 rounded-xl bg-secondary/30 border border-border/40">
+                  {trade.image_url ? (
+                    <img src={trade.image_url} alt={trade.card_name} className="w-10 h-14 object-cover rounded-lg border border-border/50 shrink-0" />
+                  ) : (
+                    <div className="w-10 h-14 rounded-lg bg-muted/40 border border-border/40 flex items-center justify-center shrink-0">
+                      <CreditCard className="w-3 h-3 text-muted-foreground/40" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="text-sm font-semibold text-foreground truncate">{trade.card_name}</p>
+                      <span className="text-sm font-bold text-primary shrink-0">${(trade.total_value || trade.cash_paid || 0).toFixed(0)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{[trade.year, trade.set_name].filter(Boolean).join(' · ')}</p>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {trade.sport && <SportBadge sport={trade.sport} />}
+                      {trade.verified && <span className="flex items-center gap-1 text-[10px] text-green-400"><ShieldCheck className="w-3 h-3" />Verified</span>}
+                      {trade.event_name && <span className="text-[10px] text-muted-foreground flex items-center gap-1"><MapPin className="w-2.5 h-2.5" />{trade.event_name}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         <ReferralSection />
 

@@ -1,15 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, Eye, MessageCircle, Users } from 'lucide-react';
+import { Trophy, Eye, MessageCircle, Users, Handshake, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CollectorRow from '@/components/leaderboard/CollectorRow';
 import TopCardsList from '@/components/leaderboard/TopCardsList';
 
 const TABS = [
-  { id: 'views',    label: 'Most Views',    icon: Eye,           valueLabel: 'Total Views',       desc: 'Collectors whose cards have been viewed the most' },
-  { id: 'messages', label: 'Most Messages', icon: MessageCircle, valueLabel: 'Messages Received', desc: 'Collectors with the most owner messages on their cards' },
-  { id: 'visitors', label: 'Most Visitors', icon: Users,         valueLabel: 'Unique Visitors',   desc: 'Collectors who have attracted the most unique scanners' },
+  { id: 'views',        label: 'Most Views',    icon: Eye,           valueLabel: 'Total Views',       desc: 'Collectors whose cards have been viewed the most' },
+  { id: 'messages',     label: 'Most Messages', icon: MessageCircle, valueLabel: 'Messages Received', desc: 'Collectors with the most owner messages on their cards' },
+  { id: 'visitors',     label: 'Most Visitors', icon: Users,         valueLabel: 'Unique Visitors',   desc: 'Collectors who have attracted the most unique scanners' },
+  { id: 'most_trades',  label: 'Most Trades',   icon: Handshake,     valueLabel: 'Trades Logged',     desc: 'Collectors who have logged the most card show trades' },
+  { id: 'highest_value',label: 'Highest Value', icon: DollarSign,    valueLabel: 'Total Value',       desc: 'Collectors with the highest total trade deal value' },
 ];
 
 export default function Leaderboard() {
@@ -35,7 +37,12 @@ export default function Leaderboard() {
     queryFn: () => base44.entities.ScanEvent.list('-created_date', 2000),
   });
 
-  const isLoading = loadingCards || loadingMessages || loadingUsers || loadingScanEvents;
+  const { data: trades = [], isLoading: loadingTrades } = useQuery({
+    queryKey: ['all-trades-lb'],
+    queryFn: () => base44.entities.CardTrade.list('-created_date', 1000),
+  });
+
+  const isLoading = loadingCards || loadingMessages || loadingUsers || loadingScanEvents || loadingTrades;
 
   // Build a map of email -> user profile for display names/avatars
   const userMap = useMemo(() => {
@@ -74,14 +81,41 @@ export default function Leaderboard() {
     });
   }, [cardsByOwner, userMap, messages, scanEvents]);
 
+  // Trade leaderboard rows
+  const tradeLeaderboard = useMemo(() => {
+    const map = {};
+    trades.forEach(t => {
+      if (!t.created_by) return;
+      if (!map[t.created_by]) {
+        const profile = userMap[t.created_by];
+        map[t.created_by] = {
+          email: t.created_by,
+          name: profile?.full_name || t.created_by.split('@')[0],
+          avatar_url: profile?.avatar_url || null,
+          tradeCount: 0,
+          tradeValue: 0,
+        };
+      }
+      map[t.created_by].tradeCount++;
+      map[t.created_by].tradeValue += t.total_value || 0;
+    });
+    return Object.values(map).map(r => ({ ...r, tradeValue: Math.round(r.tradeValue) }));
+  }, [trades, userMap]);
+
   const ranked = useMemo(() => {
+    if (tab === 'most_trades') {
+      return [...tradeLeaderboard].sort((a, b) => b.tradeCount - a.tradeCount).slice(0, 15).map(r => ({ ...r, score: r.tradeCount }));
+    }
+    if (tab === 'highest_value') {
+      return [...tradeLeaderboard].sort((a, b) => b.tradeValue - a.tradeValue).slice(0, 15).map(r => ({ ...r, score: r.tradeValue }));
+    }
     const scoreKey = tab === 'views' ? 'totalViews' : tab === 'messages' ? 'totalMessages' : 'uniqueVisitors';
     return [...leaderboard]
       .filter(r => r[scoreKey] > 0)
       .sort((a, b) => b[scoreKey] - a[scoreKey])
       .slice(0, 15)
       .map(r => ({ ...r, score: r[scoreKey] }));
-  }, [leaderboard, tab]);
+  }, [leaderboard, tradeLeaderboard, tab]);
 
   const activeTab = TABS.find(t => t.id === tab);
 
@@ -119,6 +153,7 @@ export default function Leaderboard() {
         {/* Tab description */}
         <p className="text-xs text-muted-foreground text-center mb-6">{activeTab?.desc}</p>
 
+
         {/* Content */}
         {isLoading ? (
           <div className="space-y-3">
@@ -139,6 +174,7 @@ export default function Leaderboard() {
                 rank={i + 1}
                 valueLabel={activeTab.valueLabel}
                 index={i}
+                formatValue={tab === 'highest_value' ? (v) => `$${v.toLocaleString()}` : undefined}
               />
             ))}
           </div>

@@ -20,6 +20,8 @@ import MarketValue from './pages/MarketValue';
 import Trending from './pages/Trending';
 import AdminCodes from './pages/AdminCodes';
 import PriceAlerts from './pages/PriceAlerts';
+import TradeDashboard from './pages/TradeDashboard';
+import CollectorProfile from './pages/CollectorProfile';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -57,6 +59,8 @@ const AuthenticatedApp = () => {
         <Route path="/trending" element={<Trending />} />
         <Route path="/admin/codes" element={<AdminCodes />} />
         <Route path="/alerts" element={<PriceAlerts />} />
+        <Route path="/trade-dashboard" element={<TradeDashboard />} />
+        <Route path="/collector/:email" element={<CollectorProfile />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
