@@ -26,11 +26,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Pro subscription required' }, { status: 403 });
     }
 
-    const { category } = await req.json();
+    const { category, limit = 25 } = await req.json();
     if (!CATEGORY_MAP[category]) {
       return Response.json({ error: 'Invalid category' }, { status: 400 });
     }
 
+    const cardCount = Math.min(Math.max(parseInt(limit) || 25, 25), 100);
     const { sport, label } = CATEGORY_MAP[category];
 
     // Pull Origins card show trades for this sport
@@ -45,7 +46,7 @@ Deno.serve(async (req) => {
       : `No Origins community trades recorded yet for ${label}.`;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `You are a sports card and trading card market expert. Research and compile the TOP 25 hottest, most-traded, and highest-demand cards RIGHT NOW for the category: "${label}".
+      prompt: `You are a sports card and trading card market expert. Research and compile the TOP ${cardCount} hottest, most-traded, and highest-demand cards RIGHT NOW for the category: "${label}".
 
 Use your knowledge of:
 - Recent eBay sold listings and price trends
@@ -57,7 +58,7 @@ Use your knowledge of:
 Origins community trade data for context:
 ${internalSummary}
 
-Return a JSON array of exactly 25 cards sorted by current demand/heat (hottest first). Each card object:
+Return a JSON array of exactly ${cardCount} cards sorted by current demand/heat (hottest first). Each card object:
 {
   "rank": 1,
   "player_or_name": "Name of player or character",

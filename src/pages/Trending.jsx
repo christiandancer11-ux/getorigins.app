@@ -15,6 +15,8 @@ export default function Trending() {
   const [selectedCategory, setSelectedCategory] = useState('football');
   const [trendingData, setTrendingData] = useState({});
   const [loadingCategory, setLoadingCategory] = useState(null);
+  const [visibleCount, setVisibleCount] = useState({});
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const currentData = trendingData[selectedCategory];
   const currentCategory = CATEGORIES.find(c => c.id === selectedCategory);
@@ -29,12 +31,29 @@ export default function Trending() {
     setLoadingCategory(null);
   };
 
+  const currentVisible = visibleCount[selectedCategory] || 25;
+
   const handleCategorySelect = (categoryId) => {
     setSelectedCategory(categoryId);
     if (isExpert) fetchCategory(categoryId);
   };
 
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    // Clear cache and re-fetch requesting 100 cards
+    setTrendingData(prev => { const u = { ...prev }; delete u[selectedCategory]; return u; });
+    setVisibleCount(prev => ({ ...prev, [selectedCategory]: 100 }));
+    setLoadingCategory(selectedCategory);
+    const res = await base44.functions.invoke('fetchTrending', { category: selectedCategory, limit: 100 });
+    if (res.data && !res.data.error) {
+      setTrendingData(prev => ({ ...prev, [selectedCategory]: res.data }));
+    }
+    setLoadingCategory(null);
+    setLoadingMore(false);
+  };
+
   const handleRefresh = () => {
+    setVisibleCount(prev => ({ ...prev, [selectedCategory]: 25 }));
     setTrendingData(prev => {
       const updated = { ...prev };
       delete updated[selectedCategory];
@@ -151,7 +170,7 @@ export default function Trending() {
               <Loader2 className="w-7 h-7 text-primary animate-spin" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Building Top 100 for {currentCategory?.label}...</p>
+              <p className="font-semibold text-foreground">Building Top {currentVisible} for {currentCategory?.label}...</p>
               <p className="text-sm text-muted-foreground mt-1">Analyzing eBay, 130point & Origins trades</p>
             </div>
           </motion.div>
@@ -175,10 +194,25 @@ export default function Trending() {
 
             {/* Card list */}
             <div className="rounded-2xl border border-border/40 overflow-hidden bg-card">
-              {currentData.cards?.map((card, i) => (
+              {currentData.cards?.slice(0, currentVisible).map((card, i) => (
                 <TrendingCardRow key={card.rank} card={card} highlight={i < 3} />
               ))}
             </div>
+
+            {/* Load More */}
+            {currentVisible < 100 && currentData.cards?.length >= 25 && (
+              <div className="flex justify-center mt-5">
+                <Button
+                  variant="outline"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="gap-2 text-sm"
+                >
+                  {loadingMore ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4" />}
+                  {loadingMore ? 'Loading...' : 'Load More (up to 100)'}
+                </Button>
+              </div>
+            )}
 
             <p className="text-xs text-muted-foreground text-center mt-4">
               Data sourced from eBay sold listings, 130point.com, and Origins community trades.
