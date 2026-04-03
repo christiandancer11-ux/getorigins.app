@@ -20,7 +20,7 @@ export default function CardValueBreakdown({ cards }) {
 
   const sortedCards = useMemo(() => {
     let filtered = owned.filter(c => 
-      c.estimated_value > 0 && 
+      (c.estimated_value || c.price_paid) && 
       (c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
        c.set_name?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -41,6 +41,11 @@ export default function CardValueBreakdown({ cards }) {
 
   const cardsWithValue = owned.filter(c => c.estimated_value > 0).length;
   const avgValue = cardsWithValue > 0 ? totalValue / cardsWithValue : 0;
+  
+  const totalPricePaid = owned.reduce((sum, c) => sum + (c.price_paid || 0), 0);
+  const gainLoss = totalValue - totalPricePaid;
+  const gainLossPercent = totalPricePaid > 0 ? (gainLoss / totalPricePaid) * 100 : 0;
+  const gainLossColor = gainLoss >= 0 ? 'text-green-400' : 'text-red-400';
 
   return (
     <div className="space-y-4">
@@ -50,18 +55,31 @@ export default function CardValueBreakdown({ cards }) {
         animate={{ opacity: 1, y: 0 }}
         className="rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 p-5"
       >
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Total Portfolio Value</p>
             <p className="text-3xl font-bold text-foreground">${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
           </div>
           <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Total Price Paid</p>
+            <p className="text-3xl font-bold text-muted-foreground">${totalPricePaid.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-4 pt-4 border-t border-primary/30">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Gain / Loss</p>
+            <p className={`text-2xl font-bold ${gainLossColor}`}>
+              {gainLoss >= 0 ? '+' : ''}{gainLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </p>
+            <p className={`text-xs mt-1 ${gainLossColor}`}>{gainLossPercent >= 0 ? '+' : ''}{gainLossPercent.toFixed(1)}%</p>
+          </div>
+          <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Cards Valued</p>
-            <p className="text-3xl font-bold text-primary">{cardsWithValue}</p>
+            <p className="text-2xl font-bold text-primary">{cardsWithValue}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Average Value</p>
-            <p className="text-3xl font-bold text-amber-400">${avgValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+            <p className="text-2xl font-bold text-amber-400">${avgValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
           </div>
         </div>
       </motion.div>
@@ -136,10 +154,19 @@ export default function CardValueBreakdown({ cards }) {
                       </div>
                     </div>
 
-                    {/* Value */}
+                    {/* Value & Gain/Loss */}
                     <div className="text-right shrink-0">
                       <p className="text-lg font-bold text-primary">${(card.estimated_value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">{percentage.toFixed(1)}% of total</p>
+                      {card.price_paid ? (
+                        <div className="mt-1 text-[10px]">
+                          <p className="text-muted-foreground">Paid: ${card.price_paid.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                          <p className={card.estimated_value - card.price_paid >= 0 ? 'text-green-400' : 'text-red-400'}>
+                            {card.estimated_value - card.price_paid >= 0 ? '+' : ''}{(card.estimated_value - card.price_paid).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-muted-foreground mt-1">{percentage.toFixed(1)}% of total</p>
+                      )}
                     </div>
                   </div>
                 </motion.div>

@@ -55,6 +55,10 @@
       "default": 0,
       "description": "Number of times this card's story has been shared"
     },
+    "price_paid": {
+      "type": "number",
+      "description": "Purchase price paid for this card in dollars"
+    },
     "estimated_value": {
       "type": "number",
       "description": "User-entered estimated value of this card in dollars"

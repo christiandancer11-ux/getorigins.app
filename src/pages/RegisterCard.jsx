@@ -21,7 +21,7 @@ function generateCode() {
 export default function RegisterCard() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    name: '', set_name: '', sport: '', year: '', card_number: '', description: '', image_url: '',
+    name: '', set_name: '', sport: '', year: '', card_number: '', description: '', image_url: '', price_paid: '', estimated_value: '',
   });
   const [uploading, setUploading] = useState(false);
 
@@ -126,23 +126,36 @@ export default function RegisterCard() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <Label htmlFor="set_name" className="text-foreground">Set / Collection</Label>
+                 <Input id="set_name" value={form.set_name} onChange={e => update('set_name', e.target.value)}
+                   placeholder="e.g. Fleer" className="mt-1.5 bg-secondary border-border" />
+               </div>
+               <div>
+                 <Label htmlFor="card_number" className="text-foreground">Card Number</Label>
+                 <Input id="card_number" value={form.card_number} onChange={e => update('card_number', e.target.value)}
+                   placeholder="e.g. #57" className="mt-1.5 bg-secondary border-border" />
+               </div>
+             </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="set_name" className="text-foreground">Set / Collection</Label>
-                <Input id="set_name" value={form.set_name} onChange={e => update('set_name', e.target.value)}
-                  placeholder="e.g. Fleer" className="mt-1.5 bg-secondary border-border" />
+                <Label htmlFor="price_paid" className="text-foreground">Price Paid</Label>
+                <Input id="price_paid" type="number" value={form.price_paid} onChange={e => update('price_paid', parseFloat(e.target.value) || '')}
+                  placeholder="e.g. 150" className="mt-1.5 bg-secondary border-border" min="0" step="0.01" />
               </div>
               <div>
-                <Label htmlFor="card_number" className="text-foreground">Card Number</Label>
-                <Input id="card_number" value={form.card_number} onChange={e => update('card_number', e.target.value)}
-                  placeholder="e.g. #57" className="mt-1.5 bg-secondary border-border" />
+                <Label htmlFor="estimated_value" className="text-foreground">Estimated Value</Label>
+                <Input id="estimated_value" type="number" value={form.estimated_value} onChange={e => update('estimated_value', parseFloat(e.target.value) || '')}
+                  placeholder="e.g. 250" className="mt-1.5 bg-secondary border-border" min="0" step="0.01" />
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="description" className="text-foreground">Notes</Label>
-              <Textarea id="description" value={form.description} onChange={e => update('description', e.target.value)}
-                placeholder="Any notes about condition, significance, etc." className="mt-1.5 bg-secondary border-border" rows={3} />
-            </div>
+             <div>
+               <Label htmlFor="description" className="text-foreground">Notes</Label>
+               <Textarea id="description" value={form.description} onChange={e => update('description', e.target.value)}
+                 placeholder="Any notes about condition, significance, etc." className="mt-1.5 bg-secondary border-border" rows={3} />
+             </div>
           </div>
 
           <Button type="submit" disabled={!form.name || createMutation.isPending} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12">
