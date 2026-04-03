@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar';
+import Footer from '../shared/Footer';
 
 const pageVariants = {
   initial: { opacity: 0, x: 16 },
@@ -26,7 +27,7 @@ export default function AppLayout() {
   useDarkMode();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <AnimatePresence mode="wait">
         <motion.main
@@ -36,11 +37,12 @@ export default function AppLayout() {
           animate="animate"
           exit="exit"
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          className="pb-16 lg:pb-0"
+          className="pb-16 lg:pb-0 flex-1"
         >
           <Outlet />
         </motion.main>
       </AnimatePresence>
+      <Footer />
     </div>
   );
 }
