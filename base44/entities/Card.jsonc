@@ -54,6 +54,44 @@
       "type": "number",
       "default": 0,
       "description": "Number of times this card's story has been shared"
+    },
+    "estimated_value": {
+      "type": "number",
+      "description": "User-entered estimated value of this card in dollars"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "ultra_rare",
+        "legendary",
+        "1_of_1"
+      ],
+      "description": "Rarity tier of the card"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "owned",
+        "sold",
+        "traded"
+      ],
+      "default": "owned",
+      "description": "Current ownership status of the card"
+    },
+    "sold_traded_date": {
+      "type": "string",
+      "description": "ISO date when the card was sold or traded"
+    },
+    "sold_traded_value": {
+      "type": "number",
+      "description": "Value at time of sale or trade"
+    },
+    "sold_traded_notes": {
+      "type": "string",
+      "description": "Notes about the sale or trade"
     }
   },
   "required": [

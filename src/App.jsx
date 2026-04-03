@@ -8,7 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import AppLayout from './components/layout/AppLayout';
 import Landing from './pages/Landing';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Dashboard.jsx';
 import RegisterCard from './pages/RegisterCard';
 import CardDetail from './pages/CardDetail';
 import ScanCard from './pages/ScanCard';
