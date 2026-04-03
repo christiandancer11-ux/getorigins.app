@@ -37,7 +37,6 @@ Deno.serve(async (req) => {
     // Pull Origins card show trades for this sport
     const allTrades = await base44.asServiceRole.entities.CardTrade.filter({ sport });
 
-    // Ask AI to research and compile top 100 trending cards
     const internalSummary = allTrades.length > 0
       ? `Origins community trades for ${label} (${allTrades.length} trades):\n` +
         allTrades.slice(0, 50).map(t =>
@@ -45,8 +44,37 @@ Deno.serve(async (req) => {
         ).join('\n')
       : `No Origins community trades recorded yet for ${label}.`;
 
-    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `You are a sports card and trading card market expert. Research and compile the TOP ${cardCount} hottest, most-traded, and highest-demand cards RIGHT NOW for the category: "${label}".
+    const cardSchema = {
+      type: 'object',
+      properties: {
+        cards: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              rank: { type: 'number' },
+              player_or_name: { type: 'string' },
+              card_name: { type: 'string' },
+              year: { type: 'string' },
+              set_name: { type: 'string' },
+              card_number: { type: 'string' },
+              variant: { type: 'string' },
+              sport_or_tcg: { type: 'string' },
+              estimated_value_low: { type: 'number' },
+              estimated_value_high: { type: 'number' },
+              estimated_value_avg: { type: 'number' },
+              heat_score: { type: 'number' },
+              why_hot: { type: 'string' },
+              trend: { type: 'string' },
+            }
+          }
+        },
+        category_summary: { type: 'string' },
+      }
+    };
+
+    const buildPrompt = (startRank, endRank) =>
+      `You are a sports card and trading card market expert. Research and compile ranks #${startRank} through #${endRank} of the hottest, most-traded, and highest-demand cards RIGHT NOW for the category: "${label}".
 
 Use your knowledge of:
 - Recent eBay sold listings and price trends
@@ -58,60 +86,33 @@ Use your knowledge of:
 Origins community trade data for context:
 ${internalSummary}
 
-Return a JSON array of exactly ${cardCount} cards sorted by current demand/heat (hottest first). Each card object:
-{
-  "rank": 1,
-  "player_or_name": "Name of player or character",
-  "card_name": "Full card name",
-  "year": "Year",
-  "set_name": "Set name",
-  "card_number": "#XXX or null",
-  "variant": "Base / Rookie / Refractor / PSA 10 / etc",
-  "sport_or_tcg": "${label}",
-  "estimated_value_low": 10,
-  "estimated_value_high": 50,
-  "estimated_value_avg": 30,
-  "heat_score": 95,
-  "why_hot": "One sentence on why this card is hot right now",
-  "trend": "up" | "down" | "stable"
-}`,
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          cards: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                rank: { type: 'number' },
-                player_or_name: { type: 'string' },
-                card_name: { type: 'string' },
-                year: { type: 'string' },
-                set_name: { type: 'string' },
-                card_number: { type: 'string' },
-                variant: { type: 'string' },
-                sport_or_tcg: { type: 'string' },
-                estimated_value_low: { type: 'number' },
-                estimated_value_high: { type: 'number' },
-                estimated_value_avg: { type: 'number' },
-                heat_score: { type: 'number' },
-                why_hot: { type: 'string' },
-                trend: { type: 'string' },
-              }
-            }
-          },
-          generated_at: { type: 'string' },
-          category_summary: { type: 'string' },
-        }
-      }
-    });
+Return a JSON array of exactly ${endRank - startRank + 1} cards, ranked #${startRank} through #${endRank}, sorted by current demand/heat (hottest first). Each card object must have: rank (${startRank}-${endRank}), player_or_name, card_name, year, set_name, card_number, variant, sport_or_tcg ("${label}"), estimated_value_low, estimated_value_high, estimated_value_avg, heat_score (1-100), why_hot (one sentence), trend ("up"|"down"|"stable").`;
+
+    // LLM can't reliably return >25 cards in one call — batch by 25
+    const batches = [];
+    for (let start = 1; start <= cardCount; start += 25) {
+      const end = Math.min(start + 24, cardCount);
+      batches.push({ start, end });
+    }
+
+    const batchResults = await Promise.all(
+      batches.map(({ start, end }) =>
+        base44.asServiceRole.integrations.Core.InvokeLLM({
+          prompt: buildPrompt(start, end),
+          add_context_from_internet: true,
+          response_json_schema: cardSchema,
+        })
+      )
+    );
+
+    const allCards = batchResults.flatMap(r => r.cards || []);
+    const categorySummary = batchResults[0]?.category_summary || '';
 
     return Response.json({
       category,
       label,
-      cards: result.cards || [],
-      category_summary: result.category_summary || '',
+      cards: allCards,
+      category_summary: categorySummary,
       generated_at: new Date().toISOString(),
     });
 
