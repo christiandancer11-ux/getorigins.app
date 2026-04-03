@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { QrCode, Plus, MessageCircle } from 'lucide-react';
+import { QrCode, Plus, MessageCircle, DollarSign, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import SportBadge from '../components/shared/SportBadge';
 import VideoMessageCard from '../components/shared/VideoMessageCard.jsx';
 import EmptyState from '../components/shared/EmptyState';
 import AddMessageForm from '../components/card-detail/AddMessageForm.jsx';
+import BuyFromOwnerPanel from '../components/scan/BuyFromOwnerPanel.jsx';
 
 export default function ScanCard() {
   const { code } = useParams();
@@ -90,6 +91,33 @@ export default function ScanCard() {
             <QrCode className="w-4 h-4 text-primary" />
             <span className="font-display font-semibold text-foreground">Origins</span>
             <span>— This card's journey</span>
+          </div>
+
+          {/* Card Value & Owner Info */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-5 max-w-sm mx-auto">
+            {card.estimated_value != null && (
+              <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20">
+                <DollarSign className="w-4 h-4 text-primary shrink-0" />
+                <div className="text-left">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Est. Value</p>
+                  <p className="text-sm font-bold text-primary">${card.estimated_value.toLocaleString()}</p>
+                </div>
+              </div>
+            )}
+            {card.created_by && (
+              <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary border border-border/50">
+                <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                <div className="text-left min-w-0">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Current Owner</p>
+                  <p className="text-sm font-medium text-foreground truncate">{card.created_by.split('@')[0]}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Buy from owner */}
+          <div className="max-w-sm mx-auto">
+            <BuyFromOwnerPanel card={card} />
           </div>
         </div>
       </div>

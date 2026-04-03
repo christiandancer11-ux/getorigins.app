@@ -1,0 +1,49 @@
+{
+  "name": "CardOwnershipRequest",
+  "type": "object",
+  "properties": {
+    "card_id": {
+      "type": "string",
+      "description": "Reference to the Card entity"
+    },
+    "card_name": {
+      "type": "string",
+      "description": "Card name (denormalized for display)"
+    },
+    "card_image_url": {
+      "type": "string",
+      "description": "Card image URL (denormalized for display)"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the current card owner"
+    },
+    "buyer_email": {
+      "type": "string",
+      "description": "Email of the person claiming they bought it"
+    },
+    "buyer_name": {
+      "type": "string",
+      "description": "Display name of the buyer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Owner's response to the transfer request"
+    },
+    "sale_price": {
+      "type": "number",
+      "description": "Price the buyer claims they paid"
+    }
+  },
+  "required": [
+    "card_id",
+    "owner_email",
+    "buyer_email"
+  ]
+}

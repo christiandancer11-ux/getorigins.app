@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import EmptyState from '../components/shared/EmptyState';
 import CollectionStats from '../components/dashboard/CollectionStats';
 import SoldTradedGrid from '../components/dashboard/SoldTradedGrid';
 import MarkSoldModal from '../components/dashboard/MarkSoldModal';
+import OwnershipRequests from '../components/dashboard/OwnershipRequests';
 import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
 
 const TABS = [
@@ -20,7 +21,12 @@ const TABS = [
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('collection');
   const [markSoldCard, setMarkSoldCard] = useState(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(u => { if (u?.email) setCurrentUserEmail(u.email); }).catch(() => {});
+  }, []);
 
   const { data: allCards = [], isLoading } = useQuery({
     queryKey: ['my-cards'],
@@ -49,6 +55,9 @@ export default function Dashboard() {
     <div ref={containerRef} className="min-h-screen pt-24 pb-12 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <PullIndicator />
+
+        {/* Ownership Transfer Requests */}
+        {currentUserEmail && <OwnershipRequests userEmail={currentUserEmail} />}
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
