@@ -108,7 +108,7 @@ export default function Trending() {
               See the top 100 hottest cards right now across all major markets — eBay, 130point, and Origins card shows.
             </p>
             <p className="text-sm text-muted-foreground mb-8">
-              Available in the <span className="text-primary font-semibold">Expert Bundle</span>.
+              Available in the <span className="text-primary font-semibold">Origins Pro Bundle</span>.
             </p>
 
             {/* Category preview (locked) */}
@@ -137,11 +137,11 @@ export default function Trending() {
             </div>
 
             <Button onClick={() => setShowUpgrade(true)} className="w-full bg-primary text-primary-foreground h-12 text-base font-semibold">
-              <Zap className="w-4 h-4 mr-2" />Unlock with Expert Bundle — $14.99/mo
+              <Zap className="w-4 h-4 mr-2" />Unlock with Origins Pro — $9.99/mo
             </Button>
           </div>
         </div>
-        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} defaultPlan="expert" />}
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
       </>
     );
   }
