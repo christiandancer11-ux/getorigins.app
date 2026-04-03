@@ -8,6 +8,7 @@ import CardGridItem from '../components/dashboard/CardGridItem';
 import EmptyState from '../components/shared/EmptyState';
 import CollectionStats from '../components/dashboard/CollectionStats';
 import CollectionValueWidget from '../components/dashboard/CollectionValueWidget';
+import CardValueBreakdown from '../components/dashboard/CardValueBreakdown';
 import SoldTradedGrid from '../components/dashboard/SoldTradedGrid';
 import MarkSoldModal from '../components/dashboard/MarkSoldModal';
 import OwnershipRequests from '../components/dashboard/OwnershipRequests';
@@ -148,6 +149,10 @@ export default function Dashboard() {
                    <CollectionValueWidget userEmail={currentUserEmail} />
                    <div className="mt-6">
                      <CollectionStats cards={allCards} />
+                   </div>
+                   <div className="mt-6">
+                     <h2 className="font-semibold text-foreground mb-4">Individual Card Values</h2>
+                     <CardValueBreakdown cards={allCards} />
                    </div>
                  </>
                )
