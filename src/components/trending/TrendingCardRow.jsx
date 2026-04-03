@@ -46,9 +46,11 @@ export default function TrendingCardRow({ card, highlight }) {
             ${card.estimated_value_avg?.toLocaleString() || '—'}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">
-          ${card.estimated_value_low || 0} – ${card.estimated_value_high || 0}
-        </p>
+        {(card.estimated_value_low || card.estimated_value_high) && (
+          <p className="text-xs text-muted-foreground">
+            ${card.estimated_value_low || 0} – ${card.estimated_value_high || 0}
+          </p>
+        )}
         <div className={`text-xs font-semibold mt-0.5 ${heatColor(card.heat_score)}`}>
           {card.heat_score}° heat
         </div>

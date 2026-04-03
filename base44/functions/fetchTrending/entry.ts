@@ -57,11 +57,7 @@ Deno.serve(async (req) => {
               card_name: { type: 'string' },
               year: { type: 'string' },
               set_name: { type: 'string' },
-              card_number: { type: 'string' },
               variant: { type: 'string' },
-              sport_or_tcg: { type: 'string' },
-              estimated_value_low: { type: 'number' },
-              estimated_value_high: { type: 'number' },
               estimated_value_avg: { type: 'number' },
               heat_score: { type: 'number' },
               why_hot: { type: 'string' },
@@ -74,24 +70,18 @@ Deno.serve(async (req) => {
     };
 
     const buildPrompt = (startRank, endRank) =>
-      `You are a sports card and trading card market expert. Research and compile ranks #${startRank} through #${endRank} of the hottest, most-traded, and highest-demand cards RIGHT NOW for the category: "${label}".
+      `You are a sports card market expert. List ranks #${startRank} to #${endRank} of the hottest cards RIGHT NOW for: "${label}".
 
-Use your knowledge of:
-- Recent eBay sold listings and price trends
-- 130point.com market data
-- Card show floor activity
-- Social media buzz and collector demand
-- Rookie cards, short prints, refractors, parallels, graded copies
-
-Origins community trade data for context:
+Context from Origins community trades:
 ${internalSummary}
 
-Return a JSON array of exactly ${endRank - startRank + 1} cards, ranked #${startRank} through #${endRank}, sorted by current demand/heat (hottest first). Each card object must have: rank (${startRank}-${endRank}), player_or_name, card_name, year, set_name, card_number, variant, sport_or_tcg ("${label}"), estimated_value_low, estimated_value_high, estimated_value_avg, heat_score (1-100), why_hot (one sentence), trend ("up"|"down"|"stable").`;
+Return exactly ${endRank - startRank + 1} cards. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (short sentence), trend (up/down/stable).`;
 
-    // LLM can't reliably return >25 cards in one call — batch by 25
+    // Batch by 10 to avoid LLM JSON truncation with internet search
+    const BATCH_SIZE = 10;
     const batches = [];
-    for (let start = 1; start <= cardCount; start += 25) {
-      const end = Math.min(start + 24, cardCount);
+    for (let start = 1; start <= cardCount; start += BATCH_SIZE) {
+      const end = Math.min(start + BATCH_SIZE - 1, cardCount);
       batches.push({ start, end });
     }
 
