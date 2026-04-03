@@ -7,8 +7,8 @@ import { ArrowLeft, Plus, QrCode, Download, MessageCircle, Share2, Pencil } from
 import MobileHeader from '../components/layout/MobileHeader';
 import QRCodeDisplay from '../components/shared/QRCodeDisplay';
 import SportBadge from '../components/shared/SportBadge';
-import VideoMessageCard from '../components/shared/VideoMessageCard';
-import AddMessageForm from '../components/card-detail/AddMessageForm';
+import VideoMessageCard from '../components/shared/VideoMessageCard.jsx';
+import AddMessageForm from '../components/card-detail/AddMessageForm.jsx';
 import EmptyState from '../components/shared/EmptyState';
 import ShareCardModal from '../components/card-detail/ShareCardModal';
 import EditCardModal from '../components/card-detail/EditCardModal';

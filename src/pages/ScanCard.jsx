@@ -5,9 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { QrCode, Plus, MessageCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import SportBadge from '../components/shared/SportBadge';
-import VideoMessageCard from '../components/shared/VideoMessageCard';
+import VideoMessageCard from '../components/shared/VideoMessageCard.jsx';
 import EmptyState from '../components/shared/EmptyState';
-import AddMessageForm from '../components/card-detail/AddMessageForm';
+import AddMessageForm from '../components/card-detail/AddMessageForm.jsx';
 
 export default function ScanCard() {
   const { code } = useParams();
