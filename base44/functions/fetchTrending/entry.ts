@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Pro subscription required' }, { status: 403 });
     }
 
-    const { category, limit = 25 } = await req.json();
+    const { category, limit = 25, viewMode = 'hottest' } = await req.json();
     if (!CATEGORY_MAP[category]) {
       return Response.json({ error: 'Invalid category' }, { status: 400 });
     }
@@ -69,13 +69,23 @@ Deno.serve(async (req) => {
       }
     };
 
+    const VIEW_MODE_INSTRUCTIONS = {
+      hottest:       'overall hottest and most in-demand cards right now based on collector buzz, sell-through rate, and market activity',
+      highest_sold:  'cards with the HIGHEST recent sale prices — focus on big-dollar transactions from the last 1-2 weeks on eBay and major platforms',
+      most_searched: 'most searched players and cards — focus on names generating the most search volume and collector interest right now',
+      most_bought:   'most frequently purchased cards — highest transaction volume and buy frequency across platforms in recent days',
+      rising:        'cards showing STEADY VALUE GROWTH in the last 48 hours — focus on upward price momentum, recent pop reports, and breakout demand',
+    };
+
+    const modeInstruction = VIEW_MODE_INSTRUCTIONS[viewMode] || VIEW_MODE_INSTRUCTIONS.hottest;
+
     const buildPrompt = (startRank, endRank) =>
-      `You are a sports card market expert. List ranks #${startRank} to #${endRank} of the hottest cards RIGHT NOW for: "${label}".
+      `You are a sports card market expert. List ranks #${startRank} to #${endRank} for the category "${label}", focused on: ${modeInstruction}.
 
 Context from Origins community trades:
 ${internalSummary}
 
-Return exactly ${endRank - startRank + 1} cards. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (short sentence), trend (up/down/stable).`;
+Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence explaining why it ranks here for this specific filter), trend (up/down/stable).`;
 
     // Batch by 10 to avoid LLM JSON truncation with internet search
     const BATCH_SIZE = 10;
