@@ -16,6 +16,11 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.VideoMessage.filter({ created_by: user.email }),
     ]);
 
+    // Admin accounts get full Pro access for free
+    if (user.role === 'admin') {
+      return Response.json({ allowed: true, isPro: true, plan: 'pro', remaining: null });
+    }
+
     const activeSub = subs.find(s => s.status === 'active');
     if (activeSub) {
       // Pro users: unlimited stories + all features
