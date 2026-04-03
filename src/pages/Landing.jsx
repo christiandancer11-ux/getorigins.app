@@ -256,11 +256,12 @@ export default function Landing() {
           
           {/* Legal Links */}
           <div className="pt-4 border-t border-border/30">
-            <div className="flex items-center justify-center gap-4 flex-wrap">
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-4">
               <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
               <span className="text-border/50">•</span>
               <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">Terms of Use</Link>
             </div>
+            <p className="text-xs text-muted-foreground text-center">© Origins. All ideas and design copyrighted by Skillerz Breaks.</p>
           </div>
         </div>
       </footer>
