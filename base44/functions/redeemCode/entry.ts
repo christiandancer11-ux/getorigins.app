@@ -46,9 +46,10 @@ Deno.serve(async (req) => {
       benefit = '3 months free Expert Bundle access activated!';
 
     } else if (promo.type === 'referral' || promo.type === 'trial') {
-      // 7 days free expert access
+      // referral = 7 days, trial = 10 days
+      const trialDays = promo.type === 'trial' ? 10 : 7;
       const endDate = new Date(now);
-      endDate.setDate(endDate.getDate() + 7);
+      endDate.setDate(endDate.getDate() + trialDays);
       const existing_sub = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
       // Only apply if they don't have a paid active sub already
       const hasPaid = existing_sub.find(s => s.status === 'active' && s.stripe_subscription_id);
@@ -84,7 +85,7 @@ Deno.serve(async (req) => {
         }
         benefit = '7 days free access activated! Your friend also got 7 days.';
       } else {
-        benefit = '7 days free Expert Bundle access activated!';
+        benefit = promo.type === 'trial' ? '10 days free Pro access activated!' : '7 days free Expert Bundle access activated!';
       }
     } else if (promo.type === 'creator') {
       // Creator codes return the stripe_coupon_id for use at checkout
