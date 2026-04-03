@@ -23,6 +23,8 @@ import PriceAlerts from './pages/PriceAlerts';
 import TradeDashboard from './pages/TradeDashboard';
 import CollectorProfile from './pages/CollectorProfile';
 import BOLOAlerts from './pages/BOLOAlerts';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +65,8 @@ const AuthenticatedApp = () => {
         <Route path="/trade-dashboard" element={<TradeDashboard />} />
         <Route path="/collector/:email" element={<CollectorProfile />} />
         <Route path="/bolo" element={<BOLOAlerts />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfUse />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { QrCode, Video, History, ArrowRight, Layers, Sparkles, TrendingUp, Handshake, BarChart2, Flame, MessageSquare, CheckCircle, Tag, Gift } from 'lucide-react';
@@ -244,11 +245,22 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-8 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-          <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7231ac246_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.jpeg" alt="Origins" className="h-7 w-7 rounded-md" />
-          <div className="flex items-center gap-4">
-            <button onClick={() => setShowRedeem(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">Redeem Code</button>
-            <p className="text-xs text-muted-foreground">Every card has a story.</p>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+            <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7231ac246_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.jpeg" alt="Origins" className="h-7 w-7 rounded-md" />
+            <div className="flex items-center gap-4">
+              <button onClick={() => setShowRedeem(true)} className="text-xs text-muted-foreground hover:text-primary transition-colors">Redeem Code</button>
+              <p className="text-xs text-muted-foreground">Every card has a story.</p>
+            </div>
+          </div>
+          
+          {/* Legal Links */}
+          <div className="pt-4 border-t border-border/30">
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
+              <span className="text-border/50">•</span>
+              <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">Terms of Use</Link>
+            </div>
           </div>
         </div>
       </footer>

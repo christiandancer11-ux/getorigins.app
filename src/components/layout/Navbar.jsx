@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert } from 'lucide-react';
+import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -112,13 +112,23 @@ export default function Navbar() {
                 ))}
               </nav>
 
-              <div className="px-4 pb-6 shrink-0">
+              <div className="space-y-3 px-4 pb-6 shrink-0">
                 <Link to="/register" onClick={() => setMenuOpen(false)}>
                   <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">
                     <Plus className="w-4 h-4 mr-2" />
                     Register a Card
                   </Button>
                 </Link>
+
+                {/* Footer Links */}
+                <div className="pt-3 border-t border-border/40 space-y-2">
+                  <Link to="/privacy" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+                    Privacy Policy
+                  </Link>
+                  <Link to="/terms" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors">
+                    Terms of Use
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </>
