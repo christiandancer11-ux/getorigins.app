@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { TrendingUp, Search, Loader2, BarChart2, Handshake, ShoppingCart, AlertCircle, Camera, Lock } from 'lucide-react';
+import { TrendingUp, Search, Loader2, BarChart2, ShoppingCart, AlertCircle, Camera, Lock, Bell } from 'lucide-react';
+import SetAlertModal from '../components/alerts/SetAlertModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,6 +26,7 @@ export default function MarketValue() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
   const { isPro, loading: subLoading } = useSubscription();
 
   const { data: allTrades = [] } = useQuery({
@@ -80,6 +82,13 @@ export default function MarketValue() {
           </div>
         </div>
         {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} defaultPlan="pro" />}
+        {showAlertModal && (
+          <SetAlertModal
+            prefill={{ card_name: activeSearch }}
+            onClose={() => setShowAlertModal(false)}
+            onCreated={() => setShowAlertModal(false)}
+          />
+        )}
       </>
     );
   }
@@ -160,12 +169,20 @@ export default function MarketValue() {
               <AnimatePresence mode="wait">
                 {result && !loading && (
                   <motion.div key={activeSearch} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Results for</p>
-                      <h2 className="font-display text-xl font-bold text-foreground">{activeSearch}</h2>
-                      {result.search_query_used && result.search_query_used !== activeSearch && (
-                        <p className="text-xs text-muted-foreground mt-0.5">Searched as: <span className="italic">{result.search_query_used}</span></p>
-                      )}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Results for</p>
+                        <h2 className="font-display text-xl font-bold text-foreground">{activeSearch}</h2>
+                        {result.search_query_used && result.search_query_used !== activeSearch && (
+                          <p className="text-xs text-muted-foreground mt-0.5">Searched as: <span className="italic">{result.search_query_used}</span></p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setShowAlertModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors shrink-0"
+                      >
+                        <Bell className="w-3.5 h-3.5" />Set Alert
+                      </button>
                     </div>
                     <MarketSummaryCards result={result} showTradesCount={showTrades.length} />
                     {result.market_summary && (

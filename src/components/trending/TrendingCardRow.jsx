@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus, Flame } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Flame, Bell } from 'lucide-react';
 
 const trendIcon = (trend) => {
   if (trend === 'up')   return <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />;
@@ -14,11 +14,10 @@ const heatColor = (score) => {
   return 'text-muted-foreground';
 };
 
-export default function TrendingCardRow({ card, highlight, onClick }) {
+export default function TrendingCardRow({ card, highlight, onClick, onSetAlert }) {
   return (
     <div
-      onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 transition-colors cursor-pointer ${highlight ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-secondary/30'}`}
+      className={`flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 transition-colors ${highlight ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-secondary/30'}`}
     >
       {/* Rank */}
       <div className="w-8 text-center shrink-0">
@@ -30,7 +29,7 @@ export default function TrendingCardRow({ card, highlight, onClick }) {
       </div>
 
       {/* Main info */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 cursor-pointer" onClick={onClick}>
         <div className="flex items-center gap-1.5">
           <p className="text-sm font-semibold text-foreground truncate">{card.player_or_name}</p>
           {card.heat_score >= 90 && <Flame className="w-3.5 h-3.5 text-red-400 shrink-0" />}
@@ -41,8 +40,19 @@ export default function TrendingCardRow({ card, highlight, onClick }) {
         <p className="text-xs text-muted-foreground/70 truncate mt-0.5 italic">{card.why_hot}</p>
       </div>
 
+      {/* Alert button */}
+      {onSetAlert && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onSetAlert(card); }}
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
+          title="Set Price Alert"
+        >
+          <Bell className="w-3.5 h-3.5" />
+        </button>
+      )}
+
       {/* Value + trend */}
-      <div className="text-right shrink-0">
+      <div className="text-right shrink-0 cursor-pointer" onClick={onClick}>
         <div className="flex items-center gap-1 justify-end">
           {trendIcon(card.trend)}
           <span className="text-sm font-bold text-foreground">

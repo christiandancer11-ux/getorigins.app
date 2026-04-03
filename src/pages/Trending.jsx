@@ -8,6 +8,7 @@ import UpgradeModal from '@/components/shared/UpgradeModal';
 import TrendingCategoryPicker, { CATEGORIES } from '@/components/trending/TrendingCategoryPicker';
 import TrendingCardRow from '@/components/trending/TrendingCardRow';
 import TrendingCardDetailSheet from '@/components/trending/TrendingCardDetailSheet';
+import SetAlertModal from '@/components/alerts/SetAlertModal';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh.jsx';
 
 const VIEW_MODES = [
@@ -28,6 +29,7 @@ export default function Trending() {
   const [visibleCount, setVisibleCount] = useState({});
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [alertCard, setAlertCard] = useState(null);
 
   const cacheKey = `${selectedCategory}__${selectedViewMode}`;
   const currentData = trendingData[cacheKey];
@@ -227,9 +229,9 @@ export default function Trending() {
 
             {/* Card list */}
             <div className="rounded-2xl border border-border/40 overflow-hidden bg-card">
-              {currentData.cards?.slice(0, currentVisible).map((card, i) => (
-                <TrendingCardRow key={card.rank} card={card} highlight={i < 3} onClick={() => setSelectedCard(card)} />
-              ))}
+            {currentData.cards?.slice(0, currentVisible).map((card, i) => (
+            <TrendingCardRow key={card.rank} card={card} highlight={i < 3} onClick={() => setSelectedCard(card)} onSetAlert={(c) => setAlertCard(c)} />
+            ))}
             </div>
 
             {/* Load More */}
@@ -259,6 +261,18 @@ export default function Trending() {
           card={selectedCard}
           viewMode={selectedViewMode}
           onClose={() => setSelectedCard(null)}
+        />
+      )}
+      {alertCard && (
+        <SetAlertModal
+          prefill={{
+            card_name: alertCard.player_or_name,
+            set_name: alertCard.set_name,
+            year: alertCard.year,
+            variant: alertCard.variant,
+          }}
+          onClose={() => setAlertCard(null)}
+          onCreated={() => setAlertCard(null)}
         />
       )}
     </div>

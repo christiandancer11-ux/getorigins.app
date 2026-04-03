@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Bell, Plus, Trash2, Pause, Play, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Bell, Plus, Trash2, Pause, Play, CheckCircle2, Clock, AlertCircle, Lock, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SetAlertModal from '@/components/alerts/SetAlertModal';
+import UpgradeModal from '@/components/shared/UpgradeModal';
+import { useSubscription } from '@/hooks/useSubscription';
+
+const ALERT_LIMIT = 100;
 
 const statusConfig = {
   active:    { icon: Clock,         color: 'text-amber-400',   label: 'Watching' },
@@ -65,7 +69,10 @@ function AlertCard({ alert, onDelete, onTogglePause }) {
 
 export default function PriceAlerts() {
   const [showModal, setShowModal] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [prefill, setPrefill] = useState({});
   const queryClient = useQueryClient();
+  const { isPro, loading: subLoading } = useSubscription();
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ['price-alerts'],
@@ -85,9 +92,43 @@ export default function PriceAlerts() {
     refresh();
   };
 
+  const handleNewAlert = (pre = {}) => {
+    if (!isPro) { setShowUpgrade(true); return; }
+    if (alerts.length >= ALERT_LIMIT) return;
+    setPrefill(pre);
+    setShowModal(true);
+  };
+
   const active = alerts.filter(a => a.status === 'active');
   const triggered = alerts.filter(a => a.status === 'triggered');
   const paused = alerts.filter(a => a.status === 'paused');
+
+  if (subLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Bell className="w-8 h-8 animate-pulse text-primary" /></div>;
+  }
+
+  if (!isPro) {
+    return (
+      <>
+        <div className="min-h-screen pt-24 pb-12 px-4 flex items-center justify-center">
+          <div className="max-w-md w-full text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
+              <Bell className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-2">Price Alerts</h2>
+            <p className="text-sm text-muted-foreground mb-2">Get notified by email when any card hits your target buy or sell price — up to 100 alerts at once.</p>
+            <p className="text-sm text-muted-foreground mb-6">Available in the <span className="text-primary font-semibold">Origins Pro Bundle</span>.</p>
+            <Button onClick={() => setShowUpgrade(true)} className="bg-primary text-primary-foreground h-11 px-8">
+              <Zap className="w-4 h-4 mr-2" />Unlock with Origins Pro — $9.99/mo
+            </Button>
+          </div>
+        </div>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      </>
+    );
+  }
+
+  const atLimit = alerts.length >= ALERT_LIMIT;
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
@@ -100,13 +141,19 @@ export default function PriceAlerts() {
             </div>
             <div>
               <h1 className="text-2xl font-display font-bold text-foreground">Price Alerts</h1>
-              <p className="text-xs text-muted-foreground">Get notified when cards hit your target price</p>
+              <p className="text-xs text-muted-foreground">{alerts.length}/{ALERT_LIMIT} alerts · Get notified when cards hit your target price</p>
             </div>
           </div>
-          <Button onClick={() => setShowModal(true)} className="bg-primary text-primary-foreground">
+          <Button onClick={() => handleNewAlert()} disabled={atLimit} className="bg-primary text-primary-foreground">
             <Plus className="w-4 h-4 mr-1" /> New Alert
           </Button>
         </div>
+        {atLimit && (
+          <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 mb-5 text-sm text-amber-400 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            You've reached the 100-alert limit. Delete some alerts to add more.
+          </div>
+        )}
 
         {isLoading && (
           <div className="space-y-3">
@@ -119,7 +166,7 @@ export default function PriceAlerts() {
             <Bell className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
             <p className="text-foreground font-medium mb-1">No alerts yet</p>
             <p className="text-sm text-muted-foreground mb-6">Set a price alert to get notified when a card hits your target buy or sell price.</p>
-            <Button onClick={() => setShowModal(true)} className="bg-primary text-primary-foreground">
+            <Button onClick={() => handleNewAlert()} className="bg-primary text-primary-foreground">
               <Plus className="w-4 h-4 mr-1" /> Set Your First Alert
             </Button>
           </div>
@@ -149,7 +196,8 @@ export default function PriceAlerts() {
         )}
       </div>
 
-      {showModal && <SetAlertModal onClose={() => setShowModal(false)} onCreated={refresh} />}
+      {showModal && <SetAlertModal prefill={prefill} onClose={() => setShowModal(false)} onCreated={refresh} />}
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
     </div>
   );
 }
