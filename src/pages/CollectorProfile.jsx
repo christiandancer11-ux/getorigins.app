@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { ShieldCheck, Handshake, DollarSign, Trophy, TrendingUp, MapPin, CreditCard, Star } from 'lucide-react';
+import { ShieldCheck, Handshake, DollarSign, Trophy, TrendingUp, MapPin, CreditCard, Star, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SportBadge from '@/components/shared/SportBadge';
 
@@ -34,9 +34,14 @@ export default function CollectorProfile() {
   });
   const user = users[0];
 
-  const { data: allTrades = [], isLoading } = useQuery({
+  const { data: allTrades = [], isLoading: loadingTrades } = useQuery({
     queryKey: ['collector-trades', decodedEmail],
     queryFn: () => base44.entities.CardTrade.filter({ created_by: decodedEmail }, '-created_date', 100),
+  });
+
+  const { data: allCards = [], isLoading: loadingCards } = useQuery({
+    queryKey: ['collector-cards', decodedEmail],
+    queryFn: () => base44.entities.Card.filter({ created_by: decodedEmail }, '-created_date', 100),
   });
 
   const topSports = useMemo(() => {
@@ -49,6 +54,20 @@ export default function CollectorProfile() {
   const verifiedCount = allTrades.filter(t => t.verified).length;
   const isVerifiedCollector = allTrades.length >= 5 && verifiedCount >= 3;
   const avgDeal = allTrades.length ? totalValue / allTrades.length : 0;
+
+  const isLoading = loadingTrades || loadingCards;
+
+  // Get grail cards (highest estimated value)
+  const grailCards = allCards
+    .filter(c => c.estimated_value)
+    .sort((a, b) => (b.estimated_value || 0) - (a.estimated_value || 0))
+    .slice(0, 3);
+
+  // Total collection value
+  const totalCollectionValue = allCards.reduce((sum, c) => sum + (c.estimated_value || 0), 0);
+
+  // Get leaderboard rank (simplified - you'd calculate from all users in production)
+  const totalCardsRegistered = allCards.length;
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center pt-24">
@@ -85,37 +104,66 @@ export default function CollectorProfile() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
+          <div className="grid grid-cols-4 gap-3 pt-4 border-t border-border/50">
             <div className="text-center">
-              <p className="text-2xl font-bold font-display text-foreground">{allTrades.length}</p>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1"><Handshake className="w-3 h-3" />Trades</p>
+              <p className="text-2xl font-bold font-display text-foreground">{totalCardsRegistered}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1"><Star className="w-3 h-3" />Cards</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold font-display text-primary">${totalCollectionValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1"><DollarSign className="w-3 h-3" />Value</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold font-display text-green-400">${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1"><DollarSign className="w-3 h-3" />Volume</p>
+              <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1"><Handshake className="w-3 h-3" />Volume</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold font-display text-primary">${avgDeal.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1"><TrendingUp className="w-3 h-3" />Avg Deal</p>
+              <p className="text-2xl font-bold font-display text-amber-400">${avgDeal.toFixed(0)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 flex items-center justify-center gap-1"><TrendingUp className="w-3 h-3" />Avg</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Top 3 categories */}
-        {topSports.length > 0 && (
+        {/* Grail Cards */}
+        {grailCards.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-2xl bg-card border border-border/50 p-5 mb-6">
-            <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Star className="w-4 h-4 text-primary" />Favorite Categories</h2>
-            <div className="flex gap-2 flex-wrap">
-              {topSports.map((s, i) => (
-                <div key={s} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 border border-border/40">
-                  <span className="text-xs font-bold text-muted-foreground">#{i + 1}</span>
-                  <SportBadge sport={s} />
-                  <span className="text-xs text-foreground">{SPORT_LABELS[s] || s}</span>
+            <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" />Grail Cards</h2>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {grailCards.map((card) => (
+                <div key={card.id} className="rounded-xl overflow-hidden bg-secondary/50 border border-border/40 group cursor-pointer hover:border-primary/30 transition-colors">
+                  {card.image_url ? (
+                    <img src={card.image_url} alt={card.name} className="w-full h-40 object-cover group-hover:opacity-90 transition-opacity" />
+                  ) : (
+                    <div className="w-full h-40 bg-muted flex items-center justify-center">
+                      <Star className="w-8 h-8 text-muted-foreground/20" />
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <p className="text-xs font-semibold text-foreground truncate">{card.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{card.set_name} {card.year && `• ${card.year}`}</p>
+                    <p className="text-sm font-bold text-primary mt-2">${card.estimated_value?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </motion.div>
         )}
+
+        {/* Top 3 categories */}
+         {topSports.length > 0 && (
+           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-2xl bg-card border border-border/50 p-5 mb-6">
+             <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Star className="w-4 h-4 text-primary" />Favorite Categories</h2>
+             <div className="flex gap-2 flex-wrap">
+               {topSports.map((s, i) => (
+                 <div key={s} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 border border-border/40">
+                   <span className="text-xs font-bold text-muted-foreground">#{i + 1}</span>
+                   <SportBadge sport={s} />
+                   <span className="text-xs text-foreground">{SPORT_LABELS[s] || s}</span>
+                 </div>
+               ))}
+             </div>
+           </motion.div>
+         )}
 
         {/* Trade history */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>

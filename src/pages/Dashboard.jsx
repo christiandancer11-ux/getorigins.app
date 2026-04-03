@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import CardGridItem from '../components/dashboard/CardGridItem';
 import EmptyState from '../components/shared/EmptyState';
 import CollectionStats from '../components/dashboard/CollectionStats';
+import CollectionValueWidget from '../components/dashboard/CollectionValueWidget';
 import SoldTradedGrid from '../components/dashboard/SoldTradedGrid';
 import MarkSoldModal from '../components/dashboard/MarkSoldModal';
 import OwnershipRequests from '../components/dashboard/OwnershipRequests';
@@ -139,13 +140,18 @@ export default function Dashboard() {
             )}
 
             {/* Portfolio Tab */}
-            {activeTab === 'portfolio' && (
-              allCards.length === 0 ? (
-                <EmptyState icon={BarChart2} title="No Cards Yet" description="Register cards and add estimated values to see your portfolio breakdown." />
-              ) : (
-                <CollectionStats cards={allCards} />
-              )
-            )}
+             {activeTab === 'portfolio' && (
+               allCards.length === 0 ? (
+                 <EmptyState icon={BarChart2} title="No Cards Yet" description="Register cards and add estimated values to see your portfolio breakdown." />
+               ) : (
+                 <>
+                   <CollectionValueWidget userEmail={currentUserEmail} />
+                   <div className="mt-6">
+                     <CollectionStats cards={allCards} />
+                   </div>
+                 </>
+               )
+             )}
 
             {/* History Tab */}
             {activeTab === 'history' && (
