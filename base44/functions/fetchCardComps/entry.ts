@@ -1,13 +1,41 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// In-memory rate limit store: key -> { count, windowStart }
+const rateLimitStore = new Map();
+function checkRateLimit(key, maxRequests, windowMs) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return { allowed: true };
+  }
+  if (entry.count >= maxRequests) {
+    const retryAfterSec = Math.ceil((windowMs - (now - entry.windowStart)) / 1000);
+    return { allowed: false, retryAfterSec };
+  }
+  entry.count += 1;
+  return { allowed: true };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Rate limit: 10 searches per user per 10 minutes
+    const rl = checkRateLimit(`fetchCardComps:${user.email}`, 10, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return Response.json({ error: `Too many requests. Please wait ${rl.retryAfterSec} seconds before searching again.` }, { status: 429 });
+    }
+
     const { card_name, set_name, year, card_number, condition } = await req.json();
     if (!card_name) return Response.json({ error: 'card_name is required' }, { status: 400 });
+
+    // Input length validation
+    if (card_name.length > 200) return Response.json({ error: 'Search query is too long.' }, { status: 400 });
+    if (set_name && set_name.length > 200) return Response.json({ error: 'Set name is too long.' }, { status: 400 });
+    if (year && (year.length > 4 || !/^\d{4}$/.test(year))) return Response.json({ error: 'Invalid year.' }, { status: 400 });
 
     const condLabel = condition && condition !== 'raw' ? condition.toUpperCase().replace(/_/g, ' ') : '';
     const query = [year, card_name, set_name, card_number, condLabel].filter(Boolean).join(' ').trim();

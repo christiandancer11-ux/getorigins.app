@@ -1,13 +1,38 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// In-memory rate limit store
+const rateLimitStore = new Map();
+function checkRateLimit(key, maxRequests, windowMs) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return { allowed: true };
+  }
+  if (entry.count >= maxRequests) {
+    const retryAfterSec = Math.ceil((windowMs - (now - entry.windowStart)) / 1000);
+    return { allowed: false, retryAfterSec };
+  }
+  entry.count += 1;
+  return { allowed: true };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Rate limit: 10 registrations per user per hour
+    const rl = checkRateLimit(`registerCardAI:${user.email}`, 10, 60 * 60 * 1000);
+    if (!rl.allowed) {
+      return Response.json({ error: `Too many card registrations. Please wait ${rl.retryAfterSec} seconds before trying again.` }, { status: 429 });
+    }
+
     const { front_url, back_url } = await req.json();
     if (!front_url) return Response.json({ error: 'front_url required' }, { status: 400 });
+    if (typeof front_url !== 'string' || front_url.length > 2000) return Response.json({ error: 'Invalid front image URL.' }, { status: 400 });
+    if (back_url && (typeof back_url !== 'string' || back_url.length > 2000)) return Response.json({ error: 'Invalid back image URL.' }, { status: 400 });
 
     const fileUrls = [front_url];
     if (back_url) fileUrls.push(back_url);

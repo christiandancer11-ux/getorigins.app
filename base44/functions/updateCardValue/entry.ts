@@ -1,13 +1,37 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// In-memory rate limit store
+const rateLimitStore = new Map();
+function checkRateLimit(key, maxRequests, windowMs) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return { allowed: true };
+  }
+  if (entry.count >= maxRequests) {
+    const retryAfterSec = Math.ceil((windowMs - (now - entry.windowStart)) / 1000);
+    return { allowed: false, retryAfterSec };
+  }
+  entry.count += 1;
+  return { allowed: true };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Rate limit: 10 value refreshes per user per hour
+    const rl = checkRateLimit(`updateCardValue:${user.email}`, 10, 60 * 60 * 1000);
+    if (!rl.allowed) {
+      return Response.json({ error: `Too many value refreshes. Please wait ${rl.retryAfterSec} seconds.` }, { status: 429 });
+    }
+
     const { card_id } = await req.json();
     if (!card_id) return Response.json({ error: 'card_id is required' }, { status: 400 });
+    if (typeof card_id !== 'string' || card_id.length > 100) return Response.json({ error: 'Invalid card_id.' }, { status: 400 });
 
     // Fetch the card
     const cards = await base44.entities.Card.filter({ id: card_id });

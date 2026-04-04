@@ -1,13 +1,40 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// In-memory rate limit store
+const rateLimitStore = new Map();
+function checkRateLimit(key, maxRequests, windowMs) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return { allowed: true };
+  }
+  if (entry.count >= maxRequests) {
+    const retryAfterSec = Math.ceil((windowMs - (now - entry.windowStart)) / 1000);
+    return { allowed: false, retryAfterSec };
+  }
+  entry.count += 1;
+  return { allowed: true };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Rate limit: 5 scans per user per 10 minutes (scans are expensive)
+    const rl = checkRateLimit(`analyzeCardImage:${user.email}`, 5, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return Response.json({ error: `Too many scans. Please wait ${rl.retryAfterSec} seconds before scanning again.` }, { status: 429 });
+    }
+
     const { image_url, back_image_url } = await req.json();
     if (!image_url) return Response.json({ error: 'image_url required' }, { status: 400 });
+
+    // Validate URLs are strings and not absurdly long
+    if (typeof image_url !== 'string' || image_url.length > 2000) return Response.json({ error: 'Invalid image URL.' }, { status: 400 });
+    if (back_image_url && (typeof back_image_url !== 'string' || back_image_url.length > 2000)) return Response.json({ error: 'Invalid back image URL.' }, { status: 400 });
 
     const fileUrls = [image_url];
     if (back_image_url) fileUrls.push(back_image_url);
