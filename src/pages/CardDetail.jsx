@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, QrCode, Download, MessageCircle, Share2, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, QrCode, Download, MessageCircle, Share2, Pencil, RefreshCw, TrendingUp } from 'lucide-react';
 import MobileHeader from '../components/layout/MobileHeader';
 import QRCodeDisplay from '../components/shared/QRCodeDisplay';
 import SportBadge from '../components/shared/SportBadge';
@@ -20,6 +20,9 @@ export default function CardDetail() {
   const [showShare, setShowShare] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [refreshingValue, setRefreshingValue] = useState(false);
+  const [valueResult, setValueResult] = useState(null);
+  const qc = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => {});
@@ -57,6 +60,15 @@ export default function CardDetail() {
   }
 
   const qrDownloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(window.location.origin + '/scan/' + card.unique_code)}&format=png`;
+
+  const handleRefreshValue = async () => {
+    setRefreshingValue(true);
+    setValueResult(null);
+    const res = await base44.functions.invoke('updateCardValue', { card_id: card.id });
+    setValueResult(res.data);
+    qc.invalidateQueries({ queryKey: ['card', id] });
+    setRefreshingValue(false);
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-6">
@@ -96,6 +108,32 @@ export default function CardDetail() {
             {card.description && (
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">{card.description}</p>
             )}
+
+            {/* Estimated Value */}
+            <div className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-secondary/40 border border-border/50">
+              <TrendingUp className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">Market Value</p>
+                <p className="text-lg font-bold text-foreground">
+                  {card.estimated_value != null ? `$${card.estimated_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
+                </p>
+                {valueResult?.source_summary && (
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{valueResult.source_summary}</p>
+                )}
+              </div>
+              {currentUser && card.created_by === currentUser.email && (
+                <Button
+                  onClick={handleRefreshValue}
+                  disabled={refreshingValue}
+                  variant="outline"
+                  size="sm"
+                  className="border-border/50 shrink-0"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshingValue ? 'animate-spin' : ''}`} />
+                  {refreshingValue ? 'Looking up...' : 'Refresh'}
+                </Button>
+              )}
+            </div>
 
             <div className="flex flex-wrap gap-3 mt-auto">
               <Button onClick={() => setShowQR(!showQR)} variant="outline" className="border-border/50 hover:border-primary/30">
