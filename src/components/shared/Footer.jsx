@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Globe } from 'lucide-react';
 
 export default function Footer() {
-  const WEBSITE_URL = 'https://www.origins-cardstories.com';
+  const WEBSITE_URL = 'https://www.getorigins.app';
 
   return (
     <footer className="border-t border-border bg-secondary/20 mt-12 py-8 px-4 sm:px-6">
@@ -46,7 +46,7 @@ export default function Footer() {
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition"
             >
               <Globe className="w-4 h-4" />
-              origins-cardstories.com
+              getorigins.app
             </a>
           </div>
         </div>
