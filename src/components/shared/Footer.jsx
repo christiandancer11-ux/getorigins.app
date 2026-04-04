@@ -43,11 +43,26 @@ export default function Footer() {
               href={WEBSITE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition mb-4"
             >
               <Globe className="w-4 h-4" />
               getorigins.app
             </a>
+            <h4 className="text-sm font-semibold text-foreground mb-3 mt-6">Contact</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a href="mailto:marketing@getorigins.app" className="text-muted-foreground hover:text-primary transition">
+                  marketing@getorigins.app
+                </a>
+                <p className="text-xs text-muted-foreground/60">Marketing</p>
+              </li>
+              <li>
+                <a href="mailto:support@getorigins.app" className="text-muted-foreground hover:text-primary transition">
+                  support@getorigins.app
+                </a>
+                <p className="text-xs text-muted-foreground/60">Customer Support</p>
+              </li>
+            </ul>
           </div>
         </div>
 
