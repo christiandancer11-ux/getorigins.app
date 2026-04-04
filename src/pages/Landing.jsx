@@ -6,6 +6,7 @@ import { QrCode, Video, History, ArrowRight, Layers, Sparkles, TrendingUp, Hands
 import { motion } from 'framer-motion';
 import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
 import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
+import WhatsNewBanner from '@/components/onboarding/WhatsNewBanner';
 import { useAuth } from '@/lib/AuthContext';
 
 const HOW_IT_WORKS = [
@@ -30,7 +31,7 @@ const PLANS = [
     color: 'text-amber-400',
     highlight: true,
     badge: 'All Features',
-    features: ['Unlimited story messages & videos per day', 'Market Value & AI Card Scanner', 'Card Show Trades — real comp logs', 'Trending — Top 100 hottest cards', 'Live eBay, 130point & Origins data'],
+    features: ['Unlimited story messages & videos per day', 'Market Value & AI Card Scanner', 'Card Show Trades — real comp logs', 'Trending — Top 100 hottest cards', 'Live eBay, 130point & Origins data', 'Pro Card Flipper — PSA/BGS/SGC/CGC pop report analysis', 'BGS Black Label candidate finder'],
   },
 ];
 
@@ -147,6 +148,7 @@ export default function Landing() {
               { icon: Flame, title: 'Trending Top 100', desc: 'Football, Baseball, Pokémon, F1 and more — the hottest cards right now.' },
               { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track scans, visitor counts, and engagement across your entire collection.' },
               { icon: MessageSquare, title: 'Video Message Timeline', desc: 'Every owner leaves a message. Cards build a story that travels with them.' },
+              { icon: Sparkles, title: 'Pro Card Flipper', desc: 'AI analyzes PSA, BGS, SGC & CGC pop reports to find cards with 80–95% odds of a perfect 10 grade — including BGS Black Label candidates.' },
             ].map((f, i) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                 className="flex gap-4 p-5 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-colors">
@@ -268,6 +270,7 @@ export default function Landing() {
 
       {showRedeem && <RedeemCodeModal onClose={() => setShowRedeem(false)} />}
       {showWalkthrough && <OnboardingWalkthrough isOpen={showWalkthrough} onClose={() => setShowWalkthrough(false)} />}
+      {user && !showWalkthrough && <WhatsNewBanner />}
     </div>
   );
 }
