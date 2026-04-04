@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText, Repeat2 } from 'lucide-react';
+import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText, Repeat2, Rss, Users } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
+  { to: '/feed', icon: Rss, label: 'Live Feed' },
+  { to: '/users', icon: Users, label: 'Collectors' },
   { to: '/dashboard', icon: Layers, label: 'My Cards' },
   { to: '/card-show', icon: Handshake, label: 'Card Show' },
   { to: '/market', icon: TrendingUp, label: 'Market' },

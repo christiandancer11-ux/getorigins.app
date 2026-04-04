@@ -29,6 +29,8 @@ import Support from './pages/Support';
 import Marketing from './pages/Marketing';
 import GradedCertScan from './pages/GradedCertScan';
 import ProCardFlipper from './pages/ProCardFlipper';
+import SocialFeed from './pages/SocialFeed';
+import UserSearch from './pages/UserSearch';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -75,6 +77,8 @@ const AuthenticatedApp = () => {
         <Route path="/features" element={<Marketing />} />
         <Route path="/graded/:company/:cert" element={<GradedCertScan />} />
         <Route path="/flipper" element={<ProCardFlipper />} />
+        <Route path="/feed" element={<SocialFeed />} />
+        <Route path="/users" element={<UserSearch />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

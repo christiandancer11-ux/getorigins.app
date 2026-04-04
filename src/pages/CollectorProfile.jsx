@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ShieldCheck, Handshake, DollarSign, Trophy, TrendingUp, MapPin, CreditCard, Star, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SportBadge from '@/components/shared/SportBadge';
+import FollowButton from '@/components/social/FollowButton';
+import CardReactions from '@/components/social/CardReactions';
 
 const CONDITION_LABELS = {
   raw: 'Raw', psa_10: 'PSA 10', psa_9: 'PSA 9', psa_8: 'PSA 8',
@@ -27,6 +29,11 @@ function timeAgo(dateStr) {
 export default function CollectorProfile() {
   const { email } = useParams();
   const decodedEmail = decodeURIComponent(email);
+  const [currentUserEmail, setCurrentUserEmail] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(u => { if (u) setCurrentUserEmail(u.email); }).catch(() => {});
+  }, []);
 
   const { data: users = [] } = useQuery({
     queryKey: ['collector-user', decodedEmail],
@@ -81,7 +88,7 @@ export default function CollectorProfile() {
 
         {/* Profile header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl bg-card border border-border/50 p-6 mb-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-start gap-4 mb-4">
             <div className="w-16 h-16 rounded-2xl bg-muted/40 border border-border/50 overflow-hidden shrink-0 flex items-center justify-center text-3xl">
               {user?.avatar_url ? <img src={user.avatar_url} alt={user.full_name} className="w-full h-full object-cover" /> : '👤'}
             </div>
@@ -100,7 +107,16 @@ export default function CollectorProfile() {
                   {topSports.map(s => <SportBadge key={s} sport={s} />)}
                 </div>
               )}
+              <div className="mt-3">
+                <FollowButton targetEmail={decodedEmail} />
+              </div>
             </div>
+          </div>
+
+          {/* Profile reactions */}
+          <div className="mb-4 pb-4 border-b border-border/30">
+            <p className="text-xs text-muted-foreground mb-2">React to this collection:</p>
+            <CardReactions targetId={decodedEmail} targetType="profile" currentUserEmail={currentUserEmail} />
           </div>
 
           {/* Stats */}
@@ -164,6 +180,38 @@ export default function CollectorProfile() {
              </div>
            </motion.div>
          )}
+
+        {/* Full Card Collection */}
+        {allCards.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="rounded-2xl bg-card border border-border/50 p-5 mb-6">
+            <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-primary" />Collection
+              <span className="text-xs text-muted-foreground font-normal">({allCards.length} cards)</span>
+            </h2>
+            <div className="grid grid-cols-3 gap-2">
+              {allCards.slice(0, 12).map(card => (
+                <Link key={card.id} to={`/cards/${card.id}`} className="group">
+                  <div className="rounded-xl overflow-hidden bg-secondary/50 border border-border/40 group-hover:border-primary/30 transition-colors">
+                    {card.image_url ? (
+                      <img src={card.image_url} alt={card.name} className="w-full h-28 object-cover" />
+                    ) : (
+                      <div className="w-full h-28 bg-muted flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-muted-foreground/20" />
+                      </div>
+                    )}
+                    <div className="p-2">
+                      <p className="text-[10px] font-semibold text-foreground truncate">{card.name}</p>
+                      {card.estimated_value && <p className="text-[10px] text-primary font-bold">${card.estimated_value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {allCards.length > 12 && (
+              <p className="text-xs text-muted-foreground text-center mt-3">+{allCards.length - 12} more cards</p>
+            )}
+          </motion.div>
+        )}
 
         {/* Trade history */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
