@@ -71,9 +71,9 @@ Return a JSON object with:
 - point130_high: highest confirmed price from 130point.com (number or null)
 - point130_avg: average confirmed price from 130point.com (number or null)
 - point130_recent_sales: array of up to 6 recent 130point confirmed sold listings: { date: "Mon DD YYYY", price: number, condition: string, title: string, source: "130point" }
-- psa_value: PSA Price Guide / SMR value for the closest matching grade (number or null)
-- psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9")
-- market_summary: 3-4 sentence plain English summary. Include: eBay 24h average if available, 130point average, PSA value, any offer-accepted replacements made, and any outliers excluded.
+- psa_value: PSA Price Guide / SMR value — ONLY include this if the search query explicitly mentions "PSA" as the grading company (e.g. "PSA 10", "PSA 9"). If the card is raw, ungraded, or graded by BGS/SGC/CGC/HGA/CSG or any other company that is NOT PSA, set psa_value to null and psa_grade_used to null. IMPORTANT: psa_value is a SEPARATE reference figure and must NOT be included in or influence ebay_avg, point130_avg, or any other average calculation.
+- psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9") — only set if psa_value is non-null
+- market_summary: 3-4 sentence plain English summary. Focus on eBay and 130point data only. If psa_value is present, mention it as a separate reference figure at the end. Include any offer-accepted replacements made and any outliers excluded.
 - search_query_used: exact search query used
 
 Use real data only. If a source has no qualifying data, return null for its fields and empty array for sales.`;

@@ -26,19 +26,22 @@ Deno.serve(async (req) => {
     const query = [card.year, card.name, card.set_name, card.card_number ? `#${card.card_number}` : '', gradePart]
       .filter(Boolean).join(' ').trim();
 
+    const isPSA = card.grading_company?.toUpperCase() === 'PSA';
+
     const prompt = `You are a sports card & TCG pricing assistant. Find the current fair market value for this card:
 
 "${query}"
 
-Search eBay recently sold listings (last 30 days), 130point.com, and PSA Price Guide for this specific card.
+Search eBay recently sold listings (last 30 days) and 130point.com for this specific card.
 
 Rules:
 - Only include CONFIRMED SOLD listings (not active listings)
 - If graded, match the specific grade (${gradePart || 'raw/ungraded'})
-- Return the best single estimated_value in USD as a number (the most representative current market price)
+- Return the best single estimated_value in USD based ONLY on eBay and 130point.com sold comps (do NOT use PSA Price Guide or PSA SMR in this value)
 - Base it on the median/average of recent sales, not outliers
+${isPSA ? `- Also return psa_smr_value: the PSA SMR / Price Guide value for ${card.grade} if available (separate reference only, not factored into estimated_value)` : '- Do NOT look up PSA Price Guide — this card is not a PSA slab'}
 
-Return JSON: { "estimated_value": <number or null>, "confidence": "high|medium|low", "source_summary": "<1-2 sentence explanation of what data was found>" }`;
+Return JSON: { "estimated_value": <number or null>${isPSA ? ', "psa_smr_value": <number or null>' : ''}, "confidence": "high|medium|low", "source_summary": "<1-2 sentence explanation of what data was found>" }`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
@@ -48,6 +51,7 @@ Return JSON: { "estimated_value": <number or null>, "confidence": "high|medium|l
         type: 'object',
         properties: {
           estimated_value: { type: 'number' },
+          psa_smr_value: { type: 'number' },
           confidence: { type: 'string' },
           source_summary: { type: 'string' },
         },
@@ -65,6 +69,7 @@ Return JSON: { "estimated_value": <number or null>, "confidence": "high|medium|l
     return Response.json({
       success: true,
       estimated_value: result?.estimated_value ?? null,
+      psa_smr_value: result?.psa_smr_value ?? null,
       confidence: result?.confidence ?? null,
       source_summary: result?.source_summary ?? null,
       query_used: query,

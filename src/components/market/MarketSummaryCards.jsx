@@ -26,14 +26,8 @@ export default function MarketSummaryCards({ result, showTradesCount }) {
 
   return (
     <div className="space-y-3">
+      {/* Main market data — eBay, 130point, Card Show */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <StatBubble
-          label="PSA Value"
-          value={psaVal || '—'}
-          sub={result.psa_grade_used ? `PSA Price Guide · ${result.psa_grade_used}` : 'PSA SMR'}
-          icon={Award}
-          accentClass="bg-amber-400/10 text-amber-400"
-        />
         <StatBubble
           label="eBay Avg (24h)"
           value={ebayAvg24h || (ebayAvg || '—')}
@@ -48,8 +42,6 @@ export default function MarketSummaryCards({ result, showTradesCount }) {
           icon={TrendingUp}
           accentClass="bg-emerald-400/10 text-emerald-400"
         />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-1 gap-3">
         <StatBubble
           label="Card Show Comps"
           value={showTradesCount > 0 ? showTradesCount : '0'}
@@ -58,6 +50,20 @@ export default function MarketSummaryCards({ result, showTradesCount }) {
           accentClass="bg-primary/10 text-primary"
         />
       </div>
+
+      {/* PSA SMR — separate reference, only shown for PSA slabs */}
+      {psaVal && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-400/10 flex items-center justify-center shrink-0">
+            <Award className="w-4 h-4 text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-amber-400 font-semibold">PSA Price Guide (SMR)</p>
+            <p className="text-sm text-muted-foreground">{result.psa_grade_used ? `Reference value for ${result.psa_grade_used}` : 'Reference only — not included in market averages'}</p>
+          </div>
+          <p className="text-xl font-bold text-amber-400 font-display shrink-0">{psaVal}</p>
+        </div>
+      )}
     </div>
   );
 }
