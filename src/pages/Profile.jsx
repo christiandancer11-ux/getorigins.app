@@ -11,6 +11,7 @@ import EditProfileModal from '../components/profile/EditProfileModal';
 import EmptyState from '../components/shared/EmptyState';
 import ReferralSection from '../components/profile/ReferralSection';
 import NotificationPreferences from '../components/profile/NotificationPreferences';
+import ShareProfileSection from '../components/profile/ShareProfileSection';
 
 const SOCIAL_CONFIG = [
   { key: 'youtube',       label: 'YouTube',         baseUrl: 'https://youtube.com/@' },
@@ -217,6 +218,8 @@ export default function Profile() {
             </div>
           </motion.div>
         )}
+
+        <ShareProfileSection userEmail={user?.email} />
 
         <ReferralSection />
 
