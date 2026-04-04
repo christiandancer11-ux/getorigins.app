@@ -151,7 +151,7 @@ export default function PrivacyPolicy() {
               <li>• Data portability (receive your data in a standard format)</li>
             </ul>
             <p className="text-muted-foreground mt-3">
-              To exercise these rights, contact us at support@origins.com.
+              To exercise these rights, contact us at support@getorigins.app.
             </p>
           </section>
 
@@ -173,7 +173,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-xl font-semibold text-foreground mb-3">11. Contact Us</h2>
             <p className="text-muted-foreground">
               For privacy questions or concerns, contact us at:<br />
-              Email: privacy@origins.com
+              Email: privacy@getorigins.app
             </p>
           </section>
         </motion.div>

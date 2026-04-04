@@ -55,7 +55,7 @@ export default function Support() {
         <div className="rounded-2xl border border-border bg-secondary/20 p-8">
           <h2 className="font-semibold text-foreground mb-3">Still need help?</h2>
           <p className="text-muted-foreground mb-6">
-            Email us at <span className="text-primary">support@origins.app</span> and we'll get back to you within 24 hours.
+            Email us at <span className="text-primary">support@getorigins.app</span> and we'll get back to you within 24 hours.
           </p>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Contact Support</Button>
         </div>

@@ -163,7 +163,7 @@ export default function TermsOfUse() {
             <h2 className="text-xl font-semibold text-foreground mb-3">14. Contact Information</h2>
             <p className="text-muted-foreground">
               For questions about these terms, contact us at:<br />
-              Email: legal@origins.com
+              Email: legal@getorigins.app
             </p>
           </section>
         </motion.div>
