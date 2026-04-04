@@ -136,17 +136,18 @@ export default function Landing() {
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { icon: QrCode, title: 'AI Card Scanner', desc: 'Snap a photo — AI identifies the card, auto-fills all details, and generates a unique QR code sticker.', pro: false },
-              { icon: MessageSquare, title: 'Video Message Timeline', desc: 'Every owner leaves a message. Cards build a living history that travels with them from hand to hand.', pro: false },
-              { icon: Users, title: 'Social Network', desc: 'Follow collectors, view their collections, and see new cards they add in your personalized feed.', pro: false },
-              { icon: Heart, title: 'Reactions & Comments', desc: 'React with emojis (🔥💎⭐🤩👏) and leave comments on cards your friends add to build community.', pro: false },
-              { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track scans, visitor counts, and engagement across your entire collection.', pro: false },
-              { icon: ShieldAlert, title: 'BOLO Stolen Card Alerts', desc: 'Verified dealers report stolen cards. Get notified when thefts happen near you to protect the hobby.', pro: false },
-              { icon: TrendingUp, title: 'Live Market Values', desc: 'Real-time eBay sold data, 130point comps, and community trade logs for any card.', pro: true },
-              { icon: Handshake, title: 'Card Show Trades', desc: 'Log real in-person deals. AI verifies fair market value on the spot so you never overpay.', pro: true },
-              { icon: Flame, title: 'Trending Top 100', desc: 'Baseball, Basketball, Football, Pokémon, MTG and more — the hottest cards right now.', pro: true },
-              { icon: Bell, title: 'Price Alerts', desc: 'Set buy-below or sell-above targets. Get email alerts the moment the market hits your price.', pro: true },
-              { icon: Award, title: 'Pro Card Flipper', desc: 'AI scans PSA, BGS, SGC & CGC pop reports to find cards with 80–95% odds of a perfect 10 — including BGS Black Label Pristine candidates.', pro: true },
+              { icon: QrCode, title: 'AI Card Scanner', desc: 'Snap a photo — AI identifies the card, auto-fills details, and generates a unique QR code sticker for the back.', pro: false },
+              { icon: Video, title: 'Video Messages', desc: 'Record personal messages and videos that travel with the card from owner to owner.', pro: false },
+              { icon: Users, title: 'Social Network', desc: 'Follow collectors, discover collections, and see new cards in your personalized feed.', pro: false },
+              { icon: Heart, title: 'Reactions & Comments', desc: 'React with emojis (🔥💎⭐🤩👏) and engage with your collector community on cards.', pro: false },
+              { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track scans, visitor engagement, and performance metrics across your collection.', pro: false },
+              { icon: ShieldAlert, title: 'BOLO Stolen Card Alerts', desc: 'Get notified of stolen cards reported by verified dealers near your location.', pro: false },
+              { icon: Award, title: 'Leaderboard & Stats', desc: 'See your ranking among collectors based on portfolio value and scans.', pro: false },
+              { icon: TrendingUp, title: 'Live Market Values', desc: 'Real-time eBay sold prices, 130point comps, and community trade data for accurate valuations.', pro: true },
+              { icon: Handshake, title: 'Card Show Trades', desc: 'Log real in-person deals with AI-verified fair market values — never overpay at a show.', pro: true },
+              { icon: Flame, title: 'Trending Top 100', desc: 'See the hottest cards trending now across Baseball, Basketball, Football, Pokémon, MTG, and more.', pro: true },
+              { icon: Bell, title: 'Price Alerts', desc: 'Set buy-below or sell-above price targets and get email notifications when thresholds are hit.', pro: true },
+              { icon: Award, title: 'Pro Card Flipper', desc: 'Find PSA/BGS/SGC/CGC cards with 80–95% odds of a perfect 10 — including BGS Black Label candidates.', pro: true },
             ].map((f, i) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                 className={`flex gap-4 p-5 rounded-xl border transition-colors ${f.pro ? 'bg-amber-400/5 border-amber-400/20 hover:border-amber-400/40' : 'bg-card border-border/50 hover:border-primary/20'}`}>
