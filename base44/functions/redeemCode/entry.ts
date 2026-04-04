@@ -29,7 +29,23 @@ Deno.serve(async (req) => {
     let benefit = '';
     const now = new Date();
 
-    if (promo.type === 'admin_gift') {
+    if (promo.type === 'lifetime') {
+      // Lifetime access — set end date 100 years in the future
+      const endDate = new Date(now);
+      endDate.setFullYear(endDate.getFullYear() + 100);
+      const existing_sub = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
+      if (existing_sub.length > 0) {
+        await base44.asServiceRole.entities.UserSubscription.update(existing_sub[0].id, {
+          status: 'active', plan: 'pro', current_period_end: endDate.toISOString(),
+        });
+      } else {
+        await base44.asServiceRole.entities.UserSubscription.create({
+          user_email: user.email, status: 'active', plan: 'pro', current_period_end: endDate.toISOString(),
+        });
+      }
+      benefit = '🎉 Lifetime access to all Origins features activated!';
+
+    } else if (promo.type === 'admin_gift') {
       // 3 months free expert access
       const endDate = new Date(now);
       endDate.setMonth(endDate.getMonth() + 3);

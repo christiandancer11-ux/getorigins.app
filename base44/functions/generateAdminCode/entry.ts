@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
 
     const created = [];
     for (let i = 0; i < Math.min(count, 50); i++) {
-      const prefix = type === 'admin_gift' ? 'GIFT' : type === 'creator' ? 'CREATOR' : 'REF';
+      const prefix = type === 'lifetime' ? 'LIFE' : type === 'admin_gift' ? 'GIFT' : type === 'creator' ? 'CREATOR' : 'REF';
       const code = randomCode(prefix);
       const promo = await base44.asServiceRole.entities.PromoCode.create({
         code, type, max_uses, use_count: 0, is_active: true, notes,

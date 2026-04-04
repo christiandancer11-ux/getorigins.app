@@ -8,6 +8,7 @@ import { Copy, Plus, Trash2, CheckCircle, Loader2, Shield, ShieldAlert, Search }
 import { motion } from 'framer-motion';
 
 const TYPE_LABELS = {
+  lifetime: '♾️ Lifetime (all features, forever)',
   admin_gift: '🎁 Gift (3mo Expert Free)',
   creator: '🎨 Creator (50% off 3mo)',
   referral: '🤝 Referral (7 days free)',
