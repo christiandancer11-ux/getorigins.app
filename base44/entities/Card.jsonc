@@ -35,7 +35,11 @@
     },
     "image_url": {
       "type": "string",
-      "description": "Photo of the card"
+      "description": "Photo of the card front"
+    },
+    "image_back_url": {
+      "type": "string",
+      "description": "Photo of the card back"
     },
     "unique_code": {
       "type": "string",
@@ -96,6 +100,26 @@
     "sold_traded_notes": {
       "type": "string",
       "description": "Notes about the sale or trade"
+    },
+    "grading_company": {
+      "type": "string",
+      "description": "Name of the grading company (e.g. PSA, BGS, SGC, CGC, HGA)"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Grade of the card (e.g. 10, 9.5, 9, 8)"
+    },
+    "cert_number": {
+      "type": "string",
+      "description": "Certification/serial number from the grading company"
+    },
+    "pop_report": {
+      "type": "string",
+      "description": "Population report data for this graded card (e.g. PSA 10 Pop: 125 \u2014 last updated 2024-01-01)"
+    },
+    "pop_report_updated": {
+      "type": "string",
+      "description": "ISO timestamp of when pop report was last updated"
     }
   },
   "required": [

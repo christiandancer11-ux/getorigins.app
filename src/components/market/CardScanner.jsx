@@ -1,44 +1,65 @@
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, Loader2, RotateCcw, TrendingUp, ShoppingCart, Handshake, Star, AlertCircle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Camera, Upload, Loader2, RotateCcw, TrendingUp, ShoppingCart, Handshake, Star, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Plus, X, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SoldListingsTable from './SoldListingsTable';
 
-const STEP = { IDLE: 'idle', UPLOADING: 'uploading', ANALYZING: 'analyzing', DONE: 'done', ERROR: 'error' };
+const STEP = { IDLE: 'idle', UPLOADING: 'uploading', ANALYZING: 'analyzing', NEED_BACK: 'need_back', UPLOADING_BACK: 'uploading_back', DONE: 'done', ERROR: 'error' };
 
 export default function CardScanner() {
   const [step, setStep] = useState(STEP.IDLE);
-  const [imageUrl, setImageUrl] = useState(null);
+  const [frontUrl, setFrontUrl] = useState(null);
+  const [backUrl, setBackUrl] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showListings, setShowListings] = useState(false);
-  const fileRef = useRef();
-  const galleryRef = useRef();
+  const frontCamRef = useRef();
+  const frontGalleryRef = useRef();
+  const backCamRef = useRef();
+  const backGalleryRef = useRef();
 
-  const handleFile = async (file) => {
-    if (!file) return;
-    setStep(STEP.UPLOADING);
-    setError(null);
-    setResult(null);
-
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setImageUrl(file_url);
+  const analyzeCard = async (front, back) => {
     setStep(STEP.ANALYZING);
-
-    const res = await base44.functions.invoke('analyzeCardImage', { image_url: file_url });
+    const payload = { image_url: front };
+    if (back) payload.back_image_url = back;
+    const res = await base44.functions.invoke('analyzeCardImage', payload);
     if (res.data?.error) {
       setError(res.data.error);
       setStep(STEP.ERROR);
     } else {
-      setResult(res.data);
-      setStep(STEP.DONE);
+      // If AI says it needs the back and we don't have it yet
+      if (res.data?.needs_back_image && !back) {
+        setStep(STEP.NEED_BACK);
+      } else {
+        setResult(res.data);
+        setStep(STEP.DONE);
+      }
     }
+  };
+
+  const handleFrontFile = async (file) => {
+    if (!file) return;
+    setStep(STEP.UPLOADING);
+    setError(null);
+    setResult(null);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setFrontUrl(file_url);
+    await analyzeCard(file_url, null);
+  };
+
+  const handleBackFile = async (file) => {
+    if (!file) return;
+    setStep(STEP.UPLOADING_BACK);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setBackUrl(file_url);
+    await analyzeCard(frontUrl, file_url);
   };
 
   const reset = () => {
     setStep(STEP.IDLE);
-    setImageUrl(null);
+    setFrontUrl(null);
+    setBackUrl(null);
     setResult(null);
     setError(null);
     setShowListings(false);
@@ -46,69 +67,105 @@ export default function CardScanner() {
 
   const id = result?.identification;
   const mkt = result?.market;
+  const isGraded = id?.grading_company && id?.grade;
 
   return (
     <div className="space-y-6">
-      {/* Upload area */}
+
+      {/* IDLE — upload front */}
       {step === STEP.IDLE && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          {/* Drop zone */}
           <div
-            onClick={() => galleryRef.current?.click()}
+            onClick={() => frontGalleryRef.current?.click()}
             className="flex flex-col items-center justify-center gap-4 p-10 rounded-2xl border-2 border-dashed border-border hover:border-primary/40 bg-secondary/20 cursor-pointer transition-colors group"
           >
             <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <Camera className="w-7 h-7 text-primary" />
             </div>
             <div className="text-center">
-              <p className="font-semibold text-foreground mb-1">Tap to choose a photo</p>
-              <p className="text-sm text-muted-foreground">AI identifies the card and pulls live market value from eBay, 130point, and Origins trades</p>
+              <p className="font-semibold text-foreground mb-1">Tap to scan card front</p>
+              <p className="text-sm text-muted-foreground">AI identifies the card and pulls live market value. Upload back if needed for more info.</p>
             </div>
           </div>
 
-          {/* Two explicit buttons */}
           <div className="grid grid-cols-2 gap-3">
-            <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} className="border-border/50 gap-2">
+            <Button type="button" variant="outline" onClick={() => frontCamRef.current?.click()} className="border-border/50 gap-2">
               <Camera className="w-4 h-4" />Take Photo
             </Button>
-            <Button type="button" variant="outline" onClick={() => galleryRef.current?.click()} className="border-border/50 gap-2">
+            <Button type="button" variant="outline" onClick={() => frontGalleryRef.current?.click()} className="border-border/50 gap-2">
               <Upload className="w-4 h-4" />Upload from Gallery
             </Button>
           </div>
 
-          {/* Camera input */}
-          <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handleFile(e.target.files[0])} />
-          {/* Gallery input — no capture attribute so it opens the file picker */}
-          <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files[0])} />
+          <input ref={frontCamRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handleFrontFile(e.target.files[0])} />
+          <input ref={frontGalleryRef} type="file" accept="image/*" className="hidden" onChange={e => handleFrontFile(e.target.files[0])} />
         </motion.div>
       )}
 
-      {/* Loading states */}
-      {(step === STEP.UPLOADING || step === STEP.ANALYZING) && (
+      {/* Loading: uploading or analyzing */}
+      {(step === STEP.UPLOADING || step === STEP.ANALYZING || step === STEP.UPLOADING_BACK) && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-5 py-14">
-          {imageUrl && (
-            <div className="w-24 h-36 rounded-xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/10">
-              <img src={imageUrl} alt="card" className="w-full h-full object-cover" />
-            </div>
-          )}
+          <div className="flex gap-3">
+            {frontUrl && (
+              <div className="w-20 h-28 rounded-xl overflow-hidden border-2 border-primary/30 shadow-lg shadow-primary/10">
+                <img src={frontUrl} alt="front" className="w-full h-full object-cover" />
+              </div>
+            )}
+            {backUrl && (
+              <div className="w-20 h-28 rounded-xl overflow-hidden border-2 border-primary/20 shadow-md">
+                <img src={backUrl} alt="back" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="flex items-center gap-2 text-primary">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span className="font-semibold">
-                {step === STEP.UPLOADING ? 'Uploading image...' : 'Analyzing card & researching market value...'}
+                {step === STEP.UPLOADING ? 'Uploading front...' : step === STEP.UPLOADING_BACK ? 'Uploading back...' : 'Analyzing card & fetching market data...'}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground max-w-xs">
-              {step === STEP.ANALYZING ? 'Cross-referencing eBay, 130point.com, and Origins community trades' : ''}
-            </p>
+            {step === STEP.ANALYZING && (
+              <p className="text-xs text-muted-foreground max-w-xs">Cross-referencing eBay, 130point.com, and Origins community trades</p>
+            )}
           </div>
+        </motion.div>
+      )}
+
+      {/* Need back image */}
+      {step === STEP.NEED_BACK && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          {frontUrl && (
+            <div className="w-20 h-28 rounded-xl overflow-hidden border-2 border-primary/20 mx-auto">
+              <img src={frontUrl} alt="front" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5 text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
+              <Plus className="w-5 h-5 text-primary" />
+            </div>
+            <p className="font-semibold text-foreground">More info needed</p>
+            <p className="text-sm text-muted-foreground">AI needs the back of this card to gather enough details (card number, set info, cert number, etc.).</p>
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <Button type="button" variant="outline" onClick={() => backCamRef.current?.click()} className="border-primary/30 text-primary gap-2">
+                <Camera className="w-4 h-4" />Take Back Photo
+              </Button>
+              <Button type="button" variant="outline" onClick={() => backGalleryRef.current?.click()} className="border-primary/30 text-primary gap-2">
+                <Upload className="w-4 h-4" />Upload Back
+              </Button>
+            </div>
+            <button onClick={() => analyzeCard(frontUrl, null).then(() => {})} className="text-xs text-muted-foreground underline mt-1">
+              Skip and continue with front only
+            </button>
+          </div>
+          <input ref={backCamRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handleBackFile(e.target.files[0])} />
+          <input ref={backGalleryRef} type="file" accept="image/*" className="hidden" onChange={e => handleBackFile(e.target.files[0])} />
         </motion.div>
       )}
 
       {/* Error */}
       {step === STEP.ERROR && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-          {imageUrl && <img src={imageUrl} alt="card" className="w-24 h-36 object-cover rounded-xl border border-border/50 mx-auto" />}
+          {frontUrl && <img src={frontUrl} alt="card" className="w-24 h-36 object-cover rounded-xl border border-border/50 mx-auto" />}
           <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
             <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <p className="text-sm text-destructive">{error}</p>
@@ -122,23 +179,37 @@ export default function CardScanner() {
       {/* Results */}
       {step === STEP.DONE && result && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-          {/* Card image + identity */}
-          <div className="flex gap-4 items-start">
-            {imageUrl && (
-              <div className="w-20 h-28 rounded-xl overflow-hidden border-2 border-primary/20 shadow-md shrink-0">
-                <img src={imageUrl} alt="card" className="w-full h-full object-cover" />
-              </div>
-            )}
+          {/* Card images */}
+          <div className="flex gap-3 items-start">
+            <div className="flex gap-2 shrink-0">
+              {frontUrl && (
+                <div className="w-20 h-28 rounded-xl overflow-hidden border-2 border-primary/20 shadow-md">
+                  <img src={frontUrl} alt="front" className="w-full h-full object-cover" />
+                </div>
+              )}
+              {backUrl && (
+                <div className="w-20 h-28 rounded-xl overflow-hidden border border-border/50 shadow-sm">
+                  <img src={backUrl} alt="back" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 text-xs text-green-400 mb-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Card identified — {id?.confidence} confidence</span>
+                <span>Identified — {id?.confidence} confidence</span>
               </div>
               <h3 className="font-display text-lg font-bold text-foreground leading-tight">{id?.card_name}</h3>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {[id?.year, id?.set_name, id?.card_number && `#${id.card_number}`].filter(Boolean).join(' · ')}
               </p>
-              {id?.condition_estimate && (
+              {isGraded && (
+                <div className="flex items-center gap-1.5 mt-1.5 px-2 py-1 rounded-lg bg-amber-400/10 border border-amber-400/20 w-fit">
+                  <Award className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-xs font-semibold text-amber-400">{id.grading_company} {id.grade}</span>
+                  {id.cert_number && <span className="text-xs text-muted-foreground">#{id.cert_number}</span>}
+                </div>
+              )}
+              {id?.condition_estimate && !isGraded && (
                 <p className="text-xs text-muted-foreground mt-1">Visual condition: <span className="text-foreground">{id.condition_estimate}</span></p>
               )}
               {id?.visible_attributes?.length > 0 && (
@@ -161,6 +232,16 @@ export default function CardScanner() {
               {mkt.value_range_low != null && mkt.value_range_high != null && (
                 <p className="text-sm text-muted-foreground mt-1">Range: ${mkt.value_range_low} – ${mkt.value_range_high}</p>
               )}
+            </div>
+          )}
+
+          {/* Pop Report (graded cards) */}
+          {id?.pop_report && (
+            <div className="rounded-xl bg-amber-400/5 border border-amber-400/20 p-4">
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5" />Population Report
+              </p>
+              <p className="text-sm text-foreground leading-relaxed">{id.pop_report}</p>
             </div>
           )}
 
