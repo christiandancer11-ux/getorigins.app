@@ -6,7 +6,7 @@ import { base44 } from '@/api/base44Client';
 const PRO_PLAN = {
   id: 'pro',
   name: 'Origins Pro Bundle',
-  price: '$9.99',
+  price: '$14.99',
   icon: Flame,
   color: 'text-amber-400',
   bg: 'bg-amber-400/10',
@@ -98,7 +98,7 @@ export default function UpgradeModal({ onClose, creatorCouponId = null }) {
           {loading ? (
             <><Loader2 className="w-4 h-4 animate-spin mr-2" />Redirecting...</>
           ) : (
-            `Subscribe — $9.99/mo`
+            `Subscribe — $14.99/mo`
           )}
         </Button>
 

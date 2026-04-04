@@ -25,7 +25,7 @@ const PLANS = [
   },
   {
     name: 'Origins Pro Bundle',
-    price: '$9.99',
+    price: '$14.99',
     sub: '/mo',
     description: 'Everything you need to collect smarter.',
     color: 'text-amber-400',

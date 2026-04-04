@@ -4,7 +4,7 @@ import Stripe from 'npm:stripe@14.21.0';
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
 const PRICES = {
-  pro: "price_1TIWmpLVuf9TEmxb0IS0Bzbo", // $9.99/mo — Origins Pro Bundle
+  pro: "price_1TIY5vLVuf9TEmxbKfL4FYJq", // $14.99/mo — Origins Pro Bundle
 };
 
 Deno.serve(async (req) => {
