@@ -4,33 +4,33 @@ import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Bump this version string whenever there are new updates to announce.
-const CURRENT_VERSION = '2.1.0';
+const CURRENT_VERSION = '3.0.0';
 const STORAGE_KEY = 'origins_whats_new_seen';
 
 const UPDATES = [
   {
     badge: '🆕 New',
     badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    title: 'Pro Card Flipper — BGS Black Label',
-    desc: 'AI now scans Beckett population reports to find cards with the best real-world odds of earning a BGS Black Label Pristine 10 — the rarest grade in the hobby.',
+    title: 'Social Network & Collections Feed',
+    desc: 'Follow collectors, view their collections, and see new cards they add in your personalized feed. Friends-only content — your collections are private unless you share.',
   },
   {
     badge: '🆕 New',
     badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    title: 'Pro Card Flipper — Multi-Grader Analysis',
-    desc: 'PSA, BGS, SGC & CGC population reports all analyzed in parallel. Find 80–95% grade-10 rate cards across all four major graders.',
+    title: 'Reactions & Comments',
+    desc: 'React with emojis (🔥💎⭐🤩👏) and leave comments on cards your friends add. Build community and engage with the collectors you follow.',
+  },
+  {
+    badge: '🆕 New',
+    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+    title: 'Notification Preferences',
+    desc: 'Opt-in to get email notifications when friends add new cards, react to your cards, or comment on your collection.',
   },
   {
     badge: '✨ Improved',
     badgeColor: 'text-primary bg-primary/10 border-primary/20',
-    title: 'AI Card Scanner',
-    desc: 'Faster identification, better graded slab detection, and improved registry lookups for PSA and BGS certified cards.',
-  },
-  {
-    badge: '✨ Improved',
-    badgeColor: 'text-primary bg-primary/10 border-primary/20',
-    title: 'Market Value',
-    desc: 'Live eBay + 130point comps now include broader search coverage and more accurate sold-price filtering.',
+    title: 'Collector Profiles',
+    desc: 'View full card collections, favorite categories, and verified collector badges on public profiles. Profile reactions show collector appreciation.',
   },
 ];
 

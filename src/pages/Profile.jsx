@@ -10,6 +10,7 @@ import SocialLink from '../components/profile/SocialLink';
 import EditProfileModal from '../components/profile/EditProfileModal';
 import EmptyState from '../components/shared/EmptyState';
 import ReferralSection from '../components/profile/ReferralSection';
+import NotificationPreferences from '../components/profile/NotificationPreferences';
 
 const SOCIAL_CONFIG = [
   { key: 'youtube',       label: 'YouTube',         baseUrl: 'https://youtube.com/@' },
@@ -218,6 +219,8 @@ export default function Profile() {
         )}
 
         <ReferralSection />
+
+        <NotificationPreferences user={user} />
 
         {/* Account Actions */}
         <div className="mt-6 pt-6 border-t border-border/30 text-center">

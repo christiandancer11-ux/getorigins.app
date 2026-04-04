@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { QrCode, Video, History, ArrowRight, Layers, Sparkles, TrendingUp, Handshake, BarChart2, Flame, MessageSquare, CheckCircle, Tag, Gift, Award, Bell, ShieldAlert } from 'lucide-react';
+import { QrCode, Video, History, ArrowRight, Layers, Sparkles, TrendingUp, Handshake, BarChart2, Flame, MessageSquare, CheckCircle, Tag, Gift, Award, Bell, ShieldAlert, Users, Heart, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
 import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
@@ -144,6 +144,8 @@ export default function Landing() {
             {[
               { icon: QrCode, title: 'AI Card Scanner', desc: 'Snap a photo — AI identifies the card, auto-fills all details, and generates a unique QR code sticker.', pro: false },
               { icon: MessageSquare, title: 'Video Message Timeline', desc: 'Every owner leaves a message. Cards build a living history that travels with them from hand to hand.', pro: false },
+              { icon: Users, title: 'Social Network', desc: 'Follow collectors, view their collections, and see new cards they add in your personalized feed.', pro: false },
+              { icon: Heart, title: 'Reactions & Comments', desc: 'React with emojis (🔥💎⭐🤩👏) and leave comments on cards your friends add to build community.', pro: false },
               { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track scans, visitor counts, and engagement across your entire collection.', pro: false },
               { icon: ShieldAlert, title: 'BOLO Stolen Card Alerts', desc: 'Verified dealers report stolen cards. Get notified when thefts happen near you to protect the hobby.', pro: false },
               { icon: TrendingUp, title: 'Live Market Values', desc: 'Real-time eBay sold data, 130point comps, and community trade logs for any card.', pro: true },
