@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Layers, BarChart2, History } from 'lucide-react';
+import { Plus, Layers, BarChart2, History, Award, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import CardGridItem from '../components/dashboard/CardGridItem';
+import CertLookupEntry from '../components/grading/CertLookupEntry';
 import EmptyState from '../components/shared/EmptyState';
 import CollectionStats from '../components/dashboard/CollectionStats';
 import CollectionValueWidget from '../components/dashboard/CollectionValueWidget';
@@ -23,6 +24,7 @@ const TABS = [
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('collection');
   const [markSoldCard, setMarkSoldCard] = useState(null);
+  const [showCertLookup, setShowCertLookup] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState('');
   const queryClient = useQueryClient();
 
@@ -90,12 +92,27 @@ export default function Dashboard() {
               {totalValue > 0 && <> · <span className="text-primary font-medium">${totalValue.toLocaleString()} total value</span></>}
             </p>
           </div>
-          <Link to="/register">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />Register Card
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowCertLookup(v => !v)} className="border-border/50 gap-2 text-sm">
+              <Award className="w-4 h-4 text-amber-400" />Cert Lookup
             </Button>
-          </Link>
+            <Link to="/register">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />Register Card
+              </Button>
+            </Link>
+          </div>
         </div>
+
+        {/* Cert lookup panel */}
+        {showCertLookup && (
+          <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5 relative">
+            <button onClick={() => setShowCertLookup(false)} className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary transition-colors">
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <CertLookupEntry onClose={() => setShowCertLookup(false)} />
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 p-1 bg-secondary/40 rounded-xl border border-border/40 w-fit mb-8">

@@ -10,27 +10,17 @@ import EmptyState from '../components/shared/EmptyState';
 import AddMessageForm from '../components/card-detail/AddMessageForm.jsx';
 import BuyFromOwnerPanel from '../components/scan/BuyFromOwnerPanel.jsx';
 
-// PSA QR codes encode URLs like: https://www.psacard.com/cert/12345678
-// or https://psacard.com/cert/12345678
-function extractPsaCert(code) {
-  try {
-    const decoded = decodeURIComponent(code);
-    const match = decoded.match(/psacard\.com\/cert\/([A-Za-z0-9]+)/i);
-    return match ? match[1] : null;
-  } catch {
-    return null;
-  }
-}
+import { detectGradingQR } from '@/lib/gradingCompanies';
 
 export default function ScanCard() {
   const { code } = useParams();
   const navigate = useNavigate();
 
-  // Detect PSA QR code and redirect immediately
+  // Detect any grading company QR code and redirect to unified cert page
   useEffect(() => {
-    const psaCert = extractPsaCert(code);
-    if (psaCert) {
-      navigate(`/psa/${psaCert}`, { replace: true });
+    const detected = detectGradingQR(code);
+    if (detected) {
+      navigate(`/graded/${detected.company.toLowerCase()}/${detected.cert}`, { replace: true });
     }
   }, [code, navigate]);
   const [showAddForm, setShowAddForm] = useState(false);
