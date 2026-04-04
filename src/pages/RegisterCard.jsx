@@ -27,6 +27,12 @@ const STAGE = {
 
 export default function RegisterCard() {
   const navigate = useNavigate();
+
+  // Pre-fill cert/grader if arriving from a PSA QR scan
+  const urlParams = new URLSearchParams(window.location.search);
+  const prefillCert = urlParams.get('cert');
+  const prefillGrader = urlParams.get('grader');
+
   const [stage, setStage] = useState(STAGE.UPLOAD);
   const [frontUrl, setFrontUrl] = useState(null);
   const [backUrl, setBackUrl] = useState(null);
@@ -102,7 +108,8 @@ export default function RegisterCard() {
       rarity: id.rarity || undefined,
       grading_company: id.grading_company || '',
       grade: id.grade || '',
-      cert_number: id.cert_number || '',
+      cert_number: id.cert_number || prefillCert || '',
+      grading_company: id.grading_company || prefillGrader || '',
       image_url: overrideFront || frontUrl || '',
       image_back_url: overrideBack || backUrl || '',
     };

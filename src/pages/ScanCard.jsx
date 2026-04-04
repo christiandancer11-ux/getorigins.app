@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { QrCode, Plus, MessageCircle, DollarSign, User } from 'lucide-react';
@@ -10,8 +10,29 @@ import EmptyState from '../components/shared/EmptyState';
 import AddMessageForm from '../components/card-detail/AddMessageForm.jsx';
 import BuyFromOwnerPanel from '../components/scan/BuyFromOwnerPanel.jsx';
 
+// PSA QR codes encode URLs like: https://www.psacard.com/cert/12345678
+// or https://psacard.com/cert/12345678
+function extractPsaCert(code) {
+  try {
+    const decoded = decodeURIComponent(code);
+    const match = decoded.match(/psacard\.com\/cert\/([A-Za-z0-9]+)/i);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function ScanCard() {
   const { code } = useParams();
+  const navigate = useNavigate();
+
+  // Detect PSA QR code and redirect immediately
+  useEffect(() => {
+    const psaCert = extractPsaCert(code);
+    if (psaCert) {
+      navigate(`/psa/${psaCert}`, { replace: true });
+    }
+  }, [code, navigate]);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const { data: card, isLoading: cardLoading } = useQuery({
