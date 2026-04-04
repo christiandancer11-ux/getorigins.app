@@ -44,28 +44,24 @@ function GradeCard({ card, index }) {
         onClick={() => setExpanded(v => !v)}
         className="w-full text-left px-4 py-4 flex items-center gap-3"
       >
-        {/* Company badge */}
-        <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border shrink-0 ${companyStyle}`}>
-          {card.grading_company}
-        </span>
-
-        {/* Card info */}
+        {/* Card info — full width */}
         <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-md border shrink-0 ${companyStyle}`}>
+              {card.grading_company}
+            </span>
+            {card.perfect_10_rate_pct != null && (
+              <span className="text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full whitespace-nowrap ml-auto shrink-0">
+                {Math.round(card.perfect_10_rate_pct)}% PST10
+              </span>
+            )}
+            {expanded ? <ChevronUp className="w-3 h-3 text-muted-foreground shrink-0" /> : <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />}
+          </div>
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-sm">{SPORT_EMOJI[card.sport_or_tcg] || '🃏'}</span>
-            <p className="text-sm font-semibold text-foreground truncate">{card.card_name}</p>
+            <span className="text-sm shrink-0">{SPORT_EMOJI[card.sport_or_tcg] || '🃏'}</span>
+            <p className="text-sm font-semibold text-foreground">{card.card_name}</p>
           </div>
           <p className="text-xs text-muted-foreground truncate">{[card.year, card.set_name].filter(Boolean).join(' · ')}</p>
-        </div>
-
-        {/* Odds badge */}
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          {card.perfect_10_rate_pct != null && (
-            <span className="text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full whitespace-nowrap">
-              {Math.round(card.perfect_10_rate_pct)}% PST10
-            </span>
-          )}
-          {expanded ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
         </div>
       </button>
 
