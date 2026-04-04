@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, UserPlus, UserCheck, CreditCard, Star } from 'lucide-react';
+import { Search, UserPlus, UserCheck, CreditCard, Star, CreditCard as CardIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -35,16 +35,23 @@ function CollectorCard({ user, currentUserEmail, myFollows, onToggleFollow }) {
         <p className="text-[10px] text-muted-foreground mt-0.5">@{user.email.split('@')[0]}</p>
       </div>
 
-      {!isMe && currentUserEmail && (
-        <Button
-          size="sm"
-          variant={isFollowing ? 'secondary' : 'default'}
-          onClick={() => onToggleFollow(user.email, isFollowing)}
-          className="shrink-0 gap-1.5"
-        >
-          {isFollowing ? <><UserCheck className="w-3.5 h-3.5" />Following</> : <><UserPlus className="w-3.5 h-3.5" />Follow</>}
-        </Button>
-      )}
+      <div className="shrink-0 flex flex-col gap-2">
+        <Link to={`/collector/${encodeURIComponent(user.email)}`}>
+          <Button size="sm" variant="outline" className="border-border/50 gap-1.5 w-full">
+            <CreditCard className="w-3.5 h-3.5" />Collection
+          </Button>
+        </Link>
+        {!isMe && currentUserEmail && (
+          <Button
+            size="sm"
+            variant={isFollowing ? 'secondary' : 'default'}
+            onClick={() => onToggleFollow(user.email, isFollowing)}
+            className="gap-1.5"
+          >
+            {isFollowing ? <><UserCheck className="w-3.5 h-3.5" />Following</> : <><UserPlus className="w-3.5 h-3.5" />Follow</>}
+          </Button>
+        )}
+      </div>
     </motion.div>
   );
 }
