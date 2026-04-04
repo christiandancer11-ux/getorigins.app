@@ -26,6 +26,7 @@ const COMPANY_COLORS = {
   BGS: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
   SGC: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
   CGC: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+  'BGS Black Label': 'text-white bg-gradient-to-r from-amber-500 to-yellow-300 border-amber-400/60',
 };
 
 function GradeCard({ card, index }) {
@@ -129,12 +130,12 @@ function groupByCompanyAndSport(cards) {
   const grouped = {};
   for (const card of cards) {
     const company = card.grading_company || 'Other';
+    if (company === 'BGS Black Label') continue; // handled separately
     const sport = card.sport_or_tcg || 'other';
     const key = `${company}__${sport}`;
     if (!grouped[key]) grouped[key] = { company, sport, cards: [] };
     grouped[key].cards.push(card);
   }
-  // Sort within each group by perfect_10_rate_pct desc then submissions desc
   Object.values(grouped).forEach(g => {
     g.cards.sort((a, b) => (b.total_submissions_3mo || 0) - (a.total_submissions_3mo || 0));
     g.cards = g.cards.slice(0, 10);
@@ -172,7 +173,11 @@ export default function GradingOddsList() {
     BGS: 'border-amber-400/30',
     SGC: 'border-emerald-400/30',
     CGC: 'border-purple-400/30',
+    'BGS Black Label': 'border-amber-400/60',
   };
+
+  const blackLabelCards = (data?.cards || []).filter(c => c.grading_company === 'BGS Black Label');
+  const [blackLabelOpen, setBlackLabelOpen] = useState(true);
 
   return (
     <div className="space-y-5">
@@ -266,54 +271,82 @@ export default function GradingOddsList() {
             </div>
           )}
 
-          {groups.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8 text-sm">No data found for this filter.</p>
-          ) : (
-            groups.map(group => {
-              const groupKey = `${group.company}__${group.sport}`;
-              const isOpen = expandedGroups[groupKey] !== false; // default open
-              const companyBorder = COMPANY_COLORS_BORDER[group.company] || 'border-border/40';
-              const companyStyle = COMPANY_COLORS[group.company] || 'text-primary bg-primary/10 border-primary/20';
-
-              return (
-                <div key={groupKey} className={`rounded-2xl border ${companyBorder} overflow-hidden`}>
-                  <button
-                    onClick={() => toggleGroup(groupKey)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-secondary/20 hover:bg-secondary/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${companyStyle}`}>{group.company}</span>
-                      <span className="text-sm font-semibold text-foreground capitalize">
-                        {SPORT_EMOJI[group.sport] || '🃏'} {group.sport.replace(/_/g, ' ')}
-                      </span>
-                      <span className="text-xs text-muted-foreground">({group.cards.length} cards)</span>
-                    </div>
-                    {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                  </button>
-
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: 'auto' }}
-                        exit={{ height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-3 space-y-2">
-                          {group.cards.map((card, i) => (
-                            <GradeCard key={i} card={card} index={i} />
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+          {/* BGS Black Label — pinned special section */}
+          {blackLabelCards.length > 0 && (
+            <div className="rounded-2xl border-2 border-amber-400/50 overflow-hidden shadow-lg shadow-amber-400/10">
+              <button
+                onClick={() => setBlackLabelOpen(v => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-500/20 to-yellow-400/10 hover:from-amber-500/30 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-lg border bg-gradient-to-r from-amber-500 to-yellow-300 border-amber-400/60 text-black">
+                    ⭐ BGS Black Label
+                  </span>
+                  <span className="text-sm font-semibold text-amber-300">Rarest Grade in the Hobby</span>
+                  <span className="text-xs text-muted-foreground">({blackLabelCards.length} cards)</span>
                 </div>
-              );
-            })
+                {blackLabelOpen ? <ChevronUp className="w-4 h-4 text-amber-400" /> : <ChevronDown className="w-4 h-4 text-amber-400" />}
+              </button>
+              <div className="px-4 py-2 bg-amber-400/5 border-b border-amber-400/20">
+                <p className="text-xs text-amber-300/80">All 4 subgrades must score a perfect 10 · Centering, Corners, Edges & Surface · Extremely rare</p>
+              </div>
+              <AnimatePresence>
+                {blackLabelOpen && (
+                  <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                    <div className="p-3 space-y-2">
+                      {blackLabelCards.map((card, i) => (
+                        <GradeCard key={i} card={card} index={i} />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
 
+          {groups.length === 0 && blackLabelCards.length === 0 && (
+            <p className="text-center text-muted-foreground py-8 text-sm">No data found for this filter.</p>
+          )}
+
+          {groups.map(group => {
+            const groupKey = `${group.company}__${group.sport}`;
+            const isOpen = expandedGroups[groupKey] !== false;
+            const companyBorder = COMPANY_COLORS_BORDER[group.company] || 'border-border/40';
+            const companyStyle = COMPANY_COLORS[group.company] || 'text-primary bg-primary/10 border-primary/20';
+
+            return (
+              <div key={groupKey} className={`rounded-2xl border ${companyBorder} overflow-hidden`}>
+                <button
+                  onClick={() => toggleGroup(groupKey)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-secondary/20 hover:bg-secondary/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${companyStyle}`}>{group.company}</span>
+                    <span className="text-sm font-semibold text-foreground capitalize">
+                      {SPORT_EMOJI[group.sport] || '🃏'} {group.sport.replace(/_/g, ' ')}
+                    </span>
+                    <span className="text-xs text-muted-foreground">({group.cards.length} cards)</span>
+                  </div>
+                  {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                </button>
+
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                      <div className="p-3 space-y-2">
+                        {group.cards.map((card, i) => (
+                          <GradeCard key={i} card={card} index={i} />
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+
           <p className="text-xs text-muted-foreground text-center">
-            Population data from PSA, BGS, SGC & CGC registries. 80–95% grade 10 rate filter applied. Not grading advice.
+            Population data from PSA, BGS, SGC & CGC registries. 80–95% grade 10 rate filter applied. BGS Black Label odds reflect all-4-subgrades-perfect requirement. Not grading advice.
           </p>
         </div>
       )}
