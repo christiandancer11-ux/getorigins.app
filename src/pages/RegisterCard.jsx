@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Upload, Loader2, X, Camera, Sparkles, CheckCircle2, AlertCircle, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ImageAgreementModal from '@/components/register/ImageAgreementModal';
+
 import { motion, AnimatePresence } from 'framer-motion';
 
 function generateCode() {
@@ -40,7 +40,6 @@ export default function RegisterCard() {
   const [uploadingBack, setUploadingBack] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [error, setError] = useState(null);
-  const [showAgreement, setShowAgreement] = useState(false);
 
   const frontCamRef = useRef();
   const frontGalleryRef = useRef();
@@ -51,11 +50,7 @@ export default function RegisterCard() {
   const customBackCamRef = useRef();
   const customBackGalleryRef = useRef();
 
-  useEffect(() => {
-    if (!localStorage.getItem('origins_image_agreement_accepted')) {
-      setShowAgreement(true);
-    }
-  }, []);
+
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Card.create(data),
@@ -134,15 +129,8 @@ export default function RegisterCard() {
   const id = aiResult?.identification;
 
   return (
-    <>
-      <ImageAgreementModal
-        isOpen={showAgreement}
-        onAgree={() => setShowAgreement(false)}
-        onDisagree={() => navigate('/dashboard')}
-      />
-
-      <div className="min-h-screen pt-24 pb-12 px-6">
-        <div className="max-w-lg mx-auto">
+    <div className="min-h-screen pt-24 pb-12 px-6">
+      <div className="max-w-lg mx-auto">
           <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" />Back to My Cards
           </Link>
@@ -382,8 +370,7 @@ export default function RegisterCard() {
             )}
 
           </AnimatePresence>
-        </div>
       </div>
-    </>
+    </div>
   );
 }
