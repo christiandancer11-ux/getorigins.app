@@ -5,20 +5,28 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
-  { to: '/feed', icon: Rss, label: 'Live Feed' },
-  { to: '/users', icon: Users, label: 'Collectors' },
-  { to: '/dashboard', icon: Layers, label: 'My Cards' },
-  { to: '/card-show', icon: Handshake, label: 'Card Show' },
-  { to: '/market', icon: TrendingUp, label: 'Market' },
-  { to: '/trending', icon: Flame, label: 'Trending' },
-  { to: '/flipper', icon: Repeat2, label: 'Flipper' },
-  { to: '/trade-dashboard', icon: PieChart, label: 'Trade Stats' },
-  { to: '/alerts', icon: Bell, label: 'Alerts' },
-  { to: '/bolo', icon: ShieldAlert, label: 'BOLO' },
-  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
-  { to: '/analytics', icon: BarChart2, label: 'Analytics' },
-  { to: '/profile', icon: User, label: 'Profile' },
+  // Core
+  { to: '/dashboard', icon: Layers, label: 'My Cards', category: 'core' },
+  { to: '/register', icon: Plus, label: 'Add Card', category: 'core' },
+  // Social
+  { to: '/feed', icon: Rss, label: 'Feed', category: 'social' },
+  { to: '/users', icon: Users, label: 'Collectors', category: 'social' },
+  // Tools
+  { to: '/market', icon: TrendingUp, label: 'Market', category: 'tools' },
+  { to: '/flipper', icon: Repeat2, label: 'Flipper', category: 'tools' },
+  { to: '/card-show', icon: Handshake, label: 'Trades', category: 'tools' },
+  { to: '/trending', icon: Flame, label: 'Trending', category: 'tools' },
+  // Insights
+  { to: '/analytics', icon: BarChart2, label: 'Analytics', category: 'insights' },
+  { to: '/alerts', icon: Bell, label: 'Alerts', category: 'insights' },
+  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', category: 'insights' },
+  // More
+  { to: '/bolo', icon: ShieldAlert, label: 'BOLO Alerts', category: 'more' },
+  { to: '/profile', icon: User, label: 'Profile', category: 'more' },
 ];
+
+const DESKTOP_NAV = NAV_LINKS.filter(l => ['core', 'social', 'tools', 'insights'].includes(l.category));
+const MOBILE_NAV = NAV_LINKS.slice(0, 5);
 
 export default function Navbar() {
   const location = useLocation();
@@ -48,14 +56,14 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map(({ to, icon: Icon, label }) => (
+          <div className="hidden lg:flex items-center gap-0.5">
+            {DESKTOP_NAV.map(({ to, icon: Icon, label }) => (
               <Link key={to} to={to}>
                 <Button
                   variant="ghost" size="sm"
-                  className={`transition-colors ${isActive(to) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
+                  className={`transition-colors text-xs ${isActive(to) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
                 >
-                  <Icon className="w-4 h-4 mr-2" />
+                  <Icon className="w-3.5 h-3.5 mr-1.5" />
                   {label}
                 </Button>
               </Link>
@@ -104,15 +112,25 @@ export default function Navbar() {
                 </button>
               </div>
 
-              <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-                {NAV_LINKS.map(({ to, icon: Icon, label }) => (
-                  <Link key={to} to={to} onClick={() => setMenuOpen(false)}>
-                    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive(to) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}>
-                      <Icon className="w-5 h-5 shrink-0" />
-                      <span className="font-medium">{label}</span>
+              <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+                {['core', 'social', 'tools', 'insights', 'more'].map(category => {
+                  const items = NAV_LINKS.filter(l => l.category === category);
+                  return (
+                    <div key={category}>
+                      {category !== 'more' && <p className="px-4 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{category}</p>}
+                      <div className="space-y-1">
+                        {items.map(({ to, icon: Icon, label }) => (
+                          <Link key={to} to={to} onClick={() => setMenuOpen(false)}>
+                            <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors ${isActive(to) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}>
+                              <Icon className="w-4 h-4 shrink-0" />
+                              <span>{label}</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </Link>
-                ))}
+                  );
+                })}
               </nav>
 
               <div className="space-y-3 px-4 pb-6 shrink-0">
@@ -141,12 +159,12 @@ export default function Navbar() {
       {/* Mobile Bottom Tab Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-xl border-t border-border/50"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex items-center justify-around px-1 py-2 max-w-lg mx-auto overflow-x-auto">
-          {NAV_LINKS.slice(0, 6).map(({ to, icon: Icon, label }) => (
+        <div className="flex items-center justify-around px-1 py-2">
+          {MOBILE_NAV.map(({ to, icon: Icon, label }) => (
             <button key={to} onClick={() => handleTabPress(to)} className="flex-1 min-w-0 select-none">
-              <div className={`flex flex-col items-center gap-0.5 py-1 px-0.5 rounded-xl transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
+              <div className={`flex flex-col items-center gap-0.5 py-1 px-0.5 rounded-lg transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium leading-tight truncate w-full text-center">{label}</span>
+                <span className="text-[10px] font-medium leading-tight truncate">{label}</span>
               </div>
             </button>
           ))}

@@ -83,22 +83,26 @@ export default function Dashboard() {
         {/* Ownership Transfer Requests */}
         {currentUserEmail && <OwnershipRequests userEmail={currentUserEmail} />}
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Header with Quick Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-foreground mb-1">My Collection</h1>
-            <p className="text-sm text-muted-foreground">
-              {ownedCards.length} card{ownedCards.length !== 1 ? 's' : ''}
-              {totalValue > 0 && <> · <span className="text-primary font-medium">${totalValue.toLocaleString()} total value</span></>}
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-1">My Collection</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {ownedCards.length} card{ownedCards.length !== 1 ? 's' : ''} {totalValue > 0 && <span className="text-primary font-medium">${totalValue.toLocaleString()}</span>}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowCertLookup(v => !v)} className="border-border/50 gap-2 text-sm">
-              <Award className="w-4 h-4 text-amber-400" />Cert Lookup
+          <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCertLookup(v => !v)} 
+              className="border-border/50 gap-1.5 text-xs sm:text-sm flex-1 sm:flex-none"
+              size="sm"
+            >
+              <Award className="w-3.5 h-3.5 text-amber-400" />Grading Lookup
             </Button>
-            <Link to="/register">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />Register Card
+            <Link to="/register" className="flex-1 sm:flex-none">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full gap-1.5 text-xs sm:text-sm" size="sm">
+                <Plus className="w-3.5 h-3.5" />Add Card
               </Button>
             </Link>
           </div>
@@ -115,18 +119,19 @@ export default function Dashboard() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-secondary/40 rounded-xl border border-border/40 w-fit mb-8">
+        <div className="flex gap-1 p-1 bg-secondary/30 rounded-lg border border-border/40 w-fit mb-6">
           {TABS.map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-card text-foreground shadow border border-border/40' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
               >
-                <Icon className="w-3.5 h-3.5" />{tab.label}
+                <Icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{tab.label}</span>
                 {tab.id === 'history' && soldTradedCards.length > 0 && (
-                  <span className="ml-0.5 text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded-full">{soldTradedCards.length}</span>
+                  <span className="text-[9px] bg-destructive/20 text-destructive px-1.5 py-0.5 rounded-full font-semibold">{soldTradedCards.length}</span>
                 )}
               </button>
             );

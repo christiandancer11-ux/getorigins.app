@@ -85,21 +85,15 @@ export default function Landing() {
             <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl font-bold text-foreground leading-[0.95] tracking-tight mb-6">
               Give Your Cards<br /><span className="text-primary">A Voice</span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Attach scannable QR stickers to your sports cards and TCGs. Record video messages that follow the card from owner to owner — building a living history.
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed">
+              Attach scannable QR stickers to your cards. Record video messages. Track ownership history. Connect with collectors.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-              <Link to="/register">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 text-base">
-                  Register Your First Card <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button variant="outline" size="lg" className="h-12 px-8 text-base border-border/50 hover:border-primary/30">
-                  <Layers className="w-4 h-4 mr-2" />View My Cards
-                </Button>
-              </Link>
-            </div>
+            <Link to="/register">
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 text-base gap-2">
+                Get Started <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            <p className="mt-6 text-xs text-muted-foreground">Already using Origins? <Link to="/dashboard" className="text-primary hover:underline font-semibold">Go to dashboard</Link></p>
             <button onClick={() => setShowRedeem(true)} className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
               Have a promo or referral code?
             </button>
@@ -134,11 +128,11 @@ export default function Landing() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 px-6 bg-secondary/20">
+      <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-14">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">Everything a Collector Needs</h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">From storytelling to market data — Origins has your collection covered.</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">Everything You Need</h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">All the tools to manage, value, and share your collection.</p>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
