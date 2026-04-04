@@ -25,7 +25,7 @@ export default function ReferralSection() {
   };
 
   const shareCode = () => {
-    const text = `Use my Origins referral code ${code} to get 7 days free access to all features! https://app.origins.gg`;
+    const text = `Use my Origins referral code ${code} to get 7 free days of Origins Pro Bundle! https://app.origins.gg`;
     if (navigator.share) {
       navigator.share({ title: 'Origins Referral', text });
     } else {
@@ -38,9 +38,9 @@ export default function ReferralSection() {
   return (
     <div className="rounded-2xl bg-card border border-border/50 p-6 mt-5">
       <div className="mb-4">
-        <h2 className="font-semibold text-foreground">Your Referral Code</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Share your code — you and your friend both get 7 free days on all features.</p>
-      </div>
+         <h2 className="font-semibold text-foreground">Your Referral Code</h2>
+         <p className="text-xs text-muted-foreground mt-0.5">Share your code — you and your friend both get 7 free days of Origins Pro Bundle.</p>
+       </div>
 
       {loading ? (
         <div className="flex items-center gap-2 text-muted-foreground text-sm">

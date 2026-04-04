@@ -36,9 +36,9 @@ const PLANS = [
 ];
 
 const PERKS = [
-  { icon: Gift, title: '7-Day Free Trial', desc: 'Try all Expert features free when you subscribe — no commitment.' },
-  { icon: Tag, title: 'Referral Program', desc: 'Share your code. You and your friend both get 7 free days.' },
-  { icon: Sparkles, title: 'Creator Codes', desc: 'Partner creators unlock 50% off for their first 3 months.' },
+  { icon: Gift, title: '7-Day Free Trial', desc: 'Try Origins Pro Bundle free when you subscribe — no commitment.' },
+  { icon: Tag, title: 'Referral Program', desc: 'Share your code. You and your friend both get 7 free days of Origins Pro Bundle.' },
+  { icon: Sparkles, title: 'Creator Codes', desc: 'Partner creators unlock 50% off Origins Pro Bundle for their first 3 months.' },
 ];
 
 function FeatureCard({ feature, index }) {
