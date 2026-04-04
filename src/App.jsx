@@ -31,6 +31,7 @@ import GradedCertScan from './pages/GradedCertScan';
 import ProCardFlipper from './pages/ProCardFlipper';
 import SocialFeed from './pages/SocialFeed';
 import UserSearch from './pages/UserSearch';
+import Pricing from './pages/Pricing';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
         <Route path="/flipper" element={<ProCardFlipper />} />
         <Route path="/feed" element={<SocialFeed />} />
         <Route path="/users" element={<UserSearch />} />
+        <Route path="/pricing" element={<Pricing />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
