@@ -1,6 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// In-memory rate limit
 const rateLimitStore = new Map();
 function checkRateLimit(key, maxRequests, windowMs) {
   const now = Date.now();
@@ -17,89 +16,102 @@ function checkRateLimit(key, maxRequests, windowMs) {
   return { allowed: true };
 }
 
+const CARD_SCHEMA = {
+  type: 'object',
+  properties: {
+    card_name: { type: 'string' },
+    set_name: { type: 'string' },
+    year: { type: 'string' },
+    sport_or_tcg: { type: 'string' },
+    grading_company: { type: 'string' },
+    perfect_10_rate_pct: { type: 'number' },
+    total_submissions_3mo: { type: 'number' },
+    current_raw_value: { type: 'number' },
+    graded_10_value: { type: 'number' },
+    value_increase_pct: { type: 'number' },
+    why_grades_well: { type: 'string' },
+    notes: { type: 'string' },
+  },
+};
+
+async function queryCompany(base44, company, sport) {
+  const sportLine = sport && sport !== 'all'
+    ? `Focus ONLY on: ${sport}`
+    : 'Cover: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh — pick the 2-3 best cards per sport/TCG that fit the criteria.';
+
+  const prompt = `You are a trading card grading expert with deep knowledge of ${company}'s population report data.
+
+Task: Find the TOP 10 cards most likely to receive a PERFECT 10 grade when submitted to ${company} right now.
+
+${sportLine}
+
+Selection criteria:
+- Cards that historically receive a "${company === 'BGS' ? 'BGS 10 (Pristine or Black Label)' : company + ' 10'}" grade at a HIGH rate — approximately 80–95% of qualifying submissions
+- Cards with SIGNIFICANT recent submission volume in the last 3 months (most-submitted = most popular/valuable to grade)
+- Cards where getting a 10 meaningfully INCREASES the value over raw
+
+For each card return exactly:
+- card_name: player name or card title
+- set_name: the specific set or collection (be specific, e.g. "1986-87 Fleer" not just "Fleer")
+- year: year as string
+- sport_or_tcg: one of baseball/basketball/football/hockey/soccer/pokemon/magic_the_gathering/yugioh/other
+- grading_company: "${company}"
+- perfect_10_rate_pct: your best estimate of the % of submissions that grade a 10 (must be 80-95)
+- total_submissions_3mo: your best estimate of submissions to ${company} in the last 3 months
+- current_raw_value: approximate raw/ungraded market value in USD
+- graded_10_value: approximate ${company} 10 market value in USD
+- value_increase_pct: ((graded_10_value - current_raw_value) / current_raw_value) * 100
+- why_grades_well: 1 sentence on print quality, era, surface characteristics etc.
+- notes: 1 short tip for submitting (e.g. centering, corners to check)
+
+Return exactly 10 cards. Use your best knowledge of ${company} pop report trends. Do NOT return empty arrays.`;
+
+  const result = await base44.integrations.Core.InvokeLLM({
+    prompt,
+    add_context_from_internet: true,
+    model: 'gemini_3_flash',
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        cards: { type: 'array', items: CARD_SCHEMA },
+      },
+    },
+  });
+
+  return (result?.cards || []).map(c => ({ ...c, grading_company: company }));
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Rate limit: 5 requests per hour (very expensive multi-source AI call)
-    const rl = checkRateLimit(`getGrading10Odds:${user.email}`, 5, 60 * 60 * 1000);
+    const rl = checkRateLimit(`getGrading10Odds:${user.email}`, 8, 60 * 60 * 1000);
     if (!rl.allowed) {
       return Response.json({ error: `Too many requests. Please wait ${rl.retryAfterSec} seconds.` }, { status: 429 });
     }
 
-    const { sport } = await req.json();
-    const sportFilter = sport || 'all';
+    const body = await req.json();
+    const sport = body?.sport || 'all';
 
-    const prompt = `You are an expert trading card grading analyst. Your task is to find the TOP 10 cards per category that have the BEST odds of receiving a PERFECT 10 grade when submitted to major grading companies.
+    // Run all 4 grading companies in parallel — much faster than sequential
+    const [psaCards, bgsCards, sgcCards, cgcCards] = await Promise.all([
+      queryCompany(base44, 'PSA', sport),
+      queryCompany(base44, 'BGS', sport),
+      queryCompany(base44, 'SGC', sport),
+      queryCompany(base44, 'CGC', sport),
+    ]);
 
-RESEARCH METHODOLOGY — follow exactly:
+    const allCards = [...psaCards, ...bgsCards, ...sgcCards, ...cgcCards];
+    console.log('getGrading10Odds done. Cards:', allCards.length, 'PSA:', psaCards.length, 'BGS:', bgsCards.length, 'SGC:', sgcCards.length, 'CGC:', cgcCards.length);
 
-1. Look at PSA, BGS, SGC, and CGC population reports from the LAST 3 MONTHS.
-2. For each grading company, find cards that have been submitted in HIGH VOLUME (indicating popular submission targets).
-3. Calculate the approximate percentage of submissions that received a "10" (PSA 10, BGS 10 Black Label/Pristine, SGC 10, CGC 10).
-4. ONLY include cards where the "perfect 10" rate is between 80% and 95% — these are cards that:
-   - Are frequently submitted because collectors know they grade well
-   - Have high enough production quality to receive 10s consistently
-   - Are NOT so easy to get a 10 that the grade has no premium value
-5. After filtering to 80-95% range, rank by TOTAL SUBMISSION VOLUME (most submitted = most popular/valuable to grade).
-6. Return the top 10 per grading company per category.
-
-${sportFilter !== 'all' ? `Focus on: ${sportFilter}` : 'Cover ALL categories: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh'}
-
-For each card entry return:
-- card_name: player name or card title
-- set_name: set or collection
-- year: year (string)
-- sport_or_tcg: category
-- grading_company: "PSA" | "BGS" | "SGC" | "CGC"
-- perfect_10_rate_pct: estimated percentage of submissions that received a 10 (number, 80-95 range)
-- total_submissions_3mo: approximate number submitted in last 3 months (number)
-- current_raw_value: approximate raw card value in USD (number)
-- graded_10_value: approximate value IF graded a 10 in USD (number)
-- value_increase_pct: percentage value increase from raw to graded 10 (number)
-- why_grades_well: 1 sentence on why this card consistently grades well (print quality, production era, etc.)
-- notes: any relevant notes (e.g. "Centering is key", "Watch for print lines")
-
-Return the data organized with all results in a flat array. Sort within each company/sport group by total_submissions_3mo descending, then by perfect_10_rate_pct descending.
-
-Use REAL population report data only. If you cannot verify a card's pop data, exclude it.`;
-
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          cards: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                card_name: { type: 'string' },
-                set_name: { type: 'string' },
-                year: { type: 'string' },
-                sport_or_tcg: { type: 'string' },
-                grading_company: { type: 'string' },
-                perfect_10_rate_pct: { type: 'number' },
-                total_submissions_3mo: { type: 'number' },
-                current_raw_value: { type: 'number' },
-                graded_10_value: { type: 'number' },
-                value_increase_pct: { type: 'number' },
-                why_grades_well: { type: 'string' },
-                notes: { type: 'string' },
-              },
-            },
-          },
-          methodology_note: { type: 'string' },
-        },
-      },
+    return Response.json({
+      cards: allCards,
+      generated_at: new Date().toISOString(),
+      sport_filter: sport,
+      methodology_note: 'Cards selected based on high PSA/BGS/SGC/CGC population report grade-10 rates (80-95%) and recent submission volume. Values are market estimates.',
     });
-
-    console.log('getGrading10Odds completed, found:', result?.cards?.length, 'cards');
-    return Response.json({ ...result, generated_at: new Date().toISOString(), sport_filter: sportFilter });
   } catch (error) {
     console.error('getGrading10Odds error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
