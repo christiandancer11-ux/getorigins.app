@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const owner = 'christiandancer11-ux';
+    const owner = 'base44dev';
     const repo = 'getorigins';
 
     const response = await fetch(
