@@ -83,37 +83,36 @@ Return exactly 10 cards. Use your best knowledge of ${company} pop report trends
 
 async function queryBGSBlackLabel(base44, sport) {
   const sportLine = sport && sport !== 'all'
-    ? `Focus ONLY on: ${sport}`
-    : 'Cover: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh — pick the best 1-2 cards per sport/TCG that fit the criteria.';
+    ? `Focus ONLY on the sport/TCG: ${sport}`
+    : 'Cover a mix of sports and TCGs: baseball, basketball, football, hockey, pokemon, magic_the_gathering — pick the best 1-2 cards per category.';
 
-  const prompt = `You are a Beckett (BGS) grading expert. The BGS Black Label Pristine 10 is the rarest, most prestigious grade in the hobby — awarded ONLY when all four subgrades (centering, corners, edges, surface) score a perfect 10.
+  const prompt = `You are a Beckett Grading Services (BGS) population report expert. Search the ACTUAL BGS population report at beckett.com/pop to find real data.
 
-Task: Find the TOP 10 cards that have the BEST realistic chance of receiving a BGS Black Label Pristine 10 when submitted today.
+Task: Find the TOP 10 cards with the HIGHEST documented BGS Black Label Pristine 10 population counts — meaning cards where Beckett has actually awarded the most Black Labels relative to total submissions.
+
+CRITICAL — BGS DATA ONLY:
+- Use ONLY Beckett (BGS) population report data. Do NOT reference PSA, SGC, CGC, or any other grading company.
+- Black Label = BGS Pristine 10 where ALL four subgrades (centering, corners, edges, surface) are each a perfect 10.
+- Look up beckett.com/pop for real Black Label population numbers.
+- Rank by: (Black Label pop count / total BGS submissions) — highest ratio wins.
 
 ${sportLine}
 
-Selection criteria:
-- Cards known for exceptional print/manufacturing quality that produces near-perfect centering, sharp corners, clean edges, and flawless surfaces
-- Cards with documented BGS Black Label pops (even if very small — 1 or more confirmed Black Labels exist)
-- Cards worth submitting for Black Label (raw value must be meaningful enough to justify premium grading cost)
-- Prefer cards from modern print runs with consistent quality OR vintage cards known for specific clean printings
-- Black Label rate will naturally be VERY low (1–10% of all BGS submissions) — that's expected and realistic
-
 For each card return exactly:
 - card_name: player name or card title
-- set_name: the specific set or collection
+- set_name: the specific set or collection (e.g. "1986-87 Fleer" not just "Fleer")
 - year: year as string
 - sport_or_tcg: one of baseball/basketball/football/hockey/soccer/pokemon/magic_the_gathering/yugioh/other
 - grading_company: "BGS Black Label"
-- perfect_10_rate_pct: estimated % chance of receiving a Black Label specifically (1-10, be realistic)
-- total_submissions_3mo: estimated BGS submissions for this card in last 3 months
-- current_raw_value: approximate raw/ungraded value in USD
-- graded_10_value: approximate BGS Black Label Pristine 10 market value in USD
+- perfect_10_rate_pct: the realistic BGS Black Label rate as a % of total BGS submissions for this card (1-15, based on actual pop data)
+- total_submissions_3mo: estimated recent BGS submission volume for this card
+- current_raw_value: approximate raw/ungraded market value in USD
+- graded_10_value: approximate BGS Black Label Pristine 10 market value in USD (check recent eBay sales of BGS Black Label copies)
 - value_increase_pct: ((graded_10_value - current_raw_value) / current_raw_value) * 100
-- why_grades_well: 1 sentence on WHY this specific card is known to produce Black Labels (print quality, era, etc.)
-- notes: the single most important thing to check before submitting for Black Label (e.g. "Centering must be 50/50 front and back", "Look for surface scratches under UV light")
+- why_grades_well: cite the specific print/manufacturing reason this card earns Black Labels (centering consistency, surface quality, etc.)
+- notes: the single most critical thing a submitter must verify before sending for Black Label consideration
 
-Return exactly 10 cards. Do NOT return empty arrays.`;
+Return exactly 10 cards ranked best-to-worst Black Label odds. Do NOT return empty arrays. BGS data ONLY.`;
 
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
