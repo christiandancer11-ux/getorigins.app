@@ -12,12 +12,14 @@ Deno.serve(async (req) => {
     const owner = 'base44dev';
     const repo = 'getorigins';
 
+    const token = Deno.env.get('GITHUB_TOKEN');
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=50`,
       {
         headers: {
           'Accept': 'application/vnd.github.v3+json',
           'User-Agent': 'Origins-App',
+          'Authorization': `Bearer ${token}`,
         }
       }
     );
