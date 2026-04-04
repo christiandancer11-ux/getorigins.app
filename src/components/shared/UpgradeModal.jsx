@@ -14,10 +14,12 @@ const PRO_PLAN = {
   badge: 'All Features',
   features: [
     'Unlimited story messages & videos per day',
-    'Card Show Trades — log & browse real comps',
     'Market Value & AI Card Scanner',
+    'Card Show Trades — log & browse real comps',
     'Trending — Top 100 hottest cards per category',
-    'Live data from eBay, 130point & Origins trades',
+    'Live eBay, 130point & Origins data',
+    'Pro Card Flipper — PSA/BGS/SGC/CGC pop report analysis',
+    'BGS Black Label candidate finder',
   ],
 };
 
