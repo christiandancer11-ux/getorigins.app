@@ -26,7 +26,11 @@ export default function FollowButton({ targetEmail }) {
   const isFollowing = existing.length > 0;
 
   const followMutation = useMutation({
-    mutationFn: () => base44.entities.UserFollow.create({ follower_email: currentUserEmail, following_email: targetEmail }),
+    mutationFn: async () => {
+      await base44.entities.UserFollow.create({ follower_email: currentUserEmail, following_email: targetEmail });
+      // Send notification to the user being followed
+      await base44.functions.invoke('sendFollowNotification', { followerEmail: currentUserEmail, followingEmail: targetEmail });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['follow-status', currentUserEmail, targetEmail] });
       queryClient.invalidateQueries({ queryKey: ['follower-count', targetEmail] });

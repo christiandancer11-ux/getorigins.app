@@ -6,6 +6,7 @@ import { Bell, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const NOTIFICATION_TYPES = [
+  { key: 'notify_follower', label: 'New Followers', desc: 'Get notified when someone follows your collection' },
   { key: 'notify_friend_cards', label: 'Friend Adds Cards', desc: 'Get notified when collectors you follow add new cards' },
   { key: 'notify_card_reactions', label: 'Card Reactions', desc: 'Get notified when someone reacts to your cards' },
   { key: 'notify_card_comments', label: 'Card Comments', desc: 'Get notified when someone comments on your cards' },
@@ -16,6 +17,7 @@ const NOTIFICATION_TYPES = [
 export default function NotificationPreferences({ user }) {
   const queryClient = useQueryClient();
   const [prefs, setPrefs] = useState({
+    notify_follower: user?.notify_follower !== false,
     notify_friend_cards: user?.notify_friend_cards !== false,
     notify_card_reactions: user?.notify_card_reactions !== false,
     notify_card_comments: user?.notify_card_comments !== false,
