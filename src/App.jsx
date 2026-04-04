@@ -28,6 +28,7 @@ import TermsOfUse from './pages/TermsOfUse';
 import Support from './pages/Support';
 import Marketing from './pages/Marketing';
 import GradedCertScan from './pages/GradedCertScan';
+import ProCardFlipper from './pages/ProCardFlipper';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
         <Route path="/support" element={<Support />} />
         <Route path="/features" element={<Marketing />} />
         <Route path="/graded/:company/:cert" element={<GradedCertScan />} />
+        <Route path="/flipper" element={<ProCardFlipper />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

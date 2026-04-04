@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText } from 'lucide-react';
+import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText, Repeat2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { to: '/card-show', icon: Handshake, label: 'Card Show' },
   { to: '/market', icon: TrendingUp, label: 'Market' },
   { to: '/trending', icon: Flame, label: 'Trending' },
+  { to: '/flipper', icon: Repeat2, label: 'Flipper' },
   { to: '/trade-dashboard', icon: PieChart, label: 'Trade Stats' },
   { to: '/alerts', icon: Bell, label: 'Alerts' },
   { to: '/bolo', icon: ShieldAlert, label: 'BOLO' },
