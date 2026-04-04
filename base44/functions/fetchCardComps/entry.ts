@@ -14,44 +14,69 @@ Deno.serve(async (req) => {
 
     const now = new Date();
     const cutoffISO = new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const prompt = `You are a sports card & TCG market research assistant. Research recent SOLD prices for:
 
 Card: ${query}
 
-Search eBay completed/sold listings AND 130point.com for this specific card.
+Search THREE sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, and PSA's Price Guide / SMR (Sports Market Report).
 
-=== STRICT DATA QUALITY RULES — YOU MUST FOLLOW THESE EXACTLY ===
+=== STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===
 
-1. CONFIRMED SALES ONLY: Only include eBay listings that are CONFIRMED SOLD. Never include:
-   - Listings that ended without a buyer (unsold)
-   - Active or expired listings that did not sell
-   - Relisted items (same item reposted after failing to sell)
-   - "Best Offer" listings unless the offer was accepted and the item is marked sold
-   - Buy-It-Now listings that were never purchased
+1. EBAY CONFIRMED SALES ONLY — EXCLUDE ALL OF THE FOLLOWING:
+   - Any listing that ended without a buyer (unsold, expired, relisted)
+   - Any listing that shows signs of being relisted (same card, same seller, same condition listed multiple times)
+   - Any sale where the buyer did not pay (marked as unpaid, relisted, or non-paying buyer dispute)
+   - Any cancelled transaction or order
+   - "Best Offer" or "Make Offer" listings where NO offer was accepted and the item did NOT reach sold status
+   - Buy-It-Now listings that were viewed but never purchased
+   Only include eBay sales where the transaction is definitively confirmed SOLD and COMPLETED.
 
-2. ABOVE-MARKET OUTLIER RULE: If an eBay sale price is MORE than 100% above the established market average for this card:
-   - Do NOT include it in ebay_avg, ebay_low, ebay_high calculations
-   - Only include it if there are MULTIPLE confirmed sales (2 or more) of this same card within a similar price range (within 20-30% of each other) that all occurred MORE than 12 hours ago (before ${cutoffISO})
-   - If only one sale exists above 100% of market value, or if it occurred within the last 12 hours, EXCLUDE it entirely from averages — it may be a price manipulation attempt
-   - If you exclude a sale, note it in market_summary
+2. OFFER-ACCEPTED REPLACEMENT RULE (VERY IMPORTANT):
+   - On eBay, when a seller accepts a Best Offer, eBay hides the actual sold price and only shows the original listing price.
+   - 130point.com tracks these same sales and DOES show the actual accepted offer price.
+   - If you find a sale that appears on BOTH eBay (showing only listing price) AND 130point.com (showing actual offer price):
+     * REMOVE that sale from the eBay list entirely
+     * KEEP only the 130point.com version with the real accepted price
+     * Do NOT double-count it in any averages
+   - This prevents inflated eBay averages caused by hidden offer-accepted prices.
 
-3. Use 130point.com data as a trusted secondary source — apply the same confirmed-sale-only rule.
+3. DUPLICATE REMOVAL:
+   - If the same physical sale appears on both eBay and 130point.com, count it only ONCE — use the 130point.com price (it's more accurate).
+   - Match duplicates by: same approximate date + same card + same approximate price range (within 10%).
 
-Return a JSON object with these fields:
+4. ABOVE-MARKET OUTLIER RULE:
+   - If a sale price is MORE than 100% above the established market average, exclude it from averages unless at least 2 other confirmed sales support that price range.
+   - If excluded, note it in market_summary.
+
+5. EBAY 24-HOUR AVERAGE:
+   - For ebay_avg_24h, ONLY include eBay sales from the last 24 hours (since ${yesterday}).
+   - If fewer than 2 confirmed sales exist in 24 hours, set ebay_avg_24h to null and note it.
+
+6. PSA VALUATION:
+   - Look up the PSA Price Guide (psacard.com/smr or psacard.com/price-guide) for this card.
+   - Find the PSA grade that most closely matches the card's condition (or the specific grade if it's a graded card).
+   - Return the PSA SMR value for that grade as psa_value.
+   - Also return psa_grade_used (e.g. "PSA 9", "PSA 10") so the user knows which grade was used.
+
+Return a JSON object with:
 - ebay_low: lowest recent eBay CONFIRMED sold price USD (number or null)
 - ebay_high: highest recent eBay CONFIRMED sold price USD after outlier filtering (number or null)
-- ebay_avg: average recent eBay CONFIRMED sold price USD after outlier filtering (number or null)
+- ebay_avg: average of ALL qualifying eBay sold prices (number or null)
+- ebay_avg_24h: average of eBay confirmed sales in the last 24 hours ONLY (number or null)
 - ebay_sales_count: number of qualifying eBay sales included (number or null)
-- ebay_recent_sales: array of up to 6 qualifying eBay sold listings, each with { date: "Mon DD YYYY", price: number, condition: string, title: string }
+- ebay_recent_sales: array of up to 6 qualifying eBay sold listings: { date: "Mon DD YYYY", price: number, condition: string, title: string, source: "ebay" }
 - point130_low: lowest confirmed price from 130point.com (number or null)
 - point130_high: highest confirmed price from 130point.com (number or null)
 - point130_avg: average confirmed price from 130point.com (number or null)
-- point130_recent_sales: array of up to 6 recent 130point confirmed sold listings, each with { date: "Mon DD YYYY", price: number, condition: string, title: string }
-- market_summary: 3-4 sentence plain English summary covering both platforms, price trends, and what condition affects value most. Be specific about dollar amounts and recency. Mention if any outlier sales were excluded and why.
+- point130_recent_sales: array of up to 6 recent 130point confirmed sold listings: { date: "Mon DD YYYY", price: number, condition: string, title: string, source: "130point" }
+- psa_value: PSA Price Guide / SMR value for the closest matching grade (number or null)
+- psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9")
+- market_summary: 3-4 sentence plain English summary. Include: eBay 24h average if available, 130point average, PSA value, any offer-accepted replacements made, and any outliers excluded.
 - search_query_used: exact search query used
 
-Use real data. If a platform has no qualifying data for this card, return null for its fields and empty array for its sales.`;
+Use real data only. If a source has no qualifying data, return null for its fields and empty array for sales.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
@@ -63,6 +88,7 @@ Use real data. If a platform has no qualifying data for this card, return null f
           ebay_low: { type: 'number' },
           ebay_high: { type: 'number' },
           ebay_avg: { type: 'number' },
+          ebay_avg_24h: { type: 'number' },
           ebay_sales_count: { type: 'number' },
           ebay_recent_sales: {
             type: 'array',
@@ -73,6 +99,7 @@ Use real data. If a platform has no qualifying data for this card, return null f
                 price: { type: 'number' },
                 condition: { type: 'string' },
                 title: { type: 'string' },
+                source: { type: 'string' },
               },
             },
           },
@@ -88,9 +115,12 @@ Use real data. If a platform has no qualifying data for this card, return null f
                 price: { type: 'number' },
                 condition: { type: 'string' },
                 title: { type: 'string' },
+                source: { type: 'string' },
               },
             },
           },
+          psa_value: { type: 'number' },
+          psa_grade_used: { type: 'string' },
           market_summary: { type: 'string' },
           search_query_used: { type: 'string' },
         },

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, Loader2, RotateCcw, TrendingUp, ShoppingCart, Handshake, Star, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Plus, X, Award } from 'lucide-react';
+import { Camera, Upload, Loader2, RotateCcw, TrendingUp, ShoppingCart, Handshake, Star, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Plus, X, Award, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SoldListingsTable from './SoldListingsTable';
 
@@ -246,19 +246,26 @@ export default function CardScanner() {
           )}
 
           {/* Quick stats row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl bg-card border border-border/50 p-3 text-center">
-              <ShoppingCart className="w-4 h-4 text-blue-400 mx-auto mb-1" />
-              <p className="text-sm font-bold text-foreground">{mkt?.ebay_avg != null ? `$${mkt.ebay_avg}` : '—'}</p>
-              <p className="text-xs text-muted-foreground">eBay Avg</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-card border border-amber-400/20 bg-amber-400/5 p-3 text-center">
+              <Award className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+              <p className="text-sm font-bold text-foreground">{mkt?.psa_value != null ? `$${mkt.psa_value}` : '—'}</p>
+              <p className="text-xs text-muted-foreground">PSA Value{mkt?.psa_grade_used ? ` (${mkt.psa_grade_used})` : ''}</p>
             </div>
-            <div className="rounded-xl bg-card border border-border/50 p-3 text-center">
+            <div className="rounded-xl bg-card border border-blue-400/20 bg-blue-400/5 p-3 text-center">
+              <Clock className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+              <p className="text-sm font-bold text-foreground">{mkt?.ebay_avg_24h != null ? `$${mkt.ebay_avg_24h}` : (mkt?.ebay_avg != null ? `$${mkt.ebay_avg}` : '—')}</p>
+              <p className="text-xs text-muted-foreground">{mkt?.ebay_avg_24h != null ? 'eBay Avg (24h)' : 'eBay Avg'}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-card border border-emerald-400/20 bg-emerald-400/5 p-3 text-center">
               <TrendingUp className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
               <p className="text-sm font-bold text-foreground">{mkt?.point130_avg != null ? `$${mkt.point130_avg}` : '—'}</p>
               <p className="text-xs text-muted-foreground">130pt Avg</p>
             </div>
             <div className="rounded-xl bg-card border border-border/50 p-3 text-center">
-              <Handshake className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+              <Handshake className="w-4 h-4 text-primary mx-auto mb-1" />
               <p className="text-sm font-bold text-foreground">{result.internal_trades?.length ?? 0}</p>
               <p className="text-xs text-muted-foreground">Show Trades</p>
             </div>

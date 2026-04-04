@@ -148,6 +148,9 @@ Return a JSON object:
 
     const popContext = popReport ? `\nPop Report: ${popReport}` : '';
 
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     const marketPrompt = `You are a sports card & TCG market analyst. Research current market value for:
 
 Card: ${query}
@@ -156,22 +159,54 @@ ${isGraded ? `Graded: ${identification.grading_company} ${identification.grade}$
 Notable attributes: ${(identification.visible_attributes || []).join(', ') || 'None noted'}
 ${internalContext}
 
-Search eBay completed/sold listings AND 130point.com for this specific card.
+Search THREE sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, and PSA's Price Guide / SMR.
+
+=== STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===
+
+1. EBAY CONFIRMED SALES ONLY — EXCLUDE:
+   - Listings that ended without a buyer, expired, or were relisted
+   - Cancelled transactions or orders where buyer did not pay
+   - Non-paying buyer disputes or relisted items
+   - Best Offer listings where NO offer was accepted
+   Only include eBay sales that are definitively CONFIRMED SOLD AND COMPLETED.
+
+2. OFFER-ACCEPTED REPLACEMENT RULE:
+   - eBay hides the actual price when a seller accepts a Best Offer (shows listing price instead).
+   - 130point.com shows the actual accepted offer price for these same sales.
+   - If a sale appears on both eBay (with hidden/listing price) AND 130point.com (with real price):
+     * REMOVE it from the eBay list
+     * KEEP only the 130point.com version with the real price
+     * Do NOT double-count it in any averages
+
+3. DUPLICATE REMOVAL:
+   - If the same physical sale appears on both eBay and 130point.com, count it only ONCE — use the 130point.com price.
+
+4. EBAY 24-HOUR AVERAGE:
+   - For ebay_avg_24h, ONLY include eBay sales from the last 24 hours (since ${yesterday}).
+   - If fewer than 2 confirmed sales exist in 24 hours, set ebay_avg_24h to null.
+
+5. PSA VALUATION:
+   - Look up PSA Price Guide (psacard.com/smr or psacard.com/price-guide) for this card.
+   - ${isGraded ? `The card is graded ${identification.grading_company} ${identification.grade} — find the equivalent PSA grade value.` : 'Find the PSA grade value closest to the card\'s estimated condition.'}
+   - Return the PSA SMR value as psa_value and the grade used as psa_grade_used.
 
 Return a JSON object with:
-- ebay_low: lowest recent eBay sold price USD (number or null)
-- ebay_high: highest recent eBay sold price USD (number or null)
-- ebay_avg: average recent eBay sold price USD (number or null)
-- ebay_sales_count: number of recent eBay sales found (number or null)
+- ebay_low: lowest recent eBay CONFIRMED sold price USD (number or null)
+- ebay_high: highest recent eBay CONFIRMED sold price USD (number or null)
+- ebay_avg: average of all qualifying eBay sold prices (number or null)
+- ebay_avg_24h: average of eBay confirmed sales in the last 24 hours ONLY (number or null)
+- ebay_sales_count: number of qualifying eBay sales included (number or null)
 - ebay_recent_sales: up to 5 recent eBay sold listings, each { date, price, condition, title }
 - point130_low: lowest 130point.com price (number or null)
 - point130_high: highest 130point.com price (number or null)
 - point130_avg: average 130point.com price (number or null)
 - point130_recent_sales: up to 5 recent 130point listings, each { date, price, condition, title }
+- psa_value: PSA Price Guide / SMR value for the closest matching grade (number or null)
+- psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9")
 - estimated_value: your best single-number estimate of current value in USD (number)
 - value_range_low: conservative low estimate USD (number)
 - value_range_high: optimistic high estimate USD (number)
-- market_summary: 3-4 sentences covering current market, condition impact, trend direction${isGraded ? ', and how the pop count affects value' : ''}
+- market_summary: 3-4 sentences covering eBay 24h avg, 130point avg, PSA value, condition impact, and trend direction${isGraded ? ', and how the pop count affects value' : ''}
 - search_query_used: the exact search query used`;
 
     const marketData = await base44.integrations.Core.InvokeLLM({
@@ -190,6 +225,9 @@ Return a JSON object with:
           point130_high: { type: 'number' },
           point130_avg: { type: 'number' },
           point130_recent_sales: { type: 'array', items: { type: 'object', properties: { date: { type: 'string' }, price: { type: 'number' }, condition: { type: 'string' }, title: { type: 'string' } } } },
+          ebay_avg_24h: { type: 'number' },
+          psa_value: { type: 'number' },
+          psa_grade_used: { type: 'string' },
           estimated_value: { type: 'number' },
           value_range_low: { type: 'number' },
           value_range_high: { type: 'number' },
