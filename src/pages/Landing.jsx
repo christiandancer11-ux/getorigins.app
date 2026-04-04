@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { QrCode, Video, History, ArrowRight, Layers, Sparkles, TrendingUp, Handshake, BarChart2, Flame, MessageSquare, CheckCircle, Tag, Gift } from 'lucide-react';
+import { QrCode, Video, History, ArrowRight, Layers, Sparkles, TrendingUp, Handshake, BarChart2, Flame, MessageSquare, CheckCircle, Tag, Gift, Award, Bell, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
 import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
@@ -21,7 +21,7 @@ const PLANS = [
     price: '$0',
     description: 'Get started, no card required.',
     color: 'text-muted-foreground',
-    features: ['Register cards & generate QR codes', 'Up to 5 story messages/videos per day', 'Leaderboard & analytics'],
+    features: ['Register cards & generate QR codes', 'AI card identification from photos', 'Up to 5 story messages/videos per day', 'Leaderboard & analytics', 'BOLO stolen card alerts'],
   },
   {
     name: 'Origins Pro Bundle',
@@ -142,21 +142,26 @@ export default function Landing() {
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { icon: QrCode, title: 'AI Card Scanner', desc: 'Snap a photo — AI identifies the card and auto-fills all details.' },
-              { icon: TrendingUp, title: 'Live Market Values', desc: 'Real-time eBay sold data, 130point comps, and community trade logs.' },
-              { icon: Handshake, title: 'Card Show Trades', desc: 'Log real in-person deals. See what cards actually sell for at shows.' },
-              { icon: Flame, title: 'Trending Top 100', desc: 'Football, Baseball, Pokémon, F1 and more — the hottest cards right now.' },
-              { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track scans, visitor counts, and engagement across your entire collection.' },
-              { icon: MessageSquare, title: 'Video Message Timeline', desc: 'Every owner leaves a message. Cards build a story that travels with them.' },
-              { icon: Sparkles, title: 'Pro Card Flipper', desc: 'AI analyzes PSA, BGS, SGC & CGC pop reports to find cards with 80–95% odds of a perfect 10 grade — including BGS Black Label candidates.' },
+              { icon: QrCode, title: 'AI Card Scanner', desc: 'Snap a photo — AI identifies the card, auto-fills all details, and generates a unique QR code sticker.', pro: false },
+              { icon: MessageSquare, title: 'Video Message Timeline', desc: 'Every owner leaves a message. Cards build a living history that travels with them from hand to hand.', pro: false },
+              { icon: BarChart2, title: 'Analytics Dashboard', desc: 'Track scans, visitor counts, and engagement across your entire collection.', pro: false },
+              { icon: ShieldAlert, title: 'BOLO Stolen Card Alerts', desc: 'Verified dealers report stolen cards. Get notified when thefts happen near you to protect the hobby.', pro: false },
+              { icon: TrendingUp, title: 'Live Market Values', desc: 'Real-time eBay sold data, 130point comps, and community trade logs for any card.', pro: true },
+              { icon: Handshake, title: 'Card Show Trades', desc: 'Log real in-person deals. AI verifies fair market value on the spot so you never overpay.', pro: true },
+              { icon: Flame, title: 'Trending Top 100', desc: 'Baseball, Basketball, Football, Pokémon, MTG and more — the hottest cards right now.', pro: true },
+              { icon: Bell, title: 'Price Alerts', desc: 'Set buy-below or sell-above targets. Get email alerts the moment the market hits your price.', pro: true },
+              { icon: Award, title: 'Pro Card Flipper', desc: 'AI scans PSA, BGS, SGC & CGC pop reports to find cards with 80–95% odds of a perfect 10 — including BGS Black Label Pristine candidates.', pro: true },
             ].map((f, i) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                className="flex gap-4 p-5 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                  <f.icon className="w-4 h-4 text-primary" />
+                className={`flex gap-4 p-5 rounded-xl border transition-colors ${f.pro ? 'bg-amber-400/5 border-amber-400/20 hover:border-amber-400/40' : 'bg-card border-border/50 hover:border-primary/20'}`}>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${f.pro ? 'bg-amber-400/10 border border-amber-400/20' : 'bg-primary/10 border border-primary/20'}`}>
+                  <f.icon className={`w-4 h-4 ${f.pro ? 'text-amber-400' : 'text-primary'}`} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-1">{f.title}</h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-sm font-semibold text-foreground">{f.title}</h3>
+                    {f.pro && <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-full px-1.5 py-0.5 leading-none">PRO</span>}
+                  </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
                 </div>
               </motion.div>
