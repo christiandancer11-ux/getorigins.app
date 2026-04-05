@@ -66,7 +66,7 @@ If you cannot identify the card at all, return:
       prompt,
       file_urls: imageUrls,
       response_json_schema: { type: 'object' },
-      model: 'claude_sonnet_4_6',
+      model: 'gpt_5',
     });
 
     console.log(`Card ${cardIndex} analyzed:`, result?.card_name, '$' + result?.estimated_value);
