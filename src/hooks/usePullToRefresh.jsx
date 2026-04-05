@@ -1,11 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export function usePullToRefresh(onRefresh) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
-  const startY = useRef(null);
+
   const containerRef = useRef(null);
+  const startY = useRef(null);
+  const pullDistanceRef = useRef(0);
+  const isRefreshingRef = useRef(false);
+  const onRefreshRef = useRef(onRefresh);
   const threshold = 72;
+
+  // Keep onRefresh ref up to date without re-registering listeners
+  useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
 
   useEffect(() => {
     const onTouchStart = (e) => {
@@ -16,23 +23,29 @@ export function usePullToRefresh(onRefresh) {
     };
 
     const onTouchMove = (e) => {
-      if (startY.current == null || isRefreshing) return;
+      if (startY.current == null || isRefreshingRef.current) return;
       const dy = e.touches[0].clientY - startY.current;
       if (dy > 0) {
         e.preventDefault();
-        setPullDistance(Math.min(dy, threshold * 1.5));
+        const clamped = Math.min(dy, threshold * 1.5);
+        pullDistanceRef.current = clamped;
+        setPullDistance(clamped);
       }
     };
 
     const onTouchEnd = async () => {
-      if (pullDistance >= threshold && !isRefreshing) {
+      if (pullDistanceRef.current >= threshold && !isRefreshingRef.current) {
+        isRefreshingRef.current = true;
         setIsRefreshing(true);
         setPullDistance(0);
+        pullDistanceRef.current = 0;
         startY.current = null;
-        await onRefresh();
+        await onRefreshRef.current();
+        isRefreshingRef.current = false;
         setIsRefreshing(false);
       } else {
         setPullDistance(0);
+        pullDistanceRef.current = 0;
         startY.current = null;
       }
     };
@@ -46,11 +59,11 @@ export function usePullToRefresh(onRefresh) {
       target.removeEventListener('touchmove', onTouchMove);
       target.removeEventListener('touchend', onTouchEnd);
     };
-  }, [pullDistance, isRefreshing, onRefresh]);
+  }, []); // Empty deps — listeners registered once, stable forever
 
   const progress = Math.min(pullDistance / threshold, 1);
 
-  const PullIndicator = () => {
+  const PullIndicator = useCallback(() => {
     if (pullDistance <= 8 && !isRefreshing) return null;
     return (
       <div
@@ -63,7 +76,7 @@ export function usePullToRefresh(onRefresh) {
         />
       </div>
     );
-  };
+  }, [pullDistance, isRefreshing, progress]);
 
   return { containerRef, isRefreshing, PullIndicator };
 }
