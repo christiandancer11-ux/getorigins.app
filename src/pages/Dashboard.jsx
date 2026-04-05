@@ -13,7 +13,9 @@ import CardValueBreakdown from '../components/dashboard/CardValueBreakdown';
 import SoldTradedGrid from '../components/dashboard/SoldTradedGrid';
 import MarkSoldModal from '../components/dashboard/MarkSoldModal';
 import OwnershipRequests from '../components/dashboard/OwnershipRequests';
+import MarketPicksWidget from '../components/dashboard/MarketPicksWidget';
 import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
+import { useSubscription } from '../hooks/useSubscription';
 
 const TABS = [
   { id: 'collection', label: 'Collection', icon: Layers },
@@ -26,7 +28,10 @@ export default function Dashboard() {
   const [markSoldCard, setMarkSoldCard] = useState(null);
   const [showCertLookup, setShowCertLookup] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState('');
+  const [signals, setSignals] = useState({}); // cardId -> { signal, reason }
+  const [signalsLoading, setSignalsLoading] = useState(false);
   const queryClient = useQueryClient();
+  const { isPro } = useSubscription();
 
   useEffect(() => {
     base44.auth.me().then(u => { if (u?.email) setCurrentUserEmail(u.email); }).catch(() => {});
@@ -50,6 +55,36 @@ export default function Dashboard() {
     enabled: !!currentUserEmail && allCards.length > 0,
     staleTime: 60000,
   });
+
+  // Fetch AI signals for owned cards once loaded
+  useEffect(() => {
+    if (ownedCards.length === 0) return;
+    setSignalsLoading(true);
+    const cardPayload = ownedCards.map(c => ({
+      id: c.id,
+      name: c.name,
+      set_name: c.set_name,
+      year: c.year,
+      sport: c.sport,
+      grading_company: c.grading_company,
+      grade: c.grade,
+      price_paid: c.price_paid,
+      estimated_value: c.estimated_value,
+    }));
+    base44.functions.invoke('cardSignals', { cards: cardPayload })
+      .then(res => {
+        if (res.data?.signals) {
+          const map = {};
+          res.data.signals.forEach(s => {
+            const card = ownedCards[s.index];
+            if (card) map[card.id] = { signal: s.signal, reason: s.reason };
+          });
+          setSignals(map);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setSignalsLoading(false));
+  }, [ownedCards.length]);
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['my-cards'] });
@@ -82,6 +117,9 @@ export default function Dashboard() {
 
         {/* Ownership Transfer Requests */}
         {currentUserEmail && <OwnershipRequests userEmail={currentUserEmail} />}
+
+        {/* AI Market Picks Widget */}
+        <MarketPicksWidget isPro={isPro} />
 
         {/* Header with Quick Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -175,6 +213,8 @@ export default function Dashboard() {
                         messageCount={getMessageCount(card.id)}
                         index={i}
                         onMarkSold={setMarkSoldCard}
+                        signal={signals[card.id]?.signal}
+                        signalReason={signals[card.id]?.reason}
                       />
                     ))}
                   </div>

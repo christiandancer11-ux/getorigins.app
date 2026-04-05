@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { QrCode, MessageCircle, ArrowRightLeft, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SportBadge from '../shared/SportBadge';
+import CardSignalBadge from './CardSignalBadge';
 
-export default function CardGridItem({ card, messageCount = 0, index = 0, onMarkSold }) {
+export default function CardGridItem({ card, messageCount = 0, index = 0, onMarkSold, signal, signalReason }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -34,6 +35,11 @@ export default function CardGridItem({ card, messageCount = 0, index = 0, onMark
                 </div>
               )}
             </div>
+            {signal && (
+              <div className="absolute top-3 left-3">
+                <CardSignalBadge signal={signal} reason={signalReason} />
+              </div>
+            )}
           </div>
         </Link>
 
