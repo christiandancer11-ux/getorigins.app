@@ -4,27 +4,33 @@ import { X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Bump this version string whenever there are new updates to announce.
-const CURRENT_VERSION = '3.0.0';
+const CURRENT_VERSION = '4.0.0';
 const STORAGE_KEY = 'origins_whats_new_seen';
 
 const UPDATES = [
   {
     badge: '🆕 New',
     badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+    title: 'AI Buy / Hold / Sell Signals',
+    desc: 'Every card in your collection now shows an AI-powered Buy, Hold, or Sell signal based on live market trends, grading data, and player performance. Find it on each card in your dashboard.',
+  },
+  {
+    badge: '🆕 New',
+    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+    title: 'AI Market Picks Widget',
+    desc: 'The dashboard now shows daily AI-generated top Buy, Hold, and Sell picks across all sports and TCGs — refreshed automatically with live internet market data.',
+  },
+  {
+    badge: '✨ Improved',
+    badgeColor: 'text-primary bg-primary/10 border-primary/20',
+    title: 'Smoother Scrolling',
+    desc: 'Fixed a scroll freeze issue on mobile that could occur when quickly swiping up or down through your collection. Everything should feel buttery smooth now.',
+  },
+  {
+    badge: '🆕 New',
+    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
     title: 'Social Network & Collections Feed',
-    desc: 'Follow collectors, view their collections, and see new cards they add in your personalized feed. Friends-only content — your collections are private unless you share.',
-  },
-  {
-    badge: '🆕 New',
-    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    title: 'Reactions & Comments',
-    desc: 'React with emojis (🔥💎⭐🤩👏) and leave comments on cards your friends add. Build community and engage with the collectors you follow.',
-  },
-  {
-    badge: '🆕 New',
-    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    title: 'Notification Preferences',
-    desc: 'Opt-in to get email notifications when friends add new cards, react to your cards, or comment on your collection.',
+    desc: 'Follow collectors, view their collections, and see new cards they add in your personalized feed. React with emojis and leave comments.',
   },
   {
     badge: '✨ Improved',

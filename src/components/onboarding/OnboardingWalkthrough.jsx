@@ -17,6 +17,18 @@ const WALKTHROUGH_STEPS = [
     isPremium: false,
   },
   {
+    title: 'AI Buy / Hold / Sell Signals',
+    description: 'Every card in your collection gets a live AI signal — Buy, Hold, or Sell — based on real market trends, grading data, and player performance. Know what to do with every card.',
+    icon: '🤖',
+    isPremium: false,
+  },
+  {
+    title: 'AI Market Picks',
+    description: 'See the top AI-generated Buy, Hold, and Sell picks across all sports and TCGs — updated automatically throughout the day using live market intelligence.',
+    icon: '⚡',
+    isPremium: false,
+  },
+  {
     title: 'Video Messages',
     description: 'Record personal messages and videos that travel with the card from owner to owner. Build a living history.',
     icon: '🎬',
@@ -72,7 +84,7 @@ const WALKTHROUGH_STEPS = [
   },
   {
     title: 'Ready to Start?',
-    description: 'Register your first card and explore the community. Upgrade to Origins Pro to unlock every advanced feature.',
+    description: 'Register your first card and explore the community. Every collection gets AI-powered signals — upgrade to Origins Pro to unlock every advanced market feature.',
     icon: '🚀',
     isPremium: false,
   },
