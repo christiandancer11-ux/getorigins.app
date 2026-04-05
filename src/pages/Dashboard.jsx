@@ -56,6 +56,30 @@ export default function Dashboard() {
     staleTime: 60000,
   });
 
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['my-cards'] });
+    queryClient.invalidateQueries({ queryKey: ['all-messages'] });
+  };
+
+  const { containerRef, PullIndicator } = usePullToRefresh(refresh);
+
+  const getMessageCount = (cardId) => messages.filter(m => m.card_id === cardId).length;
+
+  const ownedCards = React.useMemo(
+    () => allCards.filter(c => !c.status || c.status === 'owned'),
+    [allCards]
+  );
+  
+  const soldTradedCards = React.useMemo(
+    () => allCards.filter(c => c.status === 'sold' || c.status === 'traded'),
+    [allCards]
+  );
+  
+  const totalValue = React.useMemo(
+    () => ownedCards.reduce((sum, c) => sum + (c.estimated_value || 0), 0),
+    [ownedCards]
+  );
+
   // Fetch AI signals for owned cards once loaded
   useEffect(() => {
     if (ownedCards.length === 0) return;
@@ -85,30 +109,6 @@ export default function Dashboard() {
       .catch(() => {})
       .finally(() => setSignalsLoading(false));
   }, [ownedCards.length]);
-
-  const refresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['my-cards'] });
-    queryClient.invalidateQueries({ queryKey: ['all-messages'] });
-  };
-
-  const { containerRef, PullIndicator } = usePullToRefresh(refresh);
-
-  const getMessageCount = (cardId) => messages.filter(m => m.card_id === cardId).length;
-
-  const ownedCards = React.useMemo(
-    () => allCards.filter(c => !c.status || c.status === 'owned'),
-    [allCards]
-  );
-  
-  const soldTradedCards = React.useMemo(
-    () => allCards.filter(c => c.status === 'sold' || c.status === 'traded'),
-    [allCards]
-  );
-  
-  const totalValue = React.useMemo(
-    () => ownedCards.reduce((sum, c) => sum + (c.estimated_value || 0), 0),
-    [ownedCards]
-  );
 
   return (
     <div ref={containerRef} className="min-h-screen pt-24 pb-12 px-4 sm:px-6">
