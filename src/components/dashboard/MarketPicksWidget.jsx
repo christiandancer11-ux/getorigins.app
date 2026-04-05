@@ -62,7 +62,6 @@ export default function MarketPicksWidget({ isPro }) {
     queryKey: ['market-picks'],
     queryFn: () => base44.entities.MarketPick.list(),
     staleTime: 10 * 60 * 1000,
-    enabled: isPro,
   });
 
   const buyPick  = picks.find(p => p.pick_type === 'buy');
@@ -90,19 +89,7 @@ export default function MarketPicksWidget({ isPro }) {
 
       {/* Content */}
       <div className="p-4">
-        {!isPro ? (
-          <div className="flex flex-col items-center gap-3 py-4">
-            <Lock className="w-8 h-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground text-center max-w-xs">
-              Upgrade to Pro to see AI-powered daily Buy, Hold &amp; Sell picks updated 6× a day.
-            </p>
-            <Link to="/pricing">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Upgrade to Pro
-              </Button>
-            </Link>
-          </div>
-        ) : isLoading ? (
+        {isLoading ? (
           <div className="grid sm:grid-cols-3 gap-3">
             {[0,1,2].map(i => (
               <div key={i} className="rounded-xl border border-border/40 p-4 animate-pulse bg-muted/10 h-36" />
@@ -115,6 +102,19 @@ export default function MarketPicksWidget({ isPro }) {
             {buyPick  && <PickCard pick={buyPick} />}
             {holdPick && <PickCard pick={holdPick} />}
             {sellPick && <PickCard pick={sellPick} />}
+          </div>
+        )}
+
+        {!isPro && (
+          <div className="mt-3 pt-3 border-t border-border/30 flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              🔒 Pro subscribers get picks updated 6× daily with deeper AI analysis.
+            </p>
+            <Link to="/pricing">
+              <Button size="sm" variant="outline" className="shrink-0 text-xs border-primary/30 text-primary hover:bg-primary/10">
+                Upgrade
+              </Button>
+            </Link>
           </div>
         )}
       </div>
