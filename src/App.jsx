@@ -33,6 +33,7 @@ import SocialFeed from './pages/SocialFeed';
 import UserSearch from './pages/UserSearch';
 import Pricing from './pages/Pricing';
 import AICardGrading from './pages/AICardGrading';
+import BulkDealCalculator from './pages/BulkDealCalculator';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -83,6 +84,7 @@ const AuthenticatedApp = () => {
         <Route path="/users" element={<UserSearch />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/ai-grading" element={<AICardGrading />} />
+        <Route path="/bulk-calculator" element={<BulkDealCalculator />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
