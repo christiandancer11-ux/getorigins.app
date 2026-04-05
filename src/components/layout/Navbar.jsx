@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText, Repeat2, Rss, Users } from 'lucide-react';
+import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText, Repeat2, Rss, Users, ScanSearch } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,6 +14,7 @@ const NAV_LINKS = [
   // Tools
   { to: '/market', icon: TrendingUp, label: 'Market', category: 'tools' },
   { to: '/flipper', icon: Repeat2, label: 'Flipper', category: 'tools' },
+  { to: '/ai-grading', icon: ScanSearch, label: 'AI Grading', category: 'tools' },
   { to: '/card-show', icon: Handshake, label: 'Trades', category: 'tools' },
   { to: '/trending', icon: Flame, label: 'Trending', category: 'tools' },
   // Insights

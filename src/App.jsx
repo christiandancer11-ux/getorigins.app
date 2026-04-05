@@ -32,6 +32,7 @@ import ProCardFlipper from './pages/ProCardFlipper';
 import SocialFeed from './pages/SocialFeed';
 import UserSearch from './pages/UserSearch';
 import Pricing from './pages/Pricing';
+import AICardGrading from './pages/AICardGrading';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -81,6 +82,7 @@ const AuthenticatedApp = () => {
         <Route path="/feed" element={<SocialFeed />} />
         <Route path="/users" element={<UserSearch />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/ai-grading" element={<AICardGrading />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
