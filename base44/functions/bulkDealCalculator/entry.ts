@@ -126,10 +126,15 @@ Return a JSON object:
       /pokemon|charizard|pikachu|mewtwo|magic|yugioh|yu-gi-oh|mtg/i.test(query);
 
     // Step 3: Market valuation with full multi-source research
+    const rawVsGradedInstruction = isGraded
+      ? `This card is GRADED (${gradedLabel}). CRITICAL: You MUST ONLY use sold prices for ${identification.grading_company.toUpperCase()} ${identification.grade} cards. Do NOT include raw cards, different grades, or different grading companies in any average or listing.`
+      : `This card is RAW (ungraded). CRITICAL: You MUST ONLY use raw/ungraded sold prices. Do NOT include, reference, or mention any graded (PSA, BGS, SGC, CGC, HGA) sales—they sell for significantly more and will skew the raw card's value.`;
+
     const marketPrompt = `You are an expert sports card and trading card market analyst with internet access to look up ACTUAL recent sold prices.
 
 Card identified: ${query}
 Condition: ${identification.condition_label || (isGraded ? gradedLabel : 'Raw')}
+${rawVsGradedInstruction}
 ${identification.variant ? `Variant: ${identification.variant}` : ''}
 ${isRookie ? `Rookie Card: YES — an RC/Rated Rookie/Freshman emblem was detected. You MUST include "RC" in the search query and ONLY return sold listings for the ROOKIE version of this card. Do NOT include veteran base cards, non-rookie parallels, or reprints.` : identification.is_rookie_card === null ? `Rookie Card: UNKNOWN — if unsure, prefer comps from the same production year (${identification.year || 'unknown'}) only.` : `Rookie Card: NO — do NOT include rookie card sales in the comps.`}
 Production Year: ${identification.year || 'Unknown'} — ONLY include sold listings for cards from this EXACT production year. Exclude any sales for a different year's card (reprints, different releases, etc.) from all averages and results.
@@ -146,18 +151,14 @@ Example: "2022 Panini National Treasures Treylon Burks RPA /25"
 - For graded cards: filter to ONLY sales of the same grading company AND exact grade (e.g. PSA 10 only — not PSA 9, not raw)
 - For raw cards: filter to ONLY raw/ungraded sold listings — EXCLUDE all graded copies (PSA, BGS, SGC, CGC, HGA, etc.)
 
-=== CRITICAL: GRADED vs RAW SEPARATION ===
-BEFORE calculating any averages, strictly separate graded and raw sales:
-- RAW card → raw sold listings ONLY. Graded copies must be excluded entirely — they sell for significantly more and skew the average.
-- GRADED card → only sales at the same grading company and exact grade. Do not mix grades or include raw copies.
-- Never mix graded and raw sales in any calculation.
+=== CRITICAL: GRADED vs RAW SEPARATION (MANDATORY) ===
+BEFORE calculating ANY averages, strictly separate graded and raw sales:
+${isGraded
+  ? `- GRADED card (${gradedLabel}): ONLY use sold prices for ${identification.grading_company.toUpperCase()} ${identification.grade} cards. Do NOT mix with other grades, other grading companies, or raw copies.`
+  : `- RAW card: raw sold listings ONLY. Graded copies (PSA, BGS, SGC, CGC, HGA) MUST be excluded entirely from ALL averages and results — they sell for significantly more and skew the raw card value.`}
+- Never mix graded and raw sales in any calculation. EVER.
 
 Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings, 130point.com confirmed sales, PSA Price Guide / SMR${isTCG ? ', and TCGPlayer.com verified market prices' : ''}.
-
-=== STRICT CONDITION MATCHING — CRITICAL ===
-${isGraded
-  ? `This card is GRADED (${gradedLabel}). ONLY use sold prices for this EXACT grade. Do NOT mix grades or include raw sales.`
-  : `This card is RAW (ungraded). ONLY use raw/ungraded sold prices. Do NOT include or reference graded (PSA/BGS/SGC) sold prices.`}
 
 === TIME WINDOW — FOLLOW IN ORDER ===
 1. PRIMARY: eBay confirmed sold + 130point.com sales from the last 90 days (since ${threeMonthsAgo}).
@@ -223,7 +224,7 @@ Return this JSON:
   "value_range_high": number,
   "sales_count_90_days": number or null,
   "confidence": "high|medium|low",
-  "notes": "2-3 sentences: what comps were found, date range used, any older sales listed with dates. If raw card, do NOT mention graded values."
+  "notes": "2-3 sentences: what comps were found, date range used, any older sales listed with dates. ${isGraded ? `Specify that ONLY ${identification.grading_company.toUpperCase()} ${identification.grade} comps were used.` : `Explicitly state that ONLY raw/ungraded comps were used — no graded sales were included.`}"
 }`;
 
     const saleItemSchema = {
