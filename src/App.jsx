@@ -35,6 +35,7 @@ import Pricing from './pages/Pricing';
 import AICardGrading from './pages/AICardGrading';
 import BulkDealCalculator from './pages/BulkDealCalculator';
 import AdminCardKnowledge from './pages/AdminCardKnowledge';
+import LoadTestResults from './pages/LoadTestResults';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -87,6 +88,7 @@ const AuthenticatedApp = () => {
         <Route path="/ai-grading" element={<AICardGrading />} />
         <Route path="/bulk-calculator" element={<BulkDealCalculator />} />
         <Route path="/admin/card-knowledge" element={<AdminCardKnowledge />} />
+        <Route path="/admin/load-test" element={<LoadTestResults />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
