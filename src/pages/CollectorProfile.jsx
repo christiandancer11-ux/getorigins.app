@@ -41,6 +41,15 @@ export default function CollectorProfile() {
   });
   const user = users[0];
 
+  const { data: myFollows = [] } = useQuery({
+    queryKey: ['my-follows', currentUserEmail],
+    queryFn: () => base44.entities.UserFollow.filter({ follower_email: currentUserEmail }),
+    enabled: !!currentUserEmail,
+  });
+
+  const isFollowing = myFollows.some(f => f.following_email === decodedEmail);
+  const isOwnProfile = currentUserEmail === decodedEmail;
+
   const { data: allTrades = [], isLoading: loadingTrades } = useQuery({
     queryKey: ['collector-trades', decodedEmail],
     queryFn: () => base44.entities.CardTrade.filter({ created_by: decodedEmail }, '-created_date', 100),
@@ -181,37 +190,56 @@ export default function CollectorProfile() {
            </motion.div>
          )}
 
-        {/* Full Card Collection */}
-        {allCards.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="rounded-2xl bg-card border border-border/50 p-5 mb-6">
-            <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-primary" />Collection
+        {/* Full Card Collection — visible only to followers or own profile */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="rounded-2xl bg-card border border-border/50 p-5 mb-6">
+          <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-primary" />Collection
+            {(isFollowing || isOwnProfile) && (
               <span className="text-xs text-muted-foreground font-normal">({allCards.length} cards)</span>
-            </h2>
-            <div className="grid grid-cols-3 gap-2">
-              {allCards.slice(0, 12).map(card => (
-                <Link key={card.id} to={`/cards/${card.id}`} className="group">
-                  <div className="rounded-xl overflow-hidden bg-secondary/50 border border-border/40 group-hover:border-primary/30 transition-colors">
-                    {card.image_url ? (
-                      <img src={card.image_url} alt={card.name} className="w-full h-28 object-cover" />
-                    ) : (
-                      <div className="w-full h-28 bg-muted flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-muted-foreground/20" />
-                      </div>
-                    )}
-                    <div className="p-2">
-                      <p className="text-[10px] font-semibold text-foreground truncate">{card.name}</p>
-                      {card.estimated_value && <p className="text-[10px] text-primary font-bold">${card.estimated_value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            {allCards.length > 12 && (
-              <p className="text-xs text-muted-foreground text-center mt-3">+{allCards.length - 12} more cards</p>
             )}
-          </motion.div>
-        )}
+          </h2>
+          {isFollowing || isOwnProfile ? (
+            allCards.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No cards in this collection yet.</p>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-2">
+                  {allCards.slice(0, 12).map(card => (
+                    <Link key={card.id} to={`/cards/${card.id}`} className="group">
+                      <div className="rounded-xl overflow-hidden bg-secondary/50 border border-border/40 group-hover:border-primary/30 transition-colors">
+                        {card.image_url ? (
+                          <img src={card.image_url} alt={card.name} className="w-full h-28 object-cover" />
+                        ) : (
+                          <div className="w-full h-28 bg-muted flex items-center justify-center">
+                            <CreditCard className="w-5 h-5 text-muted-foreground/20" />
+                          </div>
+                        )}
+                        <div className="p-2">
+                          <p className="text-[10px] font-semibold text-foreground truncate">{card.name}</p>
+                          {card.estimated_value && <p className="text-[10px] text-primary font-bold">${card.estimated_value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                {allCards.length > 12 && (
+                  <p className="text-xs text-muted-foreground text-center mt-3">+{allCards.length - 12} more cards</p>
+                )}
+              </>
+            )
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-muted/40 flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-muted-foreground/30" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground mb-1">Follow to see their collection</p>
+                <p className="text-xs text-muted-foreground">This collector's cards are only visible to their followers.</p>
+              </div>
+              <FollowButton targetEmail={decodedEmail} />
+            </div>
+          )}
+        </motion.div>
 
         {/* Trade history */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
