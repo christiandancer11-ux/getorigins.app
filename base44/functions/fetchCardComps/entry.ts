@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     const condLabel = condition && condition !== 'raw' ? condition.toUpperCase().replace(/_/g, ' ') : '';
     const query = [year, card_name, set_name, card_number, condLabel].filter(Boolean).join(' ').trim();
 
-    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece', 'lorcana', 'digimon'].includes(sport) ||
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece', 'lorcana', 'digimon', 'flesh_and_blood'].includes(sport) ||
       /pokemon|charizard|pikachu|eevee|mewtwo|magic|yugioh|yu-gi-oh|mtg|blue-eyes|dark magician|lorcana|one piece|digimon|flesh and blood|dragon ball super|naruto|weiss|cardfight|vanguard/i.test(query);
 
     const now = new Date();

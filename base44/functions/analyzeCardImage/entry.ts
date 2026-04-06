@@ -50,7 +50,7 @@ Identify the card and return a JSON object with:
 - set_name: card set or collection name (string or null)
 - year: year of the card (string or null)
 - card_number: card number if visible (string or null)
-- sport: one of baseball/basketball/football/hockey/soccer/pokemon/magic_the_gathering/yugioh/other
+- sport: one of baseball/basketball/football/hockey/soccer/golf/ufc/wwe/f1/pokemon/magic_the_gathering/yugioh/other
 - condition_estimate: visual condition estimate — e.g. "Near Mint", "PSA 8-9 equivalent" (string)
 - grading_company: name of grading company if this is a graded slab (e.g. "PSA", "BGS", "SGC", "CGC", "HGA") — null if raw
 - grade: the numeric grade if graded (e.g. "10", "9.5") — null if raw

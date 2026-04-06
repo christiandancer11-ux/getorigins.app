@@ -34,6 +34,10 @@ Base your analysis on:
 - Rarity and population scarcity
 - Market timing (off-season vs in-season, post-award hype, etc.)
 - Whether the card is graded and what grade
+- For Golf cards: consider player ranking, major tournament wins, and seasonal demand
+- For UFC/MMA cards: consider fight outcomes, championship status, and upcoming bouts
+- For WWE cards: consider storyline momentum, championship reigns, and WrestleMania season
+- For F1 cards: consider championship standings, race wins, and team transfers
 - For TCG cards (Pokémon, MTG, Yu-Gi-Oh!, One Piece, etc.): check TCGPlayer.com Market Price (the weighted average of verified dealer sales) as the authoritative price benchmark. Also factor in current tournament format legality, recent ban list updates, and whether the card sees competitive play — these directly impact TCG card value.
 
 Cards:

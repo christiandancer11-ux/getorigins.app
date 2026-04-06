@@ -72,7 +72,7 @@ Extract ALL information visible. If this is a graded slab, read ALL label inform
 Return a JSON object:
 - name: Player name or card title (string — required)
 - set_name: Set or collection name (string or null)
-- sport: one of: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh, other
+- sport: one of: baseball, basketball, football, hockey, soccer, golf, ufc, wwe, f1, pokemon, magic_the_gathering, yugioh, other
 - year: 4-digit year (string or null)
 - card_number: card number with # prefix if visible (string or null)
 - description: 1-2 sentence description of this card including any notable features (string)

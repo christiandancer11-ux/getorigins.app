@@ -29,7 +29,7 @@ For TCG cards (Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana, et
 - Community discussion on r/PokemonTCG, r/magicTCG, r/yugioh, Limitless TCG, MTGGoldfish, YGOProdeck
 
 Rules:
-- Picks can be any sport or TCG: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh
+- Picks can be any sport or TCG: baseball, basketball, football, hockey, soccer, golf, ufc, wwe, f1, pokemon, magic_the_gathering, yugioh
 - Each pick should be a SPECIFIC card (include set, year, variant/grade)
 - The reasoning must be data-driven and timely — reference actual market context AND tournament/meta context for TCG picks
 - For TCG picks: estimated_price MUST be based on TCGPlayer Market Price (NM condition) as the primary benchmark, cross-referenced with eBay confirmed sales
@@ -42,7 +42,7 @@ Return a JSON object:
     "card_name": "string",
     "set_name": "string", 
     "year": "string",
-    "sport": "baseball|basketball|football|hockey|soccer|pokemon|magic_the_gathering|yugioh|other",
+    "sport": "baseball|basketball|football|hockey|soccer|golf|ufc|wwe|f1|pokemon|magic_the_gathering|yugioh|other",
     "variant": "string (e.g. PSA 10 Silver Prizm RC)",
     "estimated_price": number,
     "price_target": number,
@@ -53,7 +53,7 @@ Return a JSON object:
     "card_name": "string",
     "set_name": "string",
     "year": "string", 
-    "sport": "baseball|basketball|football|hockey|soccer|pokemon|magic_the_gathering|yugioh|other",
+    "sport": "baseball|basketball|football|hockey|soccer|golf|ufc|wwe|f1|pokemon|magic_the_gathering|yugioh|other",
     "variant": "string",
     "estimated_price": number,
     "price_target": number,
@@ -64,7 +64,7 @@ Return a JSON object:
     "card_name": "string",
     "set_name": "string",
     "year": "string",
-    "sport": "baseball|basketball|football|hockey|soccer|pokemon|magic_the_gathering|yugioh|other",
+    "sport": "baseball|basketball|football|hockey|soccer|golf|ufc|wwe|f1|pokemon|magic_the_gathering|yugioh|other",
     "variant": "string",
     "estimated_price": number,
     "price_target": number,
