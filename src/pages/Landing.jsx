@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, QrCode, Sparkles, Tag, Gift, Star, TrendingUp, Shield, Zap, ChevronRight, Scan } from 'lucide-react';
+import { ArrowRight, QrCode, Sparkles, Tag, Gift, Star, TrendingUp, Shield, Zap, ChevronRight, Scan, Video, History, BarChart3, CheckCircle, Users, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
 import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
 import WhatsNewBanner from '@/components/onboarding/WhatsNewBanner';
 import { useAuth } from '@/lib/AuthContext';
 
-const PERKS = [
-  { icon: Gift, title: '7-Day Free Trial', desc: 'Try Origins Pro free — no commitment.' },
-  { icon: Tag, title: 'Referral Program', desc: 'You and a friend both get 7 free days.' },
-  { icon: Sparkles, title: 'Creator Codes', desc: '50% off for 3 months for partner creators.' },
-];
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 28 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.6, delay },
+});
 
 export default function Landing() {
   const [showRedeem, setShowRedeem] = useState(false);
@@ -27,175 +28,186 @@ export default function Landing() {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
 
-      {/* ── 1. HOOK ── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
-        {/* Ambient glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 rounded-full blur-[160px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-primary/8 rounded-full blur-[180px] pointer-events-none" />
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center pt-20">
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+        <motion.div {...fadeUp(0)} className="relative z-10 max-w-4xl mx-auto pt-24">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/8 text-primary text-xs font-semibold mb-8 tracking-wide">
+            <Sparkles className="w-3.5 h-3.5" /> The Identity Layer for Trading Cards
+          </div>
 
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/8 text-primary text-xs font-semibold mb-10 tracking-wide">
-              <Sparkles className="w-3.5 h-3.5" />The identity layer for trading cards
+          <h1
+            className="font-display font-bold text-foreground leading-[0.9] tracking-tight mb-6"
+            style={{ fontSize: 'clamp(2.8rem, 9vw, 6rem)' }}
+          >
+            Every Card Has a Story.<br />
+            <span className="text-primary">Now You Can Own It.</span>
+          </h1>
+
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+            Track ownership, value, and history of your cards in one place — powered by AI and QR technology.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8">
+            <Link to="/register">
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-13 px-10 text-base font-semibold gap-2 shadow-lg shadow-primary/25">
+                Get Early Access <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button size="lg" variant="outline" className="h-13 px-8 text-base border-border/50 gap-1">
+                Go to Dashboard <ChevronRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Free forever · No credit card required ·{' '}
+            <button onClick={() => setShowRedeem(true)} className="text-primary hover:underline font-medium">Have a promo code?</button>
+          </p>
+        </motion.div>
+
+        {/* Social proof numbers */}
+        <motion.div {...fadeUp(0.3)} className="relative z-10 mt-20 grid grid-cols-3 gap-6 sm:gap-16 max-w-2xl mx-auto pb-12">
+          {[
+            { num: '10,000+', label: 'Cards Registered' },
+            { num: '$500K+', label: 'Collection Value Tracked' },
+            { num: '50,000+', label: 'QR Scans' },
+          ].map(s => (
+            <div key={s.label} className="text-center">
+              <p className="font-display text-2xl sm:text-4xl font-bold text-primary">{s.num}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">{s.label}</p>
             </div>
-
-            {/* Headline */}
-            <h1 className="font-display font-bold text-foreground leading-[0.9] tracking-tight mb-6"
-              style={{ fontSize: 'clamp(3rem, 10vw, 6.5rem)' }}>
-              Every card<br />has a story.<br />
-              <span className="text-primary">Now you can own it.</span>
-            </h1>
-
-            {/* Sub */}
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-              Origins is the permanent identity layer for trading cards — provenance, market value, and ownership history in a single scan.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
-              <Link to="/register">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-13 px-10 text-base font-semibold gap-2 shadow-lg shadow-primary/20">
-                  Register Your First Card Free <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button size="lg" variant="ghost" className="h-13 px-6 text-base text-muted-foreground hover:text-foreground gap-1">
-                  Go to Dashboard <ChevronRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Free forever · No credit card required ·{' '}
-              <button onClick={() => setShowRedeem(true)} className="text-primary hover:underline font-medium">Have a promo code?</button>
-            </p>
-          </motion.div>
-
-          {/* ── PROOF NUMBERS ── */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.7 }}
-            className="mt-20 grid grid-cols-3 gap-4 sm:gap-12 max-w-2xl mx-auto">
-            {[
-              { num: '10,000+', label: 'Cards Registered' },
-              { num: '50,000+', label: 'QR Scans Tracked' },
-              { num: '$2M+', label: 'Collection Value' },
-            ].map(s => (
-              <div key={s.label} className="text-center">
-                <p className="font-display text-2xl sm:text-4xl font-bold text-primary">{s.num}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">{s.label}</p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
+          ))}
+        </motion.div>
       </section>
 
-      {/* ── 2. PROBLEM ── */}
-      <section className="py-28 px-6 border-t border-border/30 bg-secondary/15">
+      {/* ── PROBLEM ── */}
+      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-3xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+          <motion.div {...fadeUp()}>
             <p className="text-xs font-bold tracking-widest text-primary uppercase mb-5">The Problem</p>
             <h2 className="font-display text-3xl sm:text-5xl font-bold text-foreground leading-tight mb-8">
-              Most cards lose their history<br />the moment they change hands.
+              Trading cards lose their history<br />the moment they change hands.
             </h2>
-            <div className="space-y-5 text-muted-foreground text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-12">
-              <p>You buy a card. The seller says it's been well-kept. You have no way to verify that.</p>
-              <p>You sell a card. The buyer lowballs you because they can't trust you. You take the loss.</p>
-              <p>There's no Carfax for trading cards. No ownership record. No provenance. Just a handshake and hope.</p>
-            </div>
-            <div className="inline-flex items-center gap-3 px-7 py-4 rounded-2xl bg-primary/10 border border-primary/25">
-              <Sparkles className="w-5 h-5 text-primary shrink-0" />
-              <p className="text-primary font-bold text-lg">Origins changes that. Starting with your next card.</p>
+            <p className="text-muted-foreground text-lg mb-10 leading-relaxed font-medium">
+              No proof. No story. No trust.
+            </p>
+            <div className="space-y-4 max-w-xl mx-auto text-left">
+              {[
+                "You don't know where a card came from",
+                "You don't know if it's been flipped 10 times",
+                "You don't know if you're overpaying",
+              ].map((p, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-destructive/5 border border-destructive/15">
+                  <span className="text-destructive font-bold text-lg leading-none mt-0.5">✕</span>
+                  <p className="text-foreground/80 text-sm leading-relaxed">{p}</p>
+                </div>
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ── 3. SOLUTION ── */}
+      {/* ── SOLUTION ── */}
       <section className="py-28 px-6 border-t border-border/30">
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
+          <motion.div {...fadeUp()} className="text-center mb-16">
             <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">The Solution</p>
             <h2 className="font-display text-3xl sm:text-5xl font-bold text-foreground mb-4">
               Origins gives every card<br />a permanent identity.
             </h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Set up in under 2 minutes. Then your card does the work.</p>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Set up in under 2 minutes. Then your card does the work forever.</p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              {
-                step: '01',
-                icon: QrCode,
-                title: 'Snap a photo',
-                body: 'AI identifies your card instantly — player, set, year, grade — and generates a unique QR code sticker for the back.',
-                time: '~30 seconds',
-              },
-              {
-                step: '02',
-                icon: Sparkles,
-                title: 'Build its story',
-                body: 'Record a video message. Add ownership notes. Document condition. Every detail travels with the card forever.',
-                time: '~1 minute',
-              },
-              {
-                step: '03',
-                icon: Scan,
-                title: 'Anyone can scan it',
-                body: 'Any phone scans the QR code and instantly sees the full ownership timeline, messages, and verified provenance.',
-                time: 'Instant',
-              },
+              { icon: Scan, label: 'Scan your card in seconds', desc: 'AI identifies player, set, year, and grade from a photo.' },
+              { icon: QrCode, label: 'Generate a unique QR code', desc: 'A permanent sticker that travels with your card forever.' },
+              { icon: Video, label: 'Attach videos & ownership history', desc: 'Record a message. Every owner adds to the story.' },
+              { icon: TrendingUp, label: 'Track real-time value', desc: 'Live eBay comps and AI-powered market signals.' },
             ].map((item, i) => (
-              <motion.div key={item.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}
-                className="group p-7 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
-                <div className="absolute top-4 right-5 font-display text-6xl font-bold text-foreground/5 select-none leading-none">{item.step}</div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-5">
-                  <item.icon className="w-6 h-6 text-primary" />
+              <motion.div key={item.label} {...fadeUp(i * 0.1)}
+                className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 flex flex-col gap-4">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-primary" />
                 </div>
-                <div className="inline-block text-[10px] font-bold text-primary bg-primary/10 border border-primary/15 rounded-full px-2 py-0.5 mb-3">{item.time}</div>
-                <h3 className="text-base font-bold text-foreground mb-2">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground mb-1.5 leading-snug">{item.label}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── VIRAL LOOP — QR SCANNING ── */}
+      {/* ── VALUE / MONEY ── */}
       <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="text-center mb-16">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">The Money Angle</p>
+            <h2 className="font-display text-3xl sm:text-5xl font-bold text-foreground mb-4">
+              Never overpay for a card again.
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-lg mx-auto">Real data. Real prices. Right when you need it.</p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-3 gap-6">
+            {[
+              { icon: BarChart3, title: 'Live eBay Sold Prices', body: 'See what cards actually sold for — not what sellers are asking. Real comps, updated in real time.' },
+              { icon: Sparkles, title: 'AI-Powered Fair Market Value', body: 'Our AI cross-references population reports, recent sales, and grade to tell you what a card is truly worth.' },
+              { icon: TrendingUp, title: 'Track Price Trends Instantly', body: 'Set alerts. Watch movement. Know exactly when to buy, hold, or sell.' },
+            ].map((item, i) => (
+              <motion.div key={item.title} {...fadeUp(i * 0.1)}
+                className="p-7 rounded-2xl bg-primary/5 border border-primary/15 flex flex-col gap-4">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.body}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── DIFFERENTIATOR ── */}
+      <section className="py-28 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
           <div className="grid sm:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Viral by Design</p>
+            <motion.div {...fadeUp()}>
+              <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Your Secret Weapon</p>
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5 leading-tight">
-                Scan any card.<br />See its entire life.
+                This isn't just collecting...<br />
+                <span className="text-primary">it's ownership.</span>
               </h2>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                Every Origins QR sticker is a gateway. A collector buys your card at a show, scans it, and discovers the full chain of ownership — including your video message. They register it. The story grows.
-              </p>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Every card becomes a node in a network. Every scan is a new connection. <span className="text-foreground font-semibold">The card itself does your marketing.</span>
+                When a card has a verified story, it becomes more than cardboard. It becomes a digital asset with documented provenance — and that makes it worth more.
               </p>
               <Link to="/register">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-                  Start the chain <ArrowRight className="w-4 h-4" />
+                  Claim Your Cards <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-4">
+            <motion.div {...fadeUp(0.15)} className="space-y-4">
               {[
-                { icon: '📸', label: 'Owner #1 registers card', sub: 'QR sticker added. Story begins.' },
-                { icon: '🤝', label: 'Card is sold at a show', sub: 'New owner scans the QR. Sees the full history.' },
-                { icon: '📹', label: 'New owner adds their story', sub: 'Records a message. Updates the timeline.' },
-                { icon: '🔄', label: 'Repeat — forever', sub: "The card's identity grows with every hand it passes through." },
+                { icon: CheckCircle, label: 'Every card becomes a digital asset', sub: 'Verified identity, documented value, permanent record.' },
+                { icon: History, label: 'Ownership history travels with the card', sub: 'Every hand it passes through is logged forever.' },
+                { icon: Video, label: 'Stories stay attached forever', sub: 'Owner messages, videos, and notes — all preserved on the QR.' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-card border border-border/50">
-                  <span className="text-2xl">{item.icon}</span>
+                  <item.icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.sub}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.sub}</p>
                   </div>
                 </div>
               ))}
@@ -204,52 +216,31 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── MONEY ANGLE ── */}
-      <section className="py-28 px-6 border-t border-border/30">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">The Money Angle</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">Collectors who use Origins make better deals.</h2>
-            <p className="text-muted-foreground max-w-lg mx-auto text-lg">Because they know what cards are actually worth.</p>
+      {/* ── VIRAL LOOP ── */}
+      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="text-center mb-16">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Viral by Design</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Scan any card. Discover its story.
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-lg mx-auto">Every QR sticker is a gateway into the Origins network.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-3 gap-5">
             {[
-              {
-                icon: TrendingUp,
-                headline: 'Never overpay at a card show again.',
-                body: 'Log trades with AI-verified comps from live eBay data. Know the real market price before you shake hands.',
-                tag: 'Card Show Tools',
-                pro: false,
-              },
-              {
-                icon: Zap,
-                headline: 'Find underpriced cards before anyone else.',
-                body: 'Trending Top 100 surfaces the hottest cards right now. Pro Flipper finds PSA/BGS/SGC candidates with 80–95% odds of a 10.',
-                tag: 'Pro Flipper + Trending',
-                pro: true,
-              },
-              {
-                icon: Shield,
-                headline: 'Set a target. Get paid when the market hits it.',
-                body: "Price Alerts notify you the moment a card you're watching hits your buy-below or sell-above threshold.",
-                tag: 'Price Alerts',
-                pro: true,
-              },
-            ].map((o, i) => (
-              <motion.div key={o.tag} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className={`p-6 rounded-2xl border flex flex-col gap-4 ${o.pro ? 'bg-amber-400/5 border-amber-400/20' : 'bg-card border-border/50'}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${o.pro ? 'bg-amber-400/10 border border-amber-400/20' : 'bg-primary/10 border border-primary/20'}`}>
-                    <o.icon className={`w-5 h-5 ${o.pro ? 'text-amber-400' : 'text-primary'}`} />
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${o.pro ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
-                    {o.tag}{o.pro ? ' · PRO' : ''}
-                  </span>
+              { icon: Users, title: 'Follow cards across owners', body: 'Watch a card move through the hobby. See every collector who touched it.' },
+              { icon: Eye, title: 'See scan activity', body: 'Real-time scan counts show how much attention your card is getting at shows and online.' },
+              { icon: Star, title: 'Build reputation as a collector', body: 'Your verified trade history and collection become your calling card in the hobby.' },
+            ].map((item, i) => (
+              <motion.div key={item.title} {...fadeUp(i * 0.1)}
+                className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 flex flex-col gap-4">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground mb-2 leading-snug">{o.headline}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{o.body}</p>
+                  <h3 className="text-sm font-bold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.body}</p>
                 </div>
               </motion.div>
             ))}
@@ -257,10 +248,10 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
-      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+      {/* ── SOCIAL PROOF ── */}
+      <section className="py-28 px-6 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-14">
+          <motion.div {...fadeUp()} className="text-center mb-14">
             <p className="text-xs font-bold tracking-widest text-primary uppercase mb-3">Real Collectors</p>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">Results that speak for themselves.</h2>
           </motion.div>
@@ -270,7 +261,7 @@ export default function Landing() {
               { quote: "The Pro Flipper found me 3 PSA 9s with 90%+ odds of grading a 10. Two came back 10s. That's literally free money.", name: "Dani R.", tag: "Card Flipper" },
               { quote: "I won't buy a high-value card without an Origins scan anymore. The ownership history is everything when you're spending $500+.", name: "Chris L.", tag: "Vintage Collector" },
             ].map((t, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              <motion.div key={i} {...fadeUp(i * 0.1)}
                 className="p-6 rounded-2xl bg-card border border-border/50 flex flex-col gap-4">
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, s) => <Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
@@ -287,28 +278,28 @@ export default function Landing() {
       </section>
 
       {/* ── PRICING ── */}
-      <section className="py-28 px-6 border-t border-border/30">
-        <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-14">
+      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+        <div className="max-w-3xl mx-auto">
+          <motion.div {...fadeUp()} className="text-center mb-14">
             <p className="text-xs font-bold tracking-widest text-primary uppercase mb-3">Pricing</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">Start free. Upgrade when you're ready.</h2>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">Start free. Upgrade when ready.</h2>
             <p className="text-muted-foreground text-lg">Origins Pro pays for itself the first time you avoid a bad deal.</p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
+          <div className="grid sm:grid-cols-2 gap-5">
             {[
               {
-                name: 'Free', price: '$0', color: 'text-muted-foreground', highlight: false,
-                features: ['Register cards & generate QR codes', 'AI card identification from photo', 'Full ownership history & timeline', 'Up to 5 story messages/videos per day', 'BOLO stolen card alerts', 'Leaderboard & analytics'],
+                name: 'Free', price: '$0', highlight: false,
+                features: ['Register cards & QR codes', 'AI card identification', 'Full ownership history', 'Up to 5 story messages/day', 'BOLO stolen card alerts', 'Leaderboard & analytics'],
                 cta: 'Get Started Free', ctaLink: '/register',
               },
               {
-                name: 'Origins Pro Bundle', price: '$14.99', sub: '/mo', color: 'text-amber-400', highlight: true, badge: 'Most Popular',
-                features: ['Everything in Free', 'Live Market Value — eBay + 130point', 'Card Show Trades with AI comp verification', 'Trending Top 100 hottest cards', 'Pro Card Flipper — find your next 10', 'Price Alerts — set targets, get notified', 'AI Card Grading predictions', 'Bulk Deal Calculator'],
+                name: 'Origins Pro Bundle', price: '$14.99', sub: '/mo', highlight: true, badge: 'Most Popular',
+                features: ['Everything in Free', 'Live Market Value (eBay + AI)', 'Card Show Trade Comps', 'Trending Top 100', 'Pro Card Flipper', 'Price Alerts', 'AI Card Grading', 'Bulk Deal Calculator'],
                 cta: 'Start 7-Day Free Trial', ctaLink: '/pricing',
               },
             ].map((plan, i) => (
-              <motion.div key={plan.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              <motion.div key={plan.name} {...fadeUp(i * 0.1)}
                 className={`relative rounded-2xl border p-7 flex flex-col ${plan.highlight ? 'border-amber-400/40 bg-amber-400/5' : 'border-border/50 bg-card'}`}>
                 {plan.badge && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold px-3 py-1 rounded-full bg-amber-400/20 text-amber-400 border border-amber-400/30 whitespace-nowrap">
@@ -316,7 +307,7 @@ export default function Landing() {
                   </span>
                 )}
                 <div className="mb-5">
-                  <h3 className={`font-bold text-sm ${plan.color} mb-1`}>{plan.name}</h3>
+                  <h3 className={`font-bold text-sm mb-1 ${plan.highlight ? 'text-amber-400' : 'text-muted-foreground'}`}>{plan.name}</h3>
                   <div className="flex items-end gap-0.5">
                     <span className="text-3xl font-display font-bold text-foreground">{plan.price}</span>
                     {plan.sub && <span className="text-xs text-muted-foreground mb-1">{plan.sub}</span>}
@@ -325,7 +316,7 @@ export default function Landing() {
                 <ul className="space-y-2.5 flex-1 mb-7">
                   {plan.features.map(f => (
                     <li key={f} className="flex items-start gap-2 text-xs text-muted-foreground">
-                      <Zap className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${plan.highlight ? 'text-amber-400' : 'text-primary'}`} />{f}
+                      <CheckCircle className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${plan.highlight ? 'text-amber-400' : 'text-primary'}`} />{f}
                     </li>
                   ))}
                 </ul>
@@ -339,8 +330,12 @@ export default function Landing() {
             ))}
           </div>
 
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-8 grid sm:grid-cols-3 gap-4">
-            {PERKS.map(p => (
+          <motion.div {...fadeUp(0.1)} className="mt-6 grid sm:grid-cols-3 gap-4">
+            {[
+              { icon: Gift, title: '7-Day Free Trial', desc: 'Try Origins Pro free — no commitment.' },
+              { icon: Tag, title: 'Referral Program', desc: 'You and a friend both get 7 free days.' },
+              { icon: Sparkles, title: 'Creator Codes', desc: '50% off for 3 months for partner creators.' },
+            ].map(p => (
               <div key={p.title} className="flex gap-3 p-4 rounded-xl bg-card border border-border/50">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
                   <p.icon className="w-4 h-4 text-primary" />
@@ -358,20 +353,21 @@ export default function Landing() {
       {/* ── FINAL CTA ── */}
       <section className="py-24 px-6 border-t border-border/30">
         <div className="max-w-3xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="p-12 rounded-3xl bg-gradient-to-b from-card to-secondary/50 border border-border/50 relative overflow-hidden">
+          <motion.div {...fadeUp()}
+            className="p-14 rounded-3xl bg-gradient-to-b from-card to-secondary/50 border border-border/50 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
             <div className="relative">
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-4 leading-tight">
-                Your cards deserve<br />more than a box.
+              <h2 className="font-display text-3xl sm:text-5xl font-bold text-foreground mb-5 leading-tight">
+                Start building your<br />
+                <span className="text-primary">card's legacy today.</span>
               </h2>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto text-base">
+              <p className="text-muted-foreground mb-10 max-w-md mx-auto text-base leading-relaxed">
                 The collectors who use Origins don't just collect cards — they own verified assets with permanent identity. Join them.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/register">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 shadow-lg shadow-primary/20">
-                    Register Your First Card Free <ArrowRight className="w-4 h-4 ml-2" />
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-10 text-base font-semibold shadow-lg shadow-primary/25 gap-2">
+                    Download Origins <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
                 <Button size="lg" variant="outline" onClick={() => setShowRedeem(true)} className="h-12 px-8 border-border/50">
