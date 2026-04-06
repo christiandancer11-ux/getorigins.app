@@ -15,7 +15,8 @@ Consider for ALL cards:
 - Recent player performance, awards, trades, injuries
 - Pop report data and market saturation
 - Upcoming catalysts (playoffs, draft, Hall of Fame announcements)
-- Current eBay sold data trends
+- Current eBay sold data trends and 130point.com confirmed sales
+- TCGPlayer.com Market Price (verified weighted-average sales) for any TCG card — this is required when a TCG card is selected
 - Collector sentiment and social media buzz
 
 For TCG cards (Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana, etc.) ALSO consider:
@@ -31,6 +32,7 @@ Rules:
 - Picks can be any sport or TCG: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh
 - Each pick should be a SPECIFIC card (include set, year, variant/grade)
 - The reasoning must be data-driven and timely — reference actual market context AND tournament/meta context for TCG picks
+- For TCG picks: estimated_price MUST be based on TCGPlayer Market Price (NM condition) as the primary benchmark, cross-referenced with eBay confirmed sales
 - Estimated prices should reflect real current market values
 - Price targets are 30-90 day projections
 

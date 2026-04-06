@@ -34,6 +34,7 @@ Base your analysis on:
 - Rarity and population scarcity
 - Market timing (off-season vs in-season, post-award hype, etc.)
 - Whether the card is graded and what grade
+- For TCG cards (Pokémon, MTG, Yu-Gi-Oh!, One Piece, etc.): check TCGPlayer.com Market Price (the weighted average of verified dealer sales) as the authoritative price benchmark. Also factor in current tournament format legality, recent ban list updates, and whether the card sees competitive play — these directly impact TCG card value.
 
 Cards:
 ${cardSummaries}
@@ -44,7 +45,7 @@ Return a JSON object with this exact structure:
     {
       "index": 0,
       "signal": "buy" | "hold" | "sell",
-      "reason": "One sentence explaining why"
+      "reason": "One sentence explaining why — for TCG cards mention TCGPlayer Market Price and competitive meta relevance"
     }
   ]
 }

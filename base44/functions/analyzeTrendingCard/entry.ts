@@ -38,7 +38,8 @@ This appears to be a TCG card. Include in your analysis:
 - Upcoming set impact: Does a new set release affect this card's playability or reprint risk?
 - Competitive vs. collectible value: Is demand driven by players who need it to play or by collectors chasing art/rarity?
 - Ban list risk: Is this card likely to be banned or limited in the next list update?
-Sources to consider: Limitless TCG, MTGGoldfish, YGOProdeck, r/PokemonTCG, r/magicTCG, r/yugioh, One Piece Card official.` : '';
+- TCGPlayer.com Market Data (REQUIRED): Check TCGPlayer.com for this card's current Market Price (weighted average of verified sales), Low Price from verified dealers, and any notable recent sales. Compare TCGPlayer Market Price to eBay comps — if they diverge significantly, explain why. Note the NM (Near Mint) TCGPlayer price as the baseline and mention if condition-graded copies command a premium.
+Sources to consider: Limitless TCG, MTGGoldfish, YGOProdeck, r/PokemonTCG, r/magicTCG, r/yugioh, One Piece Card official, TCGPlayer.com.` : '';
 
     const prompt = `You are a sports card and trading card market expert with deep knowledge of competitive TCG play. Give a detailed analysis of why this card is currently trending based on: ${viewContext}.
 
@@ -58,7 +59,7 @@ ${tcgExtra}
 Provide a thorough, expert-level breakdown covering:
 1. Why this card is so popular right now (be specific — mention real-world events, player performance, tournament results, ban list changes, pop reports, etc.)
 2. What market forces are driving this (competitive players, investors, collectors, hype, scarcity?)
-3. Recent sales context (what kinds of prices have been seen, what grades or conditions are commanding premiums?)
+3. Recent sales context (what kinds of prices have been seen, what grades or conditions are commanding premiums? For TCG cards, explicitly cite the TCGPlayer Market Price and any notable verified dealer sales.)
 4. Collector/player sentiment (is this a buy, hold, or sell right now in the community's view?)
 5. Short-term outlook (next 1-4 weeks — is this momentum sustainable? Any upcoming events or releases that could move this?)
 

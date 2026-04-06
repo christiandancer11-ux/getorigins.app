@@ -95,7 +95,7 @@ For this TCG category, you MUST factor in the following when determining card ra
 2. RECENT MAJOR TOURNAMENT RESULTS (last 30 days)
    - What decks/archetypes placed 1st–8th at recent Regional Championships, Majors, or Pro Tour/Grand Prix/YCS events?
    - Which specific cards are in winning decks right now? Those cards command premiums.
-   - Source from: Limitless TCG (Pokemon), MTG Goldfish/EDHREC (MTG), YGOProdeck/Yugipedia (Yu-Gi-Oh!), One Piece Card Game official site.
+   - Source from: Limitless TCG (Pokemon), MTG Goldfish/EDHREC (MTG), YGOProdeck/Yugipedia (Yu-Gi-Oh!), One Piece Card Game official site, TCGPlayer.com sales history.
 
 3. PRO FORUM & COMMUNITY BUZZ
    - What are players discussing on r/PokemonTCG, r/magicTCG, r/yugioh, r/OnePieceTCG, Limitless TCG forums, MTG Salvation, DuelingBook?
@@ -111,6 +111,12 @@ For this TCG category, you MUST factor in the following when determining card ra
    - Tournament-staple cards in competitive decks are worth MORE even at common/uncommon rarity.
    - Cards that are only collectible (high art, alt art, full art) but not competitively played may have different value drivers.
    - Grade/condition matters differently for TCG: PSA 10 holo/alt-art cards of competitive staples command extreme premiums.
+
+   5. TCGPLAYER VERIFIED SALES DATA (REQUIRED for all TCG cards)
+   - For every TCG card, look up TCGPlayer.com to get: Market Price (weighted avg of verified dealer sales), Low Price (lowest current verified listing), and recent sales history.
+   - Use TCGPlayer Market Price as the PRIMARY price benchmark for estimated_value_avg for TCG cards — it reflects actual verified transactions, not just asking prices.
+   - If TCGPlayer Market Price differs significantly from eBay comps, factor both in and use the median of the two as estimated_value_avg.
+   - NM (Near Mint) is the baseline condition on TCGPlayer. Note if foil, alt-art, or first-edition versions carry a significant premium.
 ` : '';
 
     const buildPrompt = (startRank, endRank) =>
@@ -125,11 +131,11 @@ When sourcing eBay, TCGPlayer, CardMarket, or external market prices for estimat
 2. OUTLIER FILTERING: If a single sale is more than 100% above the established market average for that card:
    - Exclude it from value calculations UNLESS there are 2+ confirmed sales within 20-30% of each other AND all occurred more than 12 hours ago (before ${trendingCutoffISO})
    - A lone outlier sale within the last 12 hours must be excluded — it may be a manipulation attempt
-   - Use 130point.com or TCGPlayer market price as cross-reference to validate values
+   - Use 130point.com or TCGPlayer.com Market Price as cross-reference to validate values. TCGPlayer Market Price = weighted average of ACTUAL verified sales — treat it as the authoritative benchmark for all TCG cards.
 3. BASE VALUES ON THE MEDIAN of qualifying confirmed sales, not on single high outliers.
 4. For TCG cards: factor in whether the card is currently tournament-legal and seeing competitive play — this directly impacts demand.
 
-Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence explaining why it ranks here — for TCG cards mention if it's a tournament staple or meta-relevant), trend (up/down/stable).`;
+Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number — use TCGPlayer Market Price as primary source for TCG cards), heat_score (1-100), why_hot (one sentence explaining why it ranks here — for TCG cards mention tournament staple status, meta relevance, and TCGPlayer Market Price), trend (up/down/stable).`;
 
     // Batch by 10 to avoid LLM JSON truncation with internet search
     const BATCH_SIZE = 10;
