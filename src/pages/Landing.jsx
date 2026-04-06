@@ -14,6 +14,9 @@ import SetProgressViz from '@/components/landing/SetProgressViz';
 import PortfolioTrends from '@/components/landing/PortfolioTrends';
 import SupportedGames from '@/components/landing/SupportedGames';
 import StickyHeader from '@/components/landing/StickyHeader';
+import GradingSupport from '@/components/landing/GradingSupport';
+import DataTransparency from '@/components/landing/DataTransparency';
+import CommunityProof from '@/components/landing/CommunityProof';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -182,9 +185,9 @@ export default function Landing() {
           <div className="space-y-6">
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { icon: BarChart3, title: 'Live eBay Sold Prices', body: 'See what cards actually sold for — not what sellers are asking. Real comps, updated in real time.' },
-                { icon: Sparkles, title: 'AI-Powered Fair Market Value', body: 'Our AI cross-references population reports, recent sales, and grade to tell you what a card is truly worth.' },
-                { icon: TrendingUp, title: 'Track Price Trends Instantly', body: 'Set alerts. Watch movement. Know exactly when to buy, hold, or sell.' },
+                { icon: BarChart3, title: 'Professional Market Comps', body: 'Real-time eBay Sold, TCGPlayer, Heritage Auctions, and verified dealer pricing. Updated every 15 minutes.' },
+                { icon: Sparkles, title: 'Portfolio ROI Tracking', body: 'Watch your collection value grow. Track gains/losses by grade, set, and sport. See your best movers instantly.' },
+                { icon: TrendingUp, title: 'Investor-Grade Alerts', body: 'Set price targets. Get notified when underpriced deals hit the market. Never miss a flip opportunity.' },
               ].map((item, i) => (
                 <motion.div key={item.title} {...fadeUp(i * 0.1)}
                   className="p-7 rounded-2xl bg-primary/5 border border-primary/15 flex flex-col gap-4">
@@ -199,7 +202,7 @@ export default function Landing() {
               ))}
             </div>
 
-            <DataSourcesBadge />
+            <DataTransparency />
           </div>
         </div>
       </section>
@@ -208,12 +211,29 @@ export default function Landing() {
       <section className="py-28 px-6 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
           <motion.div {...fadeUp()} className="mb-12">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">No Friction Switch</p>
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Graded & Raw Support</p>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5">
-              Already using another app?
+              Whether it's raw or slabbed,<br />
+              <span className="text-primary">Origins knows your card.</span>
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
-              If you've invested time in TCGPlayer, Dex, PriceCharting, or a spreadsheet, we make the move painless.
+              Instant PSA/BGS cert lookups. Automatic population reports. Grade-specific pricing (PSA 10 vs Raw vs BGS 9.5).
+            </p>
+            <GradingSupport />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── IMPORT / MIGRATION ── */}
+      <section className="py-28 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="mb-12">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Zero Switching Cost</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5">
+              Your 5,000 cards don't need to be re-scanned.
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              Import your entire collection from PriceGuide, Ludex, TCGPlayer, or a spreadsheet in minutes. No manual re-entry.
             </p>
             <ImportCTA />
           </motion.div>
@@ -340,34 +360,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── SOCIAL PROOF ── */}
-      <section className="py-28 px-6 border-t border-border/30">
-        <div className="max-w-4xl mx-auto">
-          <motion.div {...fadeUp()} className="text-center mb-14">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-3">Real Collectors</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground">Results that speak for themselves.</h2>
-          </motion.div>
-          <div className="grid sm:grid-cols-3 gap-5">
-            {[
-              { quote: "Used the Card Show tool and caught a dealer charging 40% over market on a Ja Morant rookie. Saved me $85 on the spot.", name: "Marcus T.", tag: "Basketball Collector" },
-              { quote: "The Pro Flipper found me 3 PSA 9s with 90%+ odds of grading a 10. Two came back 10s. That's literally free money.", name: "Dani R.", tag: "Card Flipper" },
-              { quote: "I won't buy a high-value card without an Origins scan anymore. The ownership history is everything when you're spending $500+.", name: "Chris L.", tag: "Vintage Collector" },
-            ].map((t, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.1)}
-                className="p-6 rounded-2xl bg-card border border-border/50 flex flex-col gap-4">
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, s) => <Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
-                </div>
-                <p className="text-sm text-foreground/90 leading-relaxed flex-1">"{t.quote}"</p>
-                <div>
-                  <p className="text-xs font-semibold text-foreground">{t.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.tag}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CommunityProof />
 
       {/* ── PRICING ── */}
       <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
