@@ -40,8 +40,8 @@ Deno.serve(async (req) => {
     const condLabel = condition && condition !== 'raw' ? condition.toUpperCase().replace(/_/g, ' ') : '';
     const query = [year, card_name, set_name, card_number, condLabel].filter(Boolean).join(' ').trim();
 
-    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh'].includes(sport) ||
-      /pokemon|magic|yugioh|yu-gi-oh|mtg|tcg|lorcana|one piece|digimon/i.test(query);
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece', 'lorcana', 'digimon'].includes(sport) ||
+      /pokemon|charizard|pikachu|eevee|mewtwo|magic|yugioh|yu-gi-oh|mtg|blue-eyes|dark magician|lorcana|one piece|digimon|flesh and blood|dragon ball super|naruto|weiss|cardfight|vanguard/i.test(query);
 
     const now = new Date();
     const cutoffISO = new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString();
@@ -91,16 +91,17 @@ Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 2
    - Return the PSA SMR value for that grade as psa_value.
    - Also return psa_grade_used (e.g. "PSA 9", "PSA 10") so the user knows which grade was used.
 
-${isTCG ? `7. TCGPLAYER VERIFIED DEALER PRICES (TCG cards only):
-   - Search TCGPlayer.com (tcgplayer.com) for this card.
-   - TCGPlayer shows listings from verified dealers and stores — these are NOT auctions, they are fixed-price sales from certified sellers.
-   - Find the current Market Price (the weighted average of recent sales on TCGPlayer) and the lowest verified dealer listing price.
-   - Return tcgplayer_market_price: the TCGPlayer market price (number or null).
-   - Return tcgplayer_low: the lowest current verified dealer listing price (number or null).
-   - Return tcgplayer_high: the highest recent verified dealer sale price (number or null).
-   - Return tcgplayer_recent_sales: up to 4 recent sales/listings from TCGPlayer verified dealers: { date: string, price: number, condition: string, title: string, source: "tcgplayer" }.
-   - IMPORTANT: TCGPlayer prices are for the UNGRADED (near mint) version by default unless the query specifies a grade. Adjust accordingly.
-   - If TCGPlayer has no data for this card (e.g. it's a sports card not sold on TCGPlayer), return null for all tcgplayer fields.` : ''}
+${isTCG ? `7. TCGPLAYER VERIFIED SALES & MARKET PRICE (TCG cards only — REQUIRED, not optional):
+   - Go to TCGPlayer.com (tcgplayer.com) and search for this exact card.
+   - TCGPlayer "Market Price" = the weighted average of ACTUAL completed sales by verified sellers over the last 30 days. This is the most reliable TCG price. You MUST return this.
+   - TCGPlayer "Low Price" = the lowest current buylist/listing price from a verified seller. Return this as tcgplayer_low.
+   - TCGPlayer "High" = the highest recent verified sale price. Return as tcgplayer_high.
+   - For tcgplayer_recent_sales: find up to 5 ACTUAL sold transactions (not just current listings) from TCGPlayer's sales history for this card. Each entry: { date: "Mon DD YYYY", price: number, condition: string (e.g. "Near Mint", "Lightly Played"), title: string (full card name + set), source: "tcgplayer" }.
+   - Condition tiers on TCGPlayer: Near Mint (NM), Lightly Played (LP), Moderately Played (MP), Heavily Played (HP), Damaged (DMG). Return the specific condition for each sale.
+   - IMPORTANT: By default return NM (Near Mint) prices unless the query specifies a different condition or a PSA/BGS grade.
+   - Cross-reference with CardMarket (cardmarket.com) if TCGPlayer data is thin — note the source.
+   - If this card genuinely does not exist on TCGPlayer (rare cases), set all tcgplayer fields to null and explain in market_summary.
+   - DO NOT return null just because you are uncertain — make a best-effort search on TCGPlayer and return what you find.` : ''}
 
 Return a JSON object with:
 - ebay_low: lowest recent eBay CONFIRMED sold price USD (number or null)
@@ -119,7 +120,7 @@ Return a JSON object with:
 - tcgplayer_recent_sales: array of up to 4 recent TCGPlayer verified dealer sales: { date: "Mon DD YYYY", price: number, condition: string, title: string, source: "tcgplayer" }
 - psa_value: PSA Price Guide / SMR value — ONLY include this if the search query explicitly mentions "PSA" as the grading company (e.g. "PSA 10", "PSA 9"). If the card is raw, ungraded, or graded by BGS/SGC/CGC/HGA/CSG or any other company that is NOT PSA, set psa_value to null and psa_grade_used to null. IMPORTANT: psa_value is a SEPARATE reference figure and must NOT be included in or influence ebay_avg, point130_avg, or any other average calculation.
 - psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9") — only set if psa_value is non-null
-- market_summary: 3-4 sentence plain English summary. Focus on eBay and 130point data. ${isTCG ? 'Include TCGPlayer market price as a reference for TCG cards.' : ''} If psa_value is present, mention it as a separate reference figure at the end. Include any offer-accepted replacements made and any outliers excluded.
+- market_summary: 3-4 sentence plain English summary. Focus on eBay and 130point data. ${isTCG ? 'REQUIRED for TCG cards: explicitly state the TCGPlayer Market Price and whether it aligns with or differs from eBay comps. Mention the NM condition TCGPlayer price and any notable condition-based price differences.' : ''} If psa_value is present, mention it as a separate reference figure at the end. Include any offer-accepted replacements made and any outliers excluded.
 - search_query_used: exact search query used
 
 Use real data only. If a source has no qualifying data, return null for its fields and empty array for sales.`;
