@@ -9,17 +9,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { imageUrls, cardIndex } = await req.json();
+    const { imageUrls, cardIndex, correctionHint } = await req.json();
 
     if (!imageUrls || imageUrls.length === 0) {
       return Response.json({ error: 'No images provided' }, { status: 400 });
     }
 
+    const correctionContext = correctionHint
+      ? `\n\n=== USER CORRECTION ===\nThe user says the previous AI identification was wrong. Their correction: "${correctionHint}"\nUse this hint to correctly identify the card and re-value it accordingly.\n`
+      : '';
+
     const today = new Date();
     const threeMonthsAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const sixMonthsAgo = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    const prompt = `You are an expert sports card and trading card market analyst. You have internet access to look up ACTUAL recent sold prices.
+    const prompt = `You are an expert sports card and trading card market analyst. You have internet access to look up ACTUAL recent sold prices.${correctionContext}
 
 You are being shown ${imageUrls.length === 2 ? 'the FRONT and BACK of a single trading card' : 'the front of a trading card'}.
 
