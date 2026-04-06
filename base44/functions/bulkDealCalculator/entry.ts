@@ -160,10 +160,11 @@ ${isGraded
 
 Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings, 130point.com confirmed sales, PSA Price Guide / SMR${isTCG ? ', and TCGPlayer.com verified market prices' : ''}.
 
-=== TIME WINDOW — FOLLOW IN ORDER ===
-1. PRIMARY: eBay confirmed sold + 130point.com sales from the last 90 days (since ${threeMonthsAgo}).
-2. FALLBACK: If fewer than 3 qualifying sales exist in 90 days, expand to 180 days (since ${sixMonthsAgo}) and note the older dates.
-3. If you had to use sales older than 90 days, note those in the notes field with their actual dates.
+=== TIME WINDOW & COMP SELECTION ===
+1. PRIMARY: Find the 10 MOST RECENT confirmed sold listings from eBay + 130point.com combined (within last 90 days if possible, since ${threeMonthsAgo}).
+2. If fewer than 10 sales exist in 90 days, expand to 180 days (since ${sixMonthsAgo}).
+3. Use these 10 most recent comps to calculate the average_sold_price (the primary estimated_value basis).
+4. Note the date range in the notes field.
 
 === DATA QUALITY RULES ===
 
@@ -189,9 +190,11 @@ Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings, 130poi
 4. OUTLIER FILTERING:
    - Exclude any sale more than 100% above the established average unless supported by 2+ other sales in the same range.
 
-5. AVERAGE CALCULATION:
-   - Calculate average_sold_price as the mean of ALL qualifying confirmed sales from both eBay and 130point.com combined (after deduplication and outlier removal).
-   - This single combined average is the primary basis for estimated_value.
+5. AVERAGE CALCULATION (REQUIRED):
+    - Find the 10 MOST RECENT confirmed sold listings from eBay + 130point.com combined.
+    - Calculate average_sold_price as the mean of these 10 most recent comps (after deduplication).
+    - This 10-comp average is the primary basis for estimated_value.
+    - Return all 10 comps in ebay_recent_sales and point130_recent_sales combined.
 
 ${isTCG ? `6. TCGPLAYER (REQUIRED for TCG cards):
    - Look up TCGPlayer.com Market Price for this exact card (NM condition unless query specifies otherwise).
@@ -218,11 +221,11 @@ Return this JSON:
   "tcgplayer_low": number or null,
   "tcgplayer_high": number or null,
   "tcgplayer_recent_sales": [ { "date": "Mon DD YYYY", "price": number, "condition": "string", "title": "string", "source": "tcgplayer" } ],
-  "average_sold_price": number or null,
-  "estimated_value": number,
-  "value_range_low": number,
-  "value_range_high": number,
-  "sales_count_90_days": number or null,
+  "average_sold_price": number (calculated from the 10 most recent comps — this is your primary estimated_value),
+  "estimated_value": number (use average_sold_price from the 10 most recent comps as the basis),
+  "value_range_low": number (10th percentile or low comp from the 10),
+  "value_range_high": number (90th percentile or high comp from the 10),
+  "sales_count_comps_used": number (should be 10 or fewer if fewer exist),
   "confidence": "high|medium|low",
   "notes": "2-3 sentences: what comps were found, date range used, any older sales listed with dates. ${isGraded ? `Specify that ONLY ${identification.grading_company.toUpperCase()} ${identification.grade} comps were used.` : `Explicitly state that ONLY raw/ungraded comps were used — no graded sales were included.`}"
 }`;
