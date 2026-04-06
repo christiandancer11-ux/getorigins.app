@@ -189,6 +189,16 @@ ${isGraded ? `Graded: ${identification.grading_company} ${identification.grade}$
 Notable attributes: ${(identification.visible_attributes || []).join(', ') || 'None noted'}
 ${internalTradeContext}
 
+=== SEARCH QUERY FORMAT (SPORTS CARDS) ===
+When searching eBay and 130point.com for sports cards, always format your search query as:
+  [Year] [Manufacturer/Brand] [Product Name] [Player Name] [Card Type: RPA/Auto/Patch Auto/Base/Variation] [Serial Number e.g. /25 or SP or variation]
+Example: "2022 Panini National Treasures Treylon Burks RPA /25"
+- Card Type: RPA (rookie patch auto), Auto, Patch Auto, Base (no shine/color/numbering), or specific variation name
+- Always include the serial number or print run if known (e.g. /25, /99, /10, /1)
+- If it's a short print (SP) or super short print (SSP), include that
+- Do NOT include condition/grade in the search query — filter by condition separately after pulling results
+- For graded cards, search raw first using the format above, then filter results to only graded copies at the matching grade
+
 Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR${isTCG ? ', and TCGPlayer.com verified market prices' : ''}.
 
 === STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===

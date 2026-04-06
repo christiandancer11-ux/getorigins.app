@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     if (year && (year.length > 4 || !/^\d{4}$/.test(year))) return Response.json({ error: 'Invalid year.' }, { status: 400 });
 
     const condLabel = condition && condition !== 'raw' ? condition.toUpperCase().replace(/_/g, ' ') : '';
-    const query = [year, card_name, set_name, card_number, condLabel].filter(Boolean).join(' ').trim();
+    const query = [year, set_name, card_name, card_number, condLabel].filter(Boolean).join(' ').trim();
 
     // Pull Origins card show trades for this card name
     let internalTrades = [];
@@ -70,6 +70,15 @@ Deno.serve(async (req) => {
 
 Card: ${query}
 ${internalTradeContext}
+
+=== SEARCH QUERY FORMAT (SPORTS CARDS) ===
+When searching eBay and 130point.com for sports cards, always format your search query as:
+  [Year] [Manufacturer/Brand] [Product Name] [Player Name] [Card Type: RPA/Auto/Patch Auto/Base/Variation] [Serial Number e.g. /25 or SP or variation]
+Example: "2022 Panini National Treasures Treylon Burks RPA /25"
+- Card Type should be one of: RPA (rookie patch auto), Auto, Patch Auto, Base (no shine/color/numbering), or the specific variation name
+- Always include the serial number or print run if known (e.g. /25, /99, /10, /1)
+- If it's a short print (SP) or super short print (SSP), include that
+- Do NOT include condition (raw/graded) in the search query — filter by condition separately after pulling results
 
 Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR (Sports Market Report)${isTCG ? ', and TCGPlayer.com verified dealer listed/sold market prices' : ''}.
 
