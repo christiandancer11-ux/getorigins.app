@@ -196,6 +196,9 @@ export default function MarketValue() {
                     <div className="grid md:grid-cols-2 gap-6">
                       <SoldListingsTable title="eBay Sold Listings" icon={ShoppingCart} sales={result.ebay_recent_sales || []} avg={result.ebay_avg} low={result.ebay_low} high={result.ebay_high} salesCount={result.ebay_sales_count} accentColor="text-blue-400" bgColor="bg-blue-400/10" borderColor="border-blue-400/20" />
                       <SoldListingsTable title="130point.com Sales" icon={TrendingUp} sales={result.point130_recent_sales || []} avg={result.point130_avg} low={result.point130_low} high={result.point130_high} salesCount={null} accentColor="text-emerald-400" bgColor="bg-emerald-400/10" borderColor="border-emerald-400/20" />
+                      {result.tcgplayer_market_price != null || (result.tcgplayer_recent_sales && result.tcgplayer_recent_sales.length > 0) ? (
+                        <SoldListingsTable title="TCGPlayer Verified Dealers" icon={ShoppingCart} sales={result.tcgplayer_recent_sales || []} avg={result.tcgplayer_market_price} low={result.tcgplayer_low} high={result.tcgplayer_high} salesCount={null} accentColor="text-violet-400" bgColor="bg-violet-400/10" borderColor="border-violet-400/20" />
+                      ) : null}
                     </div>
                     <CardShowComps trades={showTrades} query={activeSearch} />
                   </motion.div>

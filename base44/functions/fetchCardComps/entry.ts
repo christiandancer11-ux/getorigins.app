@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Too many requests. Please wait ${rl.retryAfterSec} seconds before searching again.` }, { status: 429 });
     }
 
-    const { card_name, set_name, year, card_number, condition } = await req.json();
+    const { card_name, set_name, year, card_number, condition, sport } = await req.json();
     if (!card_name) return Response.json({ error: 'card_name is required' }, { status: 400 });
 
     // Input length validation
@@ -40,6 +40,9 @@ Deno.serve(async (req) => {
     const condLabel = condition && condition !== 'raw' ? condition.toUpperCase().replace(/_/g, ' ') : '';
     const query = [year, card_name, set_name, card_number, condLabel].filter(Boolean).join(' ').trim();
 
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh'].includes(sport) ||
+      /pokemon|magic|yugioh|yu-gi-oh|mtg|tcg|lorcana|one piece|digimon/i.test(query);
+
     const now = new Date();
     const cutoffISO = new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -48,7 +51,7 @@ Deno.serve(async (req) => {
 
 Card: ${query}
 
-Search THREE sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, and PSA's Price Guide / SMR (Sports Market Report).
+Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR (Sports Market Report)${isTCG ? ', and TCGPlayer.com verified dealer listed/sold market prices' : ''}.
 
 === STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===
 
@@ -88,6 +91,17 @@ Search THREE sources: eBay completed/sold listings (last 24 hours from ${yesterd
    - Return the PSA SMR value for that grade as psa_value.
    - Also return psa_grade_used (e.g. "PSA 9", "PSA 10") so the user knows which grade was used.
 
+${isTCG ? `7. TCGPLAYER VERIFIED DEALER PRICES (TCG cards only):
+   - Search TCGPlayer.com (tcgplayer.com) for this card.
+   - TCGPlayer shows listings from verified dealers and stores — these are NOT auctions, they are fixed-price sales from certified sellers.
+   - Find the current Market Price (the weighted average of recent sales on TCGPlayer) and the lowest verified dealer listing price.
+   - Return tcgplayer_market_price: the TCGPlayer market price (number or null).
+   - Return tcgplayer_low: the lowest current verified dealer listing price (number or null).
+   - Return tcgplayer_high: the highest recent verified dealer sale price (number or null).
+   - Return tcgplayer_recent_sales: up to 4 recent sales/listings from TCGPlayer verified dealers: { date: string, price: number, condition: string, title: string, source: "tcgplayer" }.
+   - IMPORTANT: TCGPlayer prices are for the UNGRADED (near mint) version by default unless the query specifies a grade. Adjust accordingly.
+   - If TCGPlayer has no data for this card (e.g. it's a sports card not sold on TCGPlayer), return null for all tcgplayer fields.` : ''}
+
 Return a JSON object with:
 - ebay_low: lowest recent eBay CONFIRMED sold price USD (number or null)
 - ebay_high: highest recent eBay CONFIRMED sold price USD after outlier filtering (number or null)
@@ -99,9 +113,13 @@ Return a JSON object with:
 - point130_high: highest confirmed price from 130point.com (number or null)
 - point130_avg: average confirmed price from 130point.com (number or null)
 - point130_recent_sales: array of up to 6 recent 130point confirmed sold listings: { date: "Mon DD YYYY", price: number, condition: string, title: string, source: "130point" }
+- tcgplayer_market_price: TCGPlayer market price for this card (number or null — only for TCG cards)
+- tcgplayer_low: lowest verified dealer listing on TCGPlayer (number or null)
+- tcgplayer_high: highest recent verified dealer sale on TCGPlayer (number or null)
+- tcgplayer_recent_sales: array of up to 4 recent TCGPlayer verified dealer sales: { date: "Mon DD YYYY", price: number, condition: string, title: string, source: "tcgplayer" }
 - psa_value: PSA Price Guide / SMR value — ONLY include this if the search query explicitly mentions "PSA" as the grading company (e.g. "PSA 10", "PSA 9"). If the card is raw, ungraded, or graded by BGS/SGC/CGC/HGA/CSG or any other company that is NOT PSA, set psa_value to null and psa_grade_used to null. IMPORTANT: psa_value is a SEPARATE reference figure and must NOT be included in or influence ebay_avg, point130_avg, or any other average calculation.
 - psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9") — only set if psa_value is non-null
-- market_summary: 3-4 sentence plain English summary. Focus on eBay and 130point data only. If psa_value is present, mention it as a separate reference figure at the end. Include any offer-accepted replacements made and any outliers excluded.
+- market_summary: 3-4 sentence plain English summary. Focus on eBay and 130point data. ${isTCG ? 'Include TCGPlayer market price as a reference for TCG cards.' : ''} If psa_value is present, mention it as a separate reference figure at the end. Include any offer-accepted replacements made and any outliers excluded.
 - search_query_used: exact search query used
 
 Use real data only. If a source has no qualifying data, return null for its fields and empty array for sales.`;
@@ -135,6 +153,22 @@ Use real data only. If a source has no qualifying data, return null for its fiel
           point130_high: { type: 'number' },
           point130_avg: { type: 'number' },
           point130_recent_sales: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                date: { type: 'string' },
+                price: { type: 'number' },
+                condition: { type: 'string' },
+                title: { type: 'string' },
+                source: { type: 'string' },
+              },
+            },
+          },
+          tcgplayer_market_price: { type: 'number' },
+          tcgplayer_low: { type: 'number' },
+          tcgplayer_high: { type: 'number' },
+          tcgplayer_recent_sales: {
             type: 'array',
             items: {
               type: 'object',

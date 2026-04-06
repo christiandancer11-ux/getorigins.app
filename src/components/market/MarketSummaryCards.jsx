@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, ShoppingCart, Handshake, Award, Clock } from 'lucide-react';
+import { TrendingUp, ShoppingCart, Handshake, Award, Clock, Store } from 'lucide-react';
 
 function StatBubble({ label, value, sub, icon: Icon, accentClass }) {
   return (
@@ -19,15 +19,18 @@ export default function MarketSummaryCards({ result, showTradesCount }) {
   const ebayAvg = result.ebay_avg != null ? `$${result.ebay_avg.toFixed(0)}` : null;
   const ptAvg = result.point130_avg != null ? `$${result.point130_avg.toFixed(0)}` : null;
   const psaVal = result.psa_value != null ? `$${result.psa_value.toFixed(0)}` : null;
+  const tcgVal = result.tcgplayer_market_price != null ? `$${result.tcgplayer_market_price.toFixed(2)}` : null;
 
   const ebayRange = result.ebay_low != null && result.ebay_high != null
     ? `$${result.ebay_low}–$${result.ebay_high}`
     : null;
 
+  const hasTCG = tcgVal != null;
+
   return (
     <div className="space-y-3">
       {/* Main market data — eBay, 130point, Card Show */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className={`grid grid-cols-2 gap-3 ${hasTCG ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
         <StatBubble
           label="eBay Avg (24h)"
           value={ebayAvg24h || (ebayAvg || '—')}
@@ -49,6 +52,15 @@ export default function MarketSummaryCards({ result, showTradesCount }) {
           icon={Handshake}
           accentClass="bg-primary/10 text-primary"
         />
+        {hasTCG && (
+          <StatBubble
+            label="TCGPlayer Market"
+            value={tcgVal}
+            sub={result.tcgplayer_low != null ? `Low: $${result.tcgplayer_low.toFixed(2)}` : 'Verified dealers'}
+            icon={Store}
+            accentClass="bg-violet-400/10 text-violet-400"
+          />
+        )}
       </div>
 
       {/* PSA SMR — separate reference, only shown for PSA slabs */}
