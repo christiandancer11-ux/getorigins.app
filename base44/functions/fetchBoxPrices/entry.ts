@@ -80,6 +80,13 @@ PRICING RULES:
 6. The "cheapest_price" and "cheapest_seller" fields must be the verified lowest current in-stock price you found across all sellers.
 7. Note if a seller offers free shipping (this affects true total cost).
 
+URL RULES — CRITICAL:
+- Only include "url" values for seller listings if you are CERTAIN the URL is a real, direct, working product page link that currently exists on that retailer's website.
+- Do NOT generate, guess, or construct URLs from patterns. Only use URLs you have actually visited and confirmed contain the product.
+- If you are not certain a URL is valid and live, set that seller's url field to null rather than providing a broken or hallucinated link.
+- URLs that go to a homepage, search results page, or 404 page are worse than null — leave url as null if uncertain.
+- For Amazon, use the full product URL with ASIN if known. For eBay, only link to active in-stock listings (not completed/sold).
+
 Return a JSON object:
 {
   "products": [

@@ -86,7 +86,29 @@ BEFORE calculating any averages, you MUST separate graded and raw sales:
 - If the card being researched is GRADED: ONLY use sales of the same grade and grading company (e.g. PSA 10 only, not PSA 9 or raw). Do not mix grades.
 - Never mix raw and graded sales in any average calculation. This is the most common source of inaccurate valuations.
 
-Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR (Sports Market Report)${isTCG ? ', and TCGPlayer.com verified dealer listed/sold market prices' : ''}.
+Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings, 130point.com confirmed sales, PSA's Price Guide / SMR (Sports Market Report)${isTCG ? ', and TCGPlayer.com verified dealer listed/sold market prices' : ''}.
+
+=== HOW TO SEARCH EBAY CORRECTLY ===
+To find all sold listings on eBay, you must use Advanced Search:
+1. Go to eBay Advanced Search
+2. Type in the card details using the format above
+3. Check BOTH "Sold listings" AND "Completed listings" checkboxes
+4. Click Search
+This returns ALL transactions that ended — sold and unsold. You then filter to only confirmed sold ones.
+
+=== HOW TO IDENTIFY STRIKETHROUGH (OFFER-ACCEPTED) PRICES ON EBAY ===
+When a seller accepts a Best Offer on eBay, the final sold price is hidden — eBay shows the original listing price with a strikethrough. These strikethrough prices are NOT the real sale price.
+For every eBay listing where the price appears struck through (offer accepted):
+- DO NOT use the eBay listing price — it is wrong.
+- FIND that same sale on 130point.com, which records the actual accepted offer price.
+- Use ONLY the 130point.com price for that sale.
+- Remove it from the eBay list and put it in the 130point list.
+
+=== MINIMUM DATA THRESHOLD ===
+Count the total number of qualifying confirmed sold listings across eBay and 130point.com combined (after deduplication and graded/raw filtering):
+- If the total is FEWER THAN 3 confirmed sales, set insufficient_data: true and explain in market_summary that there is not enough recent sales data to determine a reliable value for this card. Still report whatever sales were found.
+- If total sales are between 3 and 9, set low_data: true and note in market_summary that the value estimate is based on limited data and may not reflect the full market.
+- If 10 or more confirmed sales are found, set insufficient_data: false and low_data: false.
 
 === STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===
 
@@ -99,14 +121,14 @@ Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 2
    - Buy-It-Now listings that were viewed but never purchased
    Only include eBay sales where the transaction is definitively confirmed SOLD and COMPLETED.
 
-2. OFFER-ACCEPTED REPLACEMENT RULE (VERY IMPORTANT):
-   - On eBay, when a seller accepts a Best Offer, eBay hides the actual sold price and only shows the original listing price.
-   - 130point.com tracks these same sales and DOES show the actual accepted offer price.
-   - If you find a sale that appears on BOTH eBay (showing only listing price) AND 130point.com (showing actual offer price):
-     * REMOVE that sale from the eBay list entirely
-     * KEEP only the 130point.com version with the real accepted price
+2. STRIKETHROUGH / OFFER-ACCEPTED REPLACEMENT RULE (VERY IMPORTANT):
+   - On eBay, when a seller accepts a Best Offer, the sold price shows as a strikethrough — this is NOT the real price.
+   - 130point.com records the actual accepted offer price for these same sales.
+   - For every eBay sale with a strikethrough price:
+     * REMOVE it from the eBay list entirely
+     * Find it on 130point.com and use the real accepted price
      * Do NOT double-count it in any averages
-   - This prevents inflated eBay averages caused by hidden offer-accepted prices.
+   - This is the most common cause of inflated eBay averages.
 
 3. DUPLICATE REMOVAL:
    - If the same physical sale appears on both eBay and 130point.com, count it only ONCE — use the 130point.com price (it's more accurate).
@@ -139,6 +161,9 @@ ${isTCG ? `7. TCGPLAYER VERIFIED SALES & MARKET PRICE (TCG cards only — REQUIR
    - DO NOT return null just because you are uncertain — make a best-effort search on TCGPlayer and return what you find.` : ''}
 
 Return a JSON object with:
+- insufficient_data: true if fewer than 3 total confirmed sold listings found (boolean)
+- low_data: true if between 3 and 9 total confirmed sold listings found (boolean)
+- total_confirmed_sales_count: total number of confirmed sold listings found across all sources (number)
 - ebay_low: lowest recent eBay CONFIRMED sold price USD (number or null)
 - ebay_high: highest recent eBay CONFIRMED sold price USD after outlier filtering (number or null)
 - ebay_avg: average of ALL qualifying eBay sold prices (number or null)
@@ -172,6 +197,9 @@ Use real data only. If a source has no qualifying data, return null for its fiel
       response_json_schema: {
         type: 'object',
         properties: {
+          insufficient_data: { type: 'boolean' },
+          low_data: { type: 'boolean' },
+          total_confirmed_sales_count: { type: 'number' },
           ebay_low: { type: 'number' },
           ebay_high: { type: 'number' },
           ebay_avg: { type: 'number' },

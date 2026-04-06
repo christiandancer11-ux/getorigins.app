@@ -169,6 +169,22 @@ export default function MarketValue() {
               <AnimatePresence mode="wait">
                 {result && !loading && (
                   <motion.div key={activeSearch} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                    {result.insufficient_data && (
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                        <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                        <p className="text-sm text-destructive leading-relaxed">
+                          <strong>Not enough data</strong> — fewer than 3 confirmed sold listings were found for this card. There is insufficient recent sales activity to determine a reliable market value. This may be a very low-population card or a card that rarely trades publicly.
+                        </p>
+                      </div>
+                    )}
+                    {!result.insufficient_data && result.low_data && (
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                        <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                        <p className="text-sm text-amber-300 leading-relaxed">
+                          <strong>Limited data</strong> — only {result.total_confirmed_sales_count} confirmed sales found. The estimated value may not fully reflect current market conditions.
+                        </p>
+                      </div>
+                    )}
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Results for</p>

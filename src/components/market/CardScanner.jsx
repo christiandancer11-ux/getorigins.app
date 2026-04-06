@@ -222,6 +222,24 @@ export default function CardScanner() {
             </div>
           </div>
 
+          {/* Data quality warnings */}
+          {mkt?.insufficient_data && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+              <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+              <p className="text-sm text-destructive leading-relaxed">
+                <strong>Not enough data</strong> — fewer than 3 confirmed sold listings were found. There is insufficient recent sales activity to determine a reliable market value for this card.
+              </p>
+            </div>
+          )}
+          {!mkt?.insufficient_data && mkt?.low_data && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+              <p className="text-sm text-amber-300 leading-relaxed">
+                <strong>Limited data</strong> — only {mkt.total_confirmed_sales_count} confirmed sales found. Value estimate may not fully reflect current market.
+              </p>
+            </div>
+          )}
+
           {/* Estimated value hero */}
           {mkt?.estimated_value != null && (
             <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 p-5 text-center">
