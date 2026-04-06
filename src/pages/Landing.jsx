@@ -7,6 +7,11 @@ import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
 import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
 import WhatsNewBanner from '@/components/onboarding/WhatsNewBanner';
 import { useAuth } from '@/lib/AuthContext';
+import ScanSpeedHero from '@/components/landing/ScanSpeedHero';
+import DataSourcesBadge from '@/components/landing/DataSourcesBadge';
+import ImportCTA from '@/components/landing/ImportCTA';
+import SetProgressViz from '@/components/landing/SetProgressViz';
+import PortfolioTrends from '@/components/landing/PortfolioTrends';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -145,6 +150,20 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── SCAN SPEED DEMO ── */}
+      <section className="py-28 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="text-center mb-10">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Instant Inventory</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">
+              Scan 100 cards in minutes, not hours.
+            </h2>
+            <p className="text-muted-foreground text-lg">See how fast AI identification works in action.</p>
+          </motion.div>
+          <ScanSpeedHero />
+        </div>
+      </section>
+
       {/* ── VALUE / MONEY ── */}
       <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
@@ -156,29 +175,98 @@ export default function Landing() {
             <p className="text-muted-foreground text-lg max-w-lg mx-auto">Real data. Real prices. Right when you need it.</p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-3 gap-6">
-            {[
-              { icon: BarChart3, title: 'Live eBay Sold Prices', body: 'See what cards actually sold for — not what sellers are asking. Real comps, updated in real time.' },
-              { icon: Sparkles, title: 'AI-Powered Fair Market Value', body: 'Our AI cross-references population reports, recent sales, and grade to tell you what a card is truly worth.' },
-              { icon: TrendingUp, title: 'Track Price Trends Instantly', body: 'Set alerts. Watch movement. Know exactly when to buy, hold, or sell.' },
-            ].map((item, i) => (
-              <motion.div key={item.title} {...fadeUp(i * 0.1)}
-                className="p-7 rounded-2xl bg-primary/5 border border-primary/15 flex flex-col gap-4">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground mb-2">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.body}</p>
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-6">
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                { icon: BarChart3, title: 'Live eBay Sold Prices', body: 'See what cards actually sold for — not what sellers are asking. Real comps, updated in real time.' },
+                { icon: Sparkles, title: 'AI-Powered Fair Market Value', body: 'Our AI cross-references population reports, recent sales, and grade to tell you what a card is truly worth.' },
+                { icon: TrendingUp, title: 'Track Price Trends Instantly', body: 'Set alerts. Watch movement. Know exactly when to buy, hold, or sell.' },
+              ].map((item, i) => (
+                <motion.div key={item.title} {...fadeUp(i * 0.1)}
+                  className="p-7 rounded-2xl bg-primary/5 border border-primary/15 flex flex-col gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <item.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground mb-2">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.body}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <DataSourcesBadge />
           </div>
         </div>
       </section>
 
-      {/* ── DIFFERENTIATOR ── */}
+      {/* ── IMPORT / MIGRATION ── */}
       <section className="py-28 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="mb-12">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">No Friction Switch</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5">
+              Already using another app?
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              If you've invested time in TCGPlayer, Dex, PriceCharting, or a spreadsheet, we make the move painless.
+            </p>
+            <ImportCTA />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── SET COMPLETION / GAMIFICATION ── */}
+      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid sm:grid-cols-2 gap-12 items-start">
+            <motion.div {...fadeUp()}>
+              <SetProgressViz />
+            </motion.div>
+            <motion.div {...fadeUp(0.15)}>
+              <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Collectors Are Completionists</p>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5 leading-tight">
+                Visualize your progress.<br />
+                <span className="text-primary">Find what's missing.</span>
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Collectors don't just want to list their cards—they want to manage their hobby. Origins shows you exactly which cards you need to complete your sets, and helps you find them.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  "See completion % for each set you own",
+                  "Get alerts when missing cards appear for sale",
+                  "Track how close you are to mastering a set",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PORTFOLIO TRENDS / INVESTOR ANGLE ── */}
+      <section className="py-28 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="mb-12">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Asset Tracking</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5">
+              Your collection is an investment.
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              Watch your portfolio grow. Origins Pro tracks daily market movers and shows you your ROI in real time.
+            </p>
+            <PortfolioTrends />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── DIFFERENTIATOR ── */}
+      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
           <div className="grid sm:grid-cols-2 gap-12 items-center">
             <motion.div {...fadeUp()}>
