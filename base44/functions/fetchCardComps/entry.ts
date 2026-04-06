@@ -40,6 +40,25 @@ Deno.serve(async (req) => {
     const condLabel = condition && condition !== 'raw' ? condition.toUpperCase().replace(/_/g, ' ') : '';
     const query = [year, card_name, set_name, card_number, condLabel].filter(Boolean).join(' ').trim();
 
+    // Pull Origins card show trades for this card name
+    let internalTrades = [];
+    try {
+      const allTrades = await base44.asServiceRole.entities.CardTrade.list('-created_date', 200);
+      const q = card_name.toLowerCase();
+      internalTrades = allTrades.filter(t =>
+        [t.card_name, t.set_name].filter(Boolean).some(v => v.toLowerCase().includes(q))
+      );
+    } catch (e) {
+      console.warn('Could not fetch internal trades:', e.message);
+    }
+
+    const internalTradeContext = internalTrades.length > 0
+      ? `\n\nOrigins card show community trades (VERIFIED IN-PERSON SALES — use as ground-truth data):\n` +
+        internalTrades.slice(0, 8).map(t =>
+          `- ${t.card_name} ${t.set_name || ''} ${t.year || ''}: $${t.total_value || t.cash_paid || 0} (${t.condition || 'raw'})${t.ebay_comp_avg ? `, eBay avg at time: $${t.ebay_comp_avg}` : ''}${t.verified ? ' [VERIFIED FAIR MARKET VALUE]' : ''}`
+        ).join('\n')
+      : '';
+
     const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece', 'lorcana', 'digimon', 'flesh_and_blood'].includes(sport) ||
       /pokemon|charizard|pikachu|eevee|mewtwo|magic|yugioh|yu-gi-oh|mtg|blue-eyes|dark magician|lorcana|one piece|digimon|flesh and blood|dragon ball super|naruto|weiss|cardfight|vanguard/i.test(query);
 
@@ -50,6 +69,7 @@ Deno.serve(async (req) => {
     const prompt = `You are a sports card & TCG market research assistant. Research recent SOLD prices for:
 
 Card: ${query}
+${internalTradeContext}
 
 Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR (Sports Market Report)${isTCG ? ', and TCGPlayer.com verified dealer listed/sold market prices' : ''}.
 
@@ -120,8 +140,13 @@ Return a JSON object with:
 - tcgplayer_recent_sales: array of up to 4 recent TCGPlayer verified dealer sales: { date: "Mon DD YYYY", price: number, condition: string, title: string, source: "tcgplayer" }
 - psa_value: PSA Price Guide / SMR value — ONLY include this if the search query explicitly mentions "PSA" as the grading company (e.g. "PSA 10", "PSA 9"). If the card is raw, ungraded, or graded by BGS/SGC/CGC/HGA/CSG or any other company that is NOT PSA, set psa_value to null and psa_grade_used to null. IMPORTANT: psa_value is a SEPARATE reference figure and must NOT be included in or influence ebay_avg, point130_avg, or any other average calculation.
 - psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9") — only set if psa_value is non-null
-- market_summary: 3-4 sentence plain English summary. Focus on eBay and 130point data. ${isTCG ? 'REQUIRED for TCG cards: explicitly state the TCGPlayer Market Price and whether it aligns with or differs from eBay comps. Mention the NM condition TCGPlayer price and any notable condition-based price differences.' : ''} If psa_value is present, mention it as a separate reference figure at the end. Include any offer-accepted replacements made and any outliers excluded.
+- market_summary: 3-5 sentence plain English summary. Focus on eBay and 130point data. ${isTCG ? 'REQUIRED for TCG cards: explicitly state the TCGPlayer Market Price and whether it aligns with or differs from eBay comps. Mention the NM condition TCGPlayer price and any notable condition-based price differences.' : ''} If psa_value is present, mention it as a separate reference figure at the end. Include any offer-accepted replacements made and any outliers excluded. ${internalTrades.length > 0 ? 'Also mention how the Origins in-person card show trade data compares to online market prices.' : ''}
 - search_query_used: exact search query used
+
+${internalTrades.length > 0 ? `${isTCG ? '8' : '7'}. ORIGINS CARD SHOW TRADES (in-person verified sales):
+   - The Origins community trade data above represents REAL in-person card show transactions with AI-verified fair market values.
+   - Use this data to cross-reference and calibrate your estimated value.
+   - If Origins trade prices diverge from online comps, note that in market_summary — in-person card show prices can differ from online markets.` : ''}
 
 Use real data only. If a source has no qualifying data, return null for its fields and empty array for sales.`;
 

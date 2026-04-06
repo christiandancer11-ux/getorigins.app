@@ -166,17 +166,20 @@ Return a JSON object:
       console.warn('Could not fetch collection cards:', e.message);
     }
 
-    const internalContext = internalTrades.length > 0
-      ? `\n\nInternal Origins app trade history for similar cards (${internalTrades.length} trades found):\n` +
-        internalTrades.slice(0, 5).map(t =>
-          `- ${t.card_name} ${t.set_name || ''} ${t.year || ''}: $${t.total_value || t.cash_paid || 0} (${t.condition || 'raw'})${t.ebay_comp_avg ? `, eBay avg was $${t.ebay_comp_avg}` : ''}`
-        ).join('\n')
-      : '';
-
     const popContext = popReport ? `\nPop Report: ${popReport}` : '';
 
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'other'].includes(identification.sport) ||
+      /pokemon|charizard|pikachu|eevee|mewtwo|magic|yugioh|yu-gi-oh|mtg|blue-eyes|dark magician|lorcana|one piece|digimon/i.test(query);
+
+    const internalTradeContext = internalTrades.length > 0
+      ? `\n\nOrigins card show community trades (VERIFIED IN-PERSON SALES — weight these heavily as ground-truth data):\n` +
+        internalTrades.slice(0, 8).map(t =>
+          `- ${t.card_name} ${t.set_name || ''} ${t.year || ''}: $${t.total_value || t.cash_paid || 0} (${t.condition || 'raw'})${t.ebay_comp_avg ? `, eBay avg at time of trade: $${t.ebay_comp_avg}` : ''}${t.verified ? ' [VERIFIED FAIR MARKET VALUE]' : ''}`
+        ).join('\n')
+      : '';
 
     const marketPrompt = `You are a sports card & TCG market analyst. Research current market value for:
 
@@ -184,9 +187,9 @@ Card: ${query}
 Visual condition: ${identification.condition_estimate || 'Unknown'}
 ${isGraded ? `Graded: ${identification.grading_company} ${identification.grade}${popContext}` : ''}
 Notable attributes: ${(identification.visible_attributes || []).join(', ') || 'None noted'}
-${internalContext}
+${internalTradeContext}
 
-Search THREE sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, and PSA's Price Guide / SMR.
+Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR${isTCG ? ', and TCGPlayer.com verified market prices' : ''}.
 
 === STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===
 
@@ -216,6 +219,20 @@ Search THREE sources: eBay completed/sold listings (last 24 hours from ${yesterd
    - Look up PSA Price Guide (psacard.com/smr or psacard.com/price-guide) for this card.
    - ${isGraded ? `The card is graded ${identification.grading_company} ${identification.grade} — find the equivalent PSA grade value.` : 'Find the PSA grade value closest to the card\'s estimated condition.'}
    - Return the PSA SMR value as psa_value and the grade used as psa_grade_used.
+   - psa_value is a SEPARATE reference figure only — do NOT include it in any averages.
+
+${isTCG ? `6. TCGPLAYER VERIFIED MARKET PRICE (REQUIRED for TCG cards — non-optional):
+   - Go to TCGPlayer.com and find this exact card.
+   - TCGPlayer "Market Price" = weighted average of ACTUAL completed verified sales (last 30 days). This is the most reliable TCG benchmark — return it as tcgplayer_market_price.
+   - Return tcgplayer_low (lowest current verified listing) and tcgplayer_high (highest recent sale).
+   - For tcgplayer_recent_sales: find up to 5 actual sold transactions (not just listings): { date, price, condition (NM/LP/MP/HP/DMG), title, source: "tcgplayer" }.
+   - Default to NM (Near Mint) condition unless the query specifies otherwise.
+   - Cross-reference CardMarket (cardmarket.com) if TCGPlayer data is thin.
+   - If card doesn't exist on TCGPlayer, set all tcgplayer fields to null and explain in market_summary.` : ''}
+
+7. ORIGINS CARD SHOW TRADES:
+   - Internal verified in-person trade data is provided above (if any). These are REAL ground-truth transactions from the Origins community.
+   - Use these to validate or calibrate your estimated_value. If the internal trades show prices diverging from online comps, note it in market_summary.
 
 Return a JSON object with:
 - ebay_low: lowest recent eBay CONFIRMED sold price USD (number or null)
@@ -223,18 +240,24 @@ Return a JSON object with:
 - ebay_avg: average of all qualifying eBay sold prices (number or null)
 - ebay_avg_24h: average of eBay confirmed sales in the last 24 hours ONLY (number or null)
 - ebay_sales_count: number of qualifying eBay sales included (number or null)
-- ebay_recent_sales: up to 5 recent eBay sold listings, each { date, price, condition, title }
+- ebay_recent_sales: up to 5 recent eBay sold listings, each { date, price, condition, title, source: "ebay" }
 - point130_low: lowest 130point.com price (number or null)
 - point130_high: highest 130point.com price (number or null)
 - point130_avg: average 130point.com price (number or null)
-- point130_recent_sales: up to 5 recent 130point listings, each { date, price, condition, title }
-- psa_value: PSA Price Guide / SMR value for the closest matching grade (number or null)
+- point130_recent_sales: up to 5 recent 130point listings, each { date, price, condition, title, source: "130point" }
+- tcgplayer_market_price: TCGPlayer market price (number or null — TCG cards only)
+- tcgplayer_low: lowest verified TCGPlayer listing (number or null)
+- tcgplayer_high: highest recent TCGPlayer sale (number or null)
+- tcgplayer_recent_sales: up to 4 recent TCGPlayer verified sales { date, price, condition, title, source: "tcgplayer" }
+- psa_value: PSA Price Guide / SMR value (number or null — set to null if graded by non-PSA company)
 - psa_grade_used: which PSA grade the psa_value corresponds to (string or null, e.g. "PSA 9")
-- estimated_value: your best single-number estimate of current value in USD (number)
+- estimated_value: your best single-number estimate of current value in USD, informed by all sources including any Origins trade data (number)
 - value_range_low: conservative low estimate USD (number)
 - value_range_high: optimistic high estimate USD (number)
-- market_summary: 3-4 sentences covering eBay 24h avg, 130point avg, PSA value, condition impact, and trend direction${isGraded ? ', and how the pop count affects value' : ''}
+- market_summary: 3-5 sentences covering eBay 24h avg, 130point avg, ${isTCG ? 'TCGPlayer Market Price, ' : ''}PSA reference, condition impact, and trend direction${isGraded ? ', and how the pop count affects value' : ''}. If Origins card show trade data was available, mention how it compares to online comps.
 - search_query_used: the exact search query used`;
+
+    const saleItemSchema = { type: 'object', properties: { date: { type: 'string' }, price: { type: 'number' }, condition: { type: 'string' }, title: { type: 'string' }, source: { type: 'string' } } };
 
     const marketData = await base44.integrations.Core.InvokeLLM({
       prompt: marketPrompt,
@@ -246,13 +269,17 @@ Return a JSON object with:
           ebay_low: { type: 'number' },
           ebay_high: { type: 'number' },
           ebay_avg: { type: 'number' },
+          ebay_avg_24h: { type: 'number' },
           ebay_sales_count: { type: 'number' },
-          ebay_recent_sales: { type: 'array', items: { type: 'object', properties: { date: { type: 'string' }, price: { type: 'number' }, condition: { type: 'string' }, title: { type: 'string' } } } },
+          ebay_recent_sales: { type: 'array', items: saleItemSchema },
           point130_low: { type: 'number' },
           point130_high: { type: 'number' },
           point130_avg: { type: 'number' },
-          point130_recent_sales: { type: 'array', items: { type: 'object', properties: { date: { type: 'string' }, price: { type: 'number' }, condition: { type: 'string' }, title: { type: 'string' } } } },
-          ebay_avg_24h: { type: 'number' },
+          point130_recent_sales: { type: 'array', items: saleItemSchema },
+          tcgplayer_market_price: { type: 'number' },
+          tcgplayer_low: { type: 'number' },
+          tcgplayer_high: { type: 'number' },
+          tcgplayer_recent_sales: { type: 'array', items: saleItemSchema },
           psa_value: { type: 'number' },
           psa_grade_used: { type: 'string' },
           estimated_value: { type: 'number' },
