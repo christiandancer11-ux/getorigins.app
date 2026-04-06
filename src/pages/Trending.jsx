@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Loader2, RefreshCw, Lock, Zap, TrendingUp, DollarSign, Search, ShoppingCart, BarChart2 } from 'lucide-react';
+import { Flame, Loader2, RefreshCw, Lock, Zap, TrendingUp, DollarSign, Search, ShoppingCart, BarChart2, Package, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -13,11 +13,13 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh.jsx';
 import BoxPriceTracker from '@/components/trending/BoxPriceTracker';
 
 const VIEW_MODES = [
-  { id: 'hottest',      label: 'Hottest',        icon: Flame,       desc: 'Overall hottest cards right now' },
-  { id: 'highest_sold', label: 'Highest Sold',   icon: DollarSign,  desc: 'Highest recent sale prices' },
-  { id: 'most_searched',label: 'Most Searched',  icon: Search,      desc: 'Most searched players & cards' },
-  { id: 'most_bought',  label: 'Most Bought',    icon: ShoppingCart,desc: 'Most bought cards recently' },
-  { id: 'rising',       label: '48hr Growth',    icon: BarChart2,   desc: 'Steady value growth in last 48 hours' },
+  { id: 'hottest',       label: 'Hottest',           icon: Flame,       desc: 'Overall hottest cards right now',           isBox: false },
+  { id: 'highest_sold',  label: 'Highest Sold',      icon: DollarSign,  desc: 'Highest recent sale prices',                isBox: false },
+  { id: 'most_searched', label: 'Most Searched',     icon: Search,      desc: 'Most searched players & cards',             isBox: false },
+  { id: 'most_bought',   label: 'Most Bought',       icon: ShoppingCart,desc: 'Most bought cards recently',                isBox: false },
+  { id: 'rising',        label: '48hr Growth',       icon: BarChart2,   desc: 'Steady value growth in last 48 hours',      isBox: false },
+  { id: 'new_msrp',      label: 'New Product MSRP',  icon: Tag,         desc: 'Newest box/set releases at MSRP',           isBox: true  },
+  { id: 'lowest_box',    label: 'Lowest Box Prices',  icon: Package,     desc: 'Cheapest online prices for newest products',isBox: true  },
 ];
 
 export default function Trending() {
@@ -199,7 +201,12 @@ export default function Trending() {
 
       {/* Content */}
       <AnimatePresence mode="wait">
-        {loadingCategory === selectedCategory ? (
+        {/* Box price modes */}
+        {(selectedViewMode === 'new_msrp' || selectedViewMode === 'lowest_box') ? (
+          <motion.div key={`box-${selectedCategory}-${selectedViewMode}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <BoxPriceTracker category={selectedCategory} mode={selectedViewMode} />
+          </motion.div>
+        ) : loadingCategory === cacheKey ? (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex flex-col items-center gap-4 py-20 text-center">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
@@ -211,7 +218,7 @@ export default function Trending() {
             </div>
           </motion.div>
         ) : currentData ? (
-          <motion.div key={selectedCategory} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div key={cacheKey} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             {/* Summary banner */}
             {currentData.category_summary && (
               <div className="rounded-xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex items-start gap-2">
@@ -253,9 +260,6 @@ export default function Trending() {
             <p className="text-xs text-muted-foreground text-center mt-4">
               Data sourced from eBay sold listings, 130point.com, and Origins community trades.
             </p>
-
-            {/* Box Price Tracker */}
-            <BoxPriceTracker category={selectedCategory} />
           </motion.div>
         ) : null}
       </AnimatePresence>
