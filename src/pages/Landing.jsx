@@ -12,6 +12,8 @@ import DataSourcesBadge from '@/components/landing/DataSourcesBadge';
 import ImportCTA from '@/components/landing/ImportCTA';
 import SetProgressViz from '@/components/landing/SetProgressViz';
 import PortfolioTrends from '@/components/landing/PortfolioTrends';
+import SupportedGames from '@/components/landing/SupportedGames';
+import StickyHeader from '@/components/landing/StickyHeader';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -34,6 +36,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <StickyHeader />
 
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
@@ -57,9 +60,9 @@ export default function Landing() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8">
-            <Link to="/register">
+            <Link to="/pricing">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-13 px-10 text-base font-semibold gap-2 shadow-lg shadow-primary/25">
-                Get Early Access <ArrowRight className="w-4 h-4" />
+                Claim Founder Status <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
             <Link to="/dashboard">
@@ -70,9 +73,10 @@ export default function Landing() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Free forever · No credit card required ·{' '}
-            <button onClick={() => setShowRedeem(true)} className="text-primary hover:underline font-medium">Have a promo code?</button>
+            <span className="text-primary font-semibold">First 1,000 Founders get 3 months Pro free</span> · No credit card required
           </p>
+
+          <SupportedGames />
         </motion.div>
 
         {/* Social proof numbers */}
@@ -278,9 +282,9 @@ export default function Landing() {
               <p className="text-muted-foreground leading-relaxed mb-8">
                 When a card has a verified story, it becomes more than cardboard. It becomes a digital asset with documented provenance — and that makes it worth more.
               </p>
-              <Link to="/register">
+              <Link to="/pricing">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-                  Claim Your Cards <ArrowRight className="w-4 h-4" />
+                  Claim Founder Status <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
             </motion.div>
@@ -382,9 +386,9 @@ export default function Landing() {
                 cta: 'Get Started Free', ctaLink: '/register',
               },
               {
-                name: 'Origins Pro Bundle', price: '$14.99', sub: '/mo', highlight: true, badge: 'Most Popular',
-                features: ['Everything in Free', 'Live Market Value (eBay + AI)', 'Card Show Trade Comps', 'Trending Top 100', 'Pro Card Flipper', 'Price Alerts', 'AI Card Grading', 'Bulk Deal Calculator'],
-                cta: 'Start 7-Day Free Trial', ctaLink: '/pricing',
+                name: 'Origins Pro Bundle', price: '$14.99', sub: '/mo', highlight: true, badge: 'Founder Exclusive',
+                features: ['Everything in Free', 'Live Market Value (eBay + AI)', 'Card Show Trade Comps', 'Trending Top 100', 'Pro Card Flipper', 'Price Alerts', 'AI Card Grading', 'Bulk Deal Calculator', '3 months free for Founders'],
+                cta: 'Claim 3 Months Free', ctaLink: '/pricing',
               },
             ].map((plan, i) => (
               <motion.div key={plan.name} {...fadeUp(i * 0.1)}
@@ -453,9 +457,9 @@ export default function Landing() {
                 The collectors who use Origins don't just collect cards — they own verified assets with permanent identity. Join them.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link to="/register">
+                <Link to="/pricing">
                   <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-10 text-base font-semibold shadow-lg shadow-primary/25 gap-2">
-                    Download Origins <ArrowRight className="w-4 h-4" />
+                    Get Founder Benefits <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
                 <Button size="lg" variant="outline" onClick={() => setShowRedeem(true)} className="h-12 px-8 border-border/50">
