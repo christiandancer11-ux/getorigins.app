@@ -40,6 +40,7 @@ Identify ALL visible details:
    - RAW: not in a slab
 6. Any special variants (rookie card, prizm, refractor, holo, auto, patch, 1st edition, etc.)
 7. If graded: read the exact grading company name, numeric grade, and certification number from the label
+8. Is this a ROOKIE CARD? Look carefully for any of: "RC" logo/emblem, "Rated Rookie" text, "Freshman" designation, a rookie trophy icon, or any official rookie designation on the card face or slab label. Set is_rookie_card to true if any are found, false if none, null if genuinely uncertain.
 
 Return a JSON object:
 {
@@ -51,6 +52,7 @@ Return a JSON object:
   "card_number": "string or null",
   "variant": "string or null",
   "is_graded": true or false,
+  "is_rookie_card": true or false or null,
   "grading_company": "string or null",
   "grade": "string or null",
   "cert_number": "string or null",
@@ -68,6 +70,7 @@ Return a JSON object:
           card_number: { type: 'string' },
           variant: { type: 'string' },
           is_graded: { type: 'boolean' },
+          is_rookie_card: { type: 'boolean' },
           grading_company: { type: 'string' },
           grade: { type: 'string' },
           cert_number: { type: 'string' },
@@ -114,7 +117,9 @@ Return a JSON object:
 
     const isGraded = identification.is_graded;
     const gradedLabel = isGraded ? `${identification.grading_company} ${identification.grade}` : '';
-    const query = [identification.year, identification.card_name, identification.set_name, identification.card_number, gradedLabel]
+    const isRookie = identification.is_rookie_card === true;
+    const rookieSuffix = isRookie ? 'RC' : '';
+    const query = [identification.year, identification.card_name, identification.set_name, identification.card_number, rookieSuffix, gradedLabel]
       .filter(Boolean).join(' ').trim();
 
     const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh'].includes(identification.sport) ||
@@ -126,6 +131,8 @@ Return a JSON object:
 Card identified: ${query}
 Condition: ${identification.condition_label || (isGraded ? gradedLabel : 'Raw')}
 ${identification.variant ? `Variant: ${identification.variant}` : ''}
+${isRookie ? `Rookie Card: YES — an RC/Rated Rookie/Freshman emblem was detected. You MUST include "RC" in the search query and ONLY return sold listings for the ROOKIE version of this card. Do NOT include veteran base cards, non-rookie parallels, or reprints.` : identification.is_rookie_card === null ? `Rookie Card: UNKNOWN — if unsure, prefer comps from the same production year (${identification.year || 'unknown'}) only.` : `Rookie Card: NO — do NOT include rookie card sales in the comps.`}
+Production Year: ${identification.year || 'Unknown'} — ONLY include sold listings for cards from this EXACT production year. Exclude any sales for a different year's card (reprints, different releases, etc.) from all averages and results.
 ${internalTradeContext}
 
 === SEARCH QUERY FORMAT (SPORTS CARDS) ===

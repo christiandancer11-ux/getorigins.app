@@ -48,20 +48,21 @@ Also check if this is a GRADED card (in a PSA, BGS, SGC, CGC, HGA, or any other 
 Identify the card and return a JSON object with:
 - card_name: player name or card title (string)
 - set_name: card set or collection name (string or null)
-- year: year of the card (string or null)
+- year: year of the card (string or null) — this is the PRODUCTION YEAR printed on the card or slab label, not the current year
 - card_number: card number if visible (string or null)
 - sport: one of baseball/basketball/football/hockey/soccer/golf/ufc/wwe/f1/pokemon/magic_the_gathering/yugioh/other
 - condition_estimate: visual condition estimate — e.g. "Near Mint", "PSA 8-9 equivalent" (string)
 - grading_company: name of grading company if this is a graded slab (e.g. "PSA", "BGS", "SGC", "CGC", "HGA") — null if raw
 - grade: the numeric grade if graded (e.g. "10", "9.5") — null if raw
 - cert_number: certification/serial number visible on the slab label — null if not graded
-- visible_attributes: array of notable attributes (e.g. ["rookie card", "autograph", "refractor", "1st edition"])
+- is_rookie_card: true if ANY of the following are present on the card or slab label: an "RC" logo/emblem, the text "Rated Rookie", "Freshman", "Rookie Card", a rookie trophy icon, or any other official rookie designation. Also set true if the card is in a known rookie year set for the player (e.g. their first Topps/Panini/Upper Deck base set). Set to false if none of these are present. Set to null if you are genuinely unsure.
+- visible_attributes: array of notable attributes (e.g. ["rookie card", "autograph", "refractor", "1st edition", "RC logo"])
 - identified: true if you can confidently identify the card, false if too unclear
 - confidence: "high", "medium", or "low"
 - needs_back_image: true ONLY if you could NOT identify the card and you think the back would significantly help — false otherwise
-- notes: any additional observations about condition, centering, surface, corners, edges
+- notes: any additional observations about condition, centering, surface, corners, edges, and whether an RC/rookie emblem was detected
 
-Be as specific as possible. For graded slabs, extract ALL label information carefully.`,
+Be as specific as possible. For graded slabs, extract ALL label information carefully including any RC designation on the label.`,
       file_urls: fileUrls,
       response_json_schema: {
         type: 'object',
@@ -75,6 +76,7 @@ Be as specific as possible. For graded slabs, extract ALL label information care
           grading_company: { type: 'string' },
           grade: { type: 'string' },
           cert_number: { type: 'string' },
+          is_rookie_card: { type: 'boolean' },
           visible_attributes: { type: 'array', items: { type: 'string' } },
           identified: { type: 'boolean' },
           confidence: { type: 'string' },
@@ -96,6 +98,8 @@ Be as specific as possible. For graded slabs, extract ALL label information care
     }
 
     const isGraded = !!(identification.grading_company && identification.grade);
+    const isRookie = identification.is_rookie_card === true;
+    const rookieSuffix = isRookie ? 'RC' : (identification.is_rookie_card === null ? '' : '');
 
     // Step 2: Fetch pop report if graded
     let popReport = null;
@@ -141,7 +145,7 @@ Return a JSON object:
 
     // Step 3: Pull market data
     const gradedLabel = isGraded ? `${identification.grading_company} ${identification.grade}` : '';
-    const query = [identification.year, identification.card_name, identification.set_name, identification.card_number, gradedLabel]
+    const query = [identification.year, identification.card_name, identification.set_name, identification.card_number, rookieSuffix, gradedLabel]
       .filter(Boolean).join(' ').trim();
 
     let internalTrades = [];
@@ -187,6 +191,8 @@ Card: ${query}
 Visual condition: ${identification.condition_estimate || 'Unknown'}
 ${isGraded ? `Graded: ${identification.grading_company} ${identification.grade}${popContext}` : ''}
 Notable attributes: ${(identification.visible_attributes || []).join(', ') || 'None noted'}
+${isRookie ? `Rookie Card: YES — an RC/Rated Rookie/Freshman/rookie emblem was detected on this card. You MUST include "RC" in the search query and ONLY return sold listings for the ROOKIE version of this card. Do NOT include veteran base cards, non-rookie parallels, or reprints in the results.` : identification.is_rookie_card === null ? `Rookie Card: UNKNOWN — if unsure, search with and without "RC" and note which comps are rookie vs non-rookie versions. Prefer comps from the same production year (${identification.year || 'unknown'}).` : `Rookie Card: NO — this is NOT a rookie card. Do NOT include rookie card sales in the comps.`}
+Production Year: ${identification.year || 'Unknown'} — ONLY include sold listings for cards from this exact production year. Any sold listing for a card with a different year printed on it (e.g. a reprint, a different year's base card, or a different release) must be EXCLUDED from all averages and listings.
 ${internalTradeContext}
 
 === SEARCH QUERY FORMAT (SPORTS CARDS) ===
