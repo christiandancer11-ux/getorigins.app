@@ -232,7 +232,7 @@ export default function Landing() {
               {
                 icon: Shield,
                 headline: 'Set a target. Get paid when the market hits it.',
-                body: 'Price Alerts notify you the moment a card you're watching hits your buy-below or sell-above threshold.',
+                body: "Price Alerts notify you the moment a card you're watching hits your buy-below or sell-above threshold.",
                 tag: 'Price Alerts',
                 pro: true,
               },
