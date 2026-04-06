@@ -1,19 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const CATEGORY_MAP = {
-  football:    { sport: 'football',  label: 'Football Cards' },
-  baseball:    { sport: 'baseball',  label: 'Baseball Cards' },
-  basketball:  { sport: 'basketball', label: 'Basketball Cards' },
-  soccer:      { sport: 'soccer',    label: 'Soccer Cards' },
-  hockey:      { sport: 'hockey',    label: 'Hockey Cards' },
-  golf:        { sport: 'golf',      label: 'Golf Cards' },
-  ufc:         { sport: 'ufc',       label: 'UFC Cards' },
-  wwe:         { sport: 'wwe',       label: 'WWE Cards' },
-  f1:          { sport: 'f1',        label: 'F1 Cards' },
-  pokemon:     { sport: 'pokemon',   label: 'Pokémon Cards' },
-  one_piece:   { sport: 'one_piece', label: 'One Piece Cards' },
-  mtg:         { sport: 'magic_the_gathering', label: 'Magic: The Gathering Cards' },
-  yugioh:      { sport: 'yugioh',   label: 'Yu-Gi-Oh! Cards' },
+  football:         { sport: 'football',  label: 'Football Cards' },
+  baseball:         { sport: 'baseball',  label: 'Baseball Cards' },
+  basketball:       { sport: 'basketball', label: 'Basketball Cards' },
+  soccer:           { sport: 'soccer',    label: 'Soccer Cards' },
+  hockey:           { sport: 'hockey',    label: 'Hockey Cards' },
+  golf:             { sport: 'golf',      label: 'Golf Cards' },
+  ufc:              { sport: 'ufc',       label: 'UFC Cards' },
+  wwe:              { sport: 'wwe',       label: 'WWE Cards' },
+  f1:               { sport: 'f1',        label: 'F1 Cards' },
+  ncaa_football:    { sport: 'football',  label: 'NCAA Football Cards' },
+  ncaa_basketball:  { sport: 'basketball', label: 'NCAA Basketball Cards' },
+  ncaa_baseball:    { sport: 'baseball',  label: 'NCAA Baseball Cards' },
+  pokemon:          { sport: 'pokemon',   label: 'Pokémon Cards' },
+  one_piece:        { sport: 'one_piece', label: 'One Piece Cards' },
+  mtg:              { sport: 'magic_the_gathering', label: 'Magic: The Gathering Cards' },
+  yugioh:           { sport: 'yugioh',    label: 'Yu-Gi-Oh! Cards' },
 };
 
 // In-memory cache: key -> { data, expires }
