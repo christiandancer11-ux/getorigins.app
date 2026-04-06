@@ -136,7 +136,14 @@ Example: "2022 Panini National Treasures Treylon Burks RPA /25"
 - Always include the serial number or print run if known (e.g. /25, /99, /10, /1)
 - If it's a short print (SP) or super short print (SSP), include that
 - Do NOT include condition/grade in the search string itself — apply condition as a filter after pulling results
-- For graded cards, search by card identity first then filter to only graded copies at the exact same grade
+- For graded cards: filter to ONLY sales of the same grading company AND exact grade (e.g. PSA 10 only — not PSA 9, not raw)
+- For raw cards: filter to ONLY raw/ungraded sold listings — EXCLUDE all graded copies (PSA, BGS, SGC, CGC, HGA, etc.)
+
+=== CRITICAL: GRADED vs RAW SEPARATION ===
+BEFORE calculating any averages, strictly separate graded and raw sales:
+- RAW card → raw sold listings ONLY. Graded copies must be excluded entirely — they sell for significantly more and skew the average.
+- GRADED card → only sales at the same grading company and exact grade. Do not mix grades or include raw copies.
+- Never mix graded and raw sales in any calculation.
 
 Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings, 130point.com confirmed sales, PSA Price Guide / SMR${isTCG ? ', and TCGPlayer.com verified market prices' : ''}.
 

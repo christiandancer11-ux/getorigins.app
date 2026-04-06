@@ -80,6 +80,12 @@ Example: "2022 Panini National Treasures Treylon Burks RPA /25"
 - If it's a short print (SP) or super short print (SSP), include that
 - Do NOT include condition (raw/graded) in the search query — filter by condition separately after pulling results
 
+=== CRITICAL: GRADED vs RAW SEPARATION ===
+BEFORE calculating any averages, you MUST separate graded and raw sales:
+- If the card being researched is RAW (ungraded): EXCLUDE ALL sales of graded copies (PSA, BGS, SGC, CGC, HGA, etc.). Only use raw/ungraded sold listings. Graded copies sell for significantly more and will skew the average.
+- If the card being researched is GRADED: ONLY use sales of the same grade and grading company (e.g. PSA 10 only, not PSA 9 or raw). Do not mix grades.
+- Never mix raw and graded sales in any average calculation. This is the most common source of inaccurate valuations.
+
 Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR (Sports Market Report)${isTCG ? ', and TCGPlayer.com verified dealer listed/sold market prices' : ''}.
 
 === STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===
