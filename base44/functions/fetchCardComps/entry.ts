@@ -1,7 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createHash } from 'node:crypto';
 
-// In-memory rate limit store: key -> { count, windowStart }
+// In-memory caches
 const rateLimitStore = new Map();
+const compsCache = new Map();
 function checkRateLimit(key, maxRequests, windowMs) {
   const now = Date.now();
   const entry = rateLimitStore.get(key);
@@ -31,6 +33,17 @@ Deno.serve(async (req) => {
 
     const { card_name, set_name, year, card_number, condition, sport, is_raw, grading_company, grade } = await req.json();
     if (!card_name) return Response.json({ error: 'card_name is required' }, { status: 400 });
+
+    // Check cache
+    const cacheKey = createHash('md5').update(card_name + (set_name || '') + (year || '') + (grading_company || '') + (grade || '')).digest('hex');
+    const now = Date.now();
+    if (compsCache.has(cacheKey)) {
+      const cached = compsCache.get(cacheKey);
+      if (now - cached.timestamp < 6 * 60 * 60 * 1000) { // 6h cache
+        console.log('Cache hit for card comps');
+        return Response.json(cached.data);
+      }
+    }
 
     // Input length validation
     if (card_name.length > 200) return Response.json({ error: 'Search query is too long.' }, { status: 400 });
@@ -64,9 +77,9 @@ Deno.serve(async (req) => {
     const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece', 'lorcana', 'digimon', 'flesh_and_blood'].includes(sport) ||
       /pokemon|charizard|pikachu|eevee|mewtwo|magic|yugioh|yu-gi-oh|mtg|blue-eyes|dark magician|lorcana|one piece|digimon|flesh and blood|dragon ball super|naruto|weiss|cardfight|vanguard/i.test(query);
 
-    const now = new Date();
-    const cutoffISO = new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString();
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const nowDate = new Date();
+    const cutoffISO = new Date(nowDate.getTime() - 12 * 60 * 60 * 1000).toISOString();
+    const yesterday = new Date(nowDate.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     // Fetch relevant CardKnowledge for context
     let cardKnowledgeContext = '';
@@ -281,7 +294,9 @@ Use real data only. If a source has no qualifying data, return null for its fiel
       },
     });
 
-    console.log('Comp result for:', query, JSON.stringify(result));
+    console.log('Comp result for:', query);
+    const cacheTm = Date.now();
+    compsCache.set(cacheKey, { data: result, timestamp: cacheTm });
     return Response.json(result);
   } catch (error) {
     console.error('fetchCardComps error:', error.message);

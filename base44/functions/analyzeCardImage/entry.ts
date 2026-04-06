@@ -1,7 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createHash } from 'node:crypto';
 
-// In-memory rate limit store
+// In-memory caches
 const rateLimitStore = new Map();
+const imageAnalysisCache = new Map(); // Cache by image hash
+const popReportCache = new Map();
 function checkRateLimit(key, maxRequests, windowMs) {
   const now = Date.now();
   const entry = rateLimitStore.get(key);
@@ -31,6 +34,17 @@ Deno.serve(async (req) => {
 
     const { image_url, back_image_url, is_raw, grading_company, grade } = await req.json();
     if (!image_url) return Response.json({ error: 'image_url required' }, { status: 400 });
+
+    // Check cache by image URL hash
+    const cacheKey = createHash('md5').update(image_url + (back_image_url || '')).digest('hex');
+    const now = Date.now();
+    if (imageAnalysisCache.has(cacheKey)) {
+      const cached = imageAnalysisCache.get(cacheKey);
+      if (now - cached.timestamp < 24 * 60 * 60 * 1000) { // 24h cache
+        console.log('Cache hit for card analysis');
+        return Response.json(cached.data);
+      }
+    }
 
     // Validate URLs are strings and not absurdly long
     if (typeof image_url !== 'string' || image_url.length > 2000) return Response.json({ error: 'Invalid image URL.' }, { status: 400 });
@@ -101,9 +115,14 @@ Be as specific as possible. For graded slabs, extract ALL label information care
     const isRookie = identification.is_rookie_card === true;
     const rookieSuffix = isRookie ? 'RC' : (identification.is_rookie_card === null ? '' : '');
 
-    // Step 2: Fetch pop report if graded
+    // Step 2: Fetch pop report if graded (in parallel with market data)
     let popReport = null;
-    if (isGraded) {
+    const popPromise = isGraded ? (async () => {
+      const popKey = `${identification.card_name}__${identification.grading_company}__${identification.grade}`;
+      if (popReportCache.has(popKey)) {
+        const cached = popReportCache.get(popKey);
+        if (now - cached.timestamp < 7 * 24 * 60 * 60 * 1000) return cached.data; // 7d cache
+      }
       try {
         const popData = await base44.integrations.Core.InvokeLLM({
           prompt: `You are a trading card grading expert. Look up the current population report for:
@@ -135,13 +154,14 @@ Return a JSON object:
             },
           },
         });
-        popReport = popData.summary || null;
-        identification.pop_report = popReport;
-        console.log('Pop report fetched:', popReport);
+        popReportCache.set(popKey, { data: popData.summary || null, timestamp: now });
+        console.log('Pop report fetched:', popData.summary);
+        return popData.summary || null;
       } catch (e) {
         console.warn('Could not fetch pop report:', e.message);
+        return null;
       }
-    }
+    })() : Promise.resolve(null);
 
     // Step 3: Pull market data
     // Use override if provided by user (pre-scan modal), otherwise use AI detection
@@ -175,8 +195,8 @@ Return a JSON object:
 
     const popContext = popReport ? `\nPop Report: ${popReport}` : '';
 
-    const now = new Date();
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const nowDate = new Date();
+    const yesterday = new Date(nowDate.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'other'].includes(identification.sport) ||
       /pokemon|charizard|pikachu|eevee|mewtwo|magic|yugioh|yu-gi-oh|mtg|blue-eyes|dark magician|lorcana|one piece|digimon/i.test(query);
@@ -308,11 +328,14 @@ Return a JSON object with:
 
     const saleItemSchema = { type: 'object', properties: { date: { type: 'string' }, price: { type: 'number' }, condition: { type: 'string' }, title: { type: 'string' }, source: { type: 'string' } } };
 
-    const marketData = await base44.integrations.Core.InvokeLLM({
-      prompt: marketPrompt,
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-      response_json_schema: {
+    // Execute market data fetch and pop report in parallel
+    const [popResult, marketData] = await Promise.all([
+      popPromise,
+      base44.integrations.Core.InvokeLLM({
+        prompt: marketPrompt,
+        add_context_from_internet: true,
+        model: 'gemini_3_flash',
+        response_json_schema: {
         type: 'object',
         properties: {
           ebay_low: { type: 'number' },
@@ -337,17 +360,27 @@ Return a JSON object with:
           market_summary: { type: 'string' },
           search_query_used: { type: 'string' },
         },
-      },
-    });
+        },
+      })
+    ]);
+    
+    popReport = popResult;
+    if (popReport) identification.pop_report = popReport;
 
     console.log('Market data fetched for:', query);
 
-    return Response.json({
+    const result = {
       identification,
       market: marketData,
       internal_trades: internalTrades.slice(0, 10),
       collection_count: collectionCards.length,
-    });
+    };
+
+    // Cache the full result
+    const cacheTimestamp = Date.now();
+    imageAnalysisCache.set(cacheKey, { data: result, timestamp: cacheTimestamp });
+
+    return Response.json(result);
 
   } catch (error) {
     console.error('analyzeCardImage error:', error.message);

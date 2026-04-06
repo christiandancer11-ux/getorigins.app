@@ -1,4 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createHash } from 'node:crypto';
+
+// In-memory cache for grading analysis
+const gradingCache = new Map();
 
 Deno.serve(async (req) => {
   try {
@@ -13,6 +17,19 @@ Deno.serve(async (req) => {
 
     if (!imageUrls || imageUrls.length === 0) {
       return Response.json({ error: 'No images provided' }, { status: 400 });
+    }
+
+    // Check cache (except final step which is aggregation)
+    if (step !== 'final') {
+      const cacheKey = createHash('md5').update(imageUrls.join('|') + '_' + step).digest('hex');
+      const now = Date.now();
+      if (gradingCache.has(cacheKey)) {
+        const cached = gradingCache.get(cacheKey);
+        if (now - cached.timestamp < 7 * 24 * 60 * 60 * 1000) { // 7d cache
+          console.log('Cache hit for grading step:', step);
+          return Response.json(cached.data);
+        }
+      }
     }
 
     let prompt = '';
@@ -130,7 +147,15 @@ Respond in JSON with:
       prompt,
       file_urls: step === 'final' ? [] : imageUrls,
       response_json_schema: { type: 'object' },
+      model: 'gemini_3_flash', // Use fast model
     });
+
+    // Cache result (except final step)
+    if (step !== 'final') {
+      const cacheKey = createHash('md5').update(imageUrls.join('|') + '_' + step).digest('hex');
+      const cacheTime = Date.now();
+      gradingCache.set(cacheKey, { data: { result }, timestamp: cacheTime });
+    }
 
     return Response.json({ result });
   } catch (error) {

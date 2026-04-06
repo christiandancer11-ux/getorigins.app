@@ -18,7 +18,7 @@ const CATEGORY_MAP = {
 
 // In-memory cache: key -> { data, expires }
 const boxCache = new Map();
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours (extended for performance)
 
 Deno.serve(async (req) => {
   try {
