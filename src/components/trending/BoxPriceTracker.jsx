@@ -150,18 +150,25 @@ export default function BoxPriceTracker({ category }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = async (signal) => {
     setLoading(true);
     setData(null);
-    const res = await base44.functions.invoke('fetchBoxPrices', { category });
-    if (res.data && !res.data.error) {
-      setData(res.data);
+    try {
+      const res = await base44.functions.invoke('fetchBoxPrices', { category }, { signal });
+      if (res.data && !res.data.error) {
+        setData(res.data);
+      }
+    } catch (e) {
+      if (e?.code === 'ERR_CANCELED' || e?.name === 'AbortError' || e?.message === 'Request aborted') return;
+      throw e;
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
   }, [category]);
 
   // Sort: upcoming/presale first, then by release date descending (newest first)
@@ -190,7 +197,7 @@ export default function BoxPriceTracker({ category }) {
           </div>
         </div>
         {!loading && data && (
-          <button onClick={fetchData} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => fetchData()} className="text-muted-foreground hover:text-foreground transition-colors">
             <RefreshCw className="w-4 h-4" />
           </button>
         )}
