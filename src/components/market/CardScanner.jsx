@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Camera, Upload, Loader2, RotateCcw, TrendingUp, ShoppingCart, Handshake, Star, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Plus, X, Award, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SoldListingsTable from './SoldListingsTable';
+import CardConditionModal from '@/components/scan/CardConditionModal';
 
-const STEP = { IDLE: 'idle', UPLOADING: 'uploading', ANALYZING: 'analyzing', NEED_BACK: 'need_back', UPLOADING_BACK: 'uploading_back', DONE: 'done', ERROR: 'error' };
+const STEP = { IDLE: 'idle', CONDITION: 'condition', UPLOADING: 'uploading', ANALYZING: 'analyzing', NEED_BACK: 'need_back', UPLOADING_BACK: 'uploading_back', DONE: 'done', ERROR: 'error' };
 
 export default function CardScanner() {
   const [step, setStep] = useState(STEP.IDLE);
@@ -14,15 +15,21 @@ export default function CardScanner() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [showListings, setShowListings] = useState(false);
+  const [cardCondition, setCardCondition] = useState(null);
   const frontCamRef = useRef();
   const frontGalleryRef = useRef();
   const backCamRef = useRef();
   const backGalleryRef = useRef();
 
-  const analyzeCard = async (front, back) => {
+  const analyzeCard = async (front, back, condition) => {
     setStep(STEP.ANALYZING);
     const payload = { image_url: front };
     if (back) payload.back_image_url = back;
+    if (condition) {
+      payload.is_raw = condition.is_raw;
+      payload.grading_company = condition.grading_company;
+      payload.grade = condition.grade;
+    }
     const res = await base44.functions.invoke('analyzeCardImage', payload);
     if (res.data?.error) {
       setError(res.data.error);
@@ -38,6 +45,11 @@ export default function CardScanner() {
     }
   };
 
+  const handleConditionSubmit = (condition) => {
+    setCardCondition(condition);
+    analyzeCard(frontUrl, null, condition);
+  };
+
   const handleFrontFile = async (file) => {
     if (!file) return;
     setStep(STEP.UPLOADING);
@@ -45,7 +57,7 @@ export default function CardScanner() {
     setResult(null);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setFrontUrl(file_url);
-    await analyzeCard(file_url, null);
+    setStep(STEP.CONDITION);
   };
 
   const handleBackFile = async (file) => {
@@ -53,7 +65,7 @@ export default function CardScanner() {
     setStep(STEP.UPLOADING_BACK);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setBackUrl(file_url);
-    await analyzeCard(frontUrl, file_url);
+    await analyzeCard(frontUrl, file_url, cardCondition);
   };
 
   const reset = () => {
@@ -72,8 +84,16 @@ export default function CardScanner() {
   return (
     <div className="space-y-6">
 
+      {/* CONDITION — select raw vs graded */}
+       {step === STEP.CONDITION && (
+         <CardConditionModal 
+           onSubmit={handleConditionSubmit}
+           onCancel={() => { setStep(STEP.IDLE); setFrontUrl(null); }}
+         />
+       )}
+
       {/* IDLE — upload front */}
-      {step === STEP.IDLE && (
+       {step === STEP.IDLE && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <div
             onClick={() => frontGalleryRef.current?.click()}

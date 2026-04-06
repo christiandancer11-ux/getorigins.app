@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Too many requests. Please wait ${rl.retryAfterSec} seconds before searching again.` }, { status: 429 });
     }
 
-    const { card_name, set_name, year, card_number, condition, sport } = await req.json();
+    const { card_name, set_name, year, card_number, condition, sport, is_raw, grading_company, grade } = await req.json();
     if (!card_name) return Response.json({ error: 'card_name is required' }, { status: 400 });
 
     // Input length validation
@@ -37,6 +37,8 @@ Deno.serve(async (req) => {
     if (set_name && set_name.length > 200) return Response.json({ error: 'Set name is too long.' }, { status: 400 });
     if (year && (year.length > 4 || !/^\d{4}$/.test(year))) return Response.json({ error: 'Invalid year.' }, { status: 400 });
 
+    const isRawOverride = is_raw === true;
+    const isGradedOverride = is_raw === false && grading_company && grade;
     const condLabel = condition && condition !== 'raw' ? condition.toUpperCase().replace(/_/g, ' ') : '';
     const query = [year, set_name, card_name, card_number, condLabel].filter(Boolean).join(' ').trim();
 
@@ -88,6 +90,8 @@ Deno.serve(async (req) => {
     const prompt = `You are a sports card & TCG market research assistant. Research recent SOLD prices for:
 
 Card: ${query}${cardKnowledgeContext}
+${isRawOverride ? `Card Condition: RAW (ungraded) — CRITICAL: You MUST ONLY search for and include UNGRADED/RAW card sales. Do NOT include any graded (PSA, BGS, SGC, CGC, HGA) sales in your results. Graded and raw cards sell for very different prices. Separate strictly.` : ''}
+${isGradedOverride ? `Card Condition: GRADED — You MUST ONLY search for and include sales of ${grading_company.toUpperCase()} ${grade} cards. Do NOT include other grades or raw sales. Only ${grading_company.toUpperCase()} ${grade} comps are valid.` : ''}
 ${internalTradeContext}
 
 === SEARCH QUERY FORMAT (SPORTS CARDS) ===

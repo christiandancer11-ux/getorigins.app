@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Upload, Loader2, X, Camera, Sparkles, CheckCircle2, AlertCircle, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import CardConditionModal from '@/components/scan/CardConditionModal';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +18,7 @@ function generateCode() {
 
 const STAGE = {
   UPLOAD: 'upload',
+  CONDITION: 'condition',
   UPLOADING: 'uploading',
   ANALYZING: 'analyzing',
   GRADING_CHOICE: 'grading_choice',
@@ -40,6 +42,7 @@ export default function RegisterCard() {
   const [uploadingBack, setUploadingBack] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [error, setError] = useState(null);
+  const [cardCondition, setCardCondition] = useState(null);
 
   const frontCamRef = useRef();
   const frontGalleryRef = useRef();
@@ -66,12 +69,23 @@ export default function RegisterCard() {
     return file_url;
   };
 
-  const handleAnalyze = async (front, back) => {
-    if (!front) return;
+  const handleConditionSubmit = (condition) => {
+    setCardCondition(condition);
     setStage(STAGE.ANALYZING);
+    handleAnalyze(frontUrl, backUrl, condition);
+  };
+
+  const handleAnalyze = async (front, back, condition) => {
+    if (!front) return;
     setError(null);
 
-    const res = await base44.functions.invoke('registerCardAI', { front_url: front, back_url: back || undefined });
+    const res = await base44.functions.invoke('registerCardAI', { 
+      front_url: front, 
+      back_url: back || undefined,
+      is_raw: condition.is_raw,
+      grading_company: condition.grading_company,
+      grade: condition.grade,
+    });
 
     if (res.data?.error || res.data?.validation_failed) {
       setError(res.data.error || 'Could not identify card. Please try a clearer photo.');
@@ -211,18 +225,26 @@ export default function RegisterCard() {
                 </div>
 
                 <Button
-                  onClick={() => handleAnalyze(frontUrl, backUrl)}
-                  disabled={!frontUrl || uploadingFront || uploadingBack}
-                  className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Identify Card with AI
-                </Button>
+                   onClick={() => setStage(STAGE.CONDITION)}
+                   disabled={!frontUrl || uploadingFront || uploadingBack}
+                   className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+                 >
+                   <Sparkles className="w-4 h-4" />
+                   Identify Card with AI
+                 </Button>
               </motion.div>
             )}
 
+            {/* STAGE: CONDITION */}
+             {stage === STAGE.CONDITION && (
+               <CardConditionModal 
+                 onSubmit={handleConditionSubmit}
+                 onCancel={() => setStage(STAGE.UPLOAD)}
+               />
+             )}
+
             {/* STAGE: ANALYZING / UPLOADING / SAVING */}
-            {(stage === STAGE.UPLOADING || stage === STAGE.ANALYZING || stage === STAGE.SAVING) && (
+             {(stage === STAGE.UPLOADING || stage === STAGE.ANALYZING || stage === STAGE.SAVING) && (
               <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-16">
                 <div className="flex gap-3">
                   {frontUrl && <div className="w-20 h-28 rounded-xl overflow-hidden border-2 border-primary/30 shadow-lg"><img src={frontUrl} alt="front" className="w-full h-full object-cover" /></div>}

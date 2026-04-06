@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Too many scans. Please wait ${rl.retryAfterSec} seconds before scanning again.` }, { status: 429 });
     }
 
-    const { image_url, back_image_url } = await req.json();
+    const { image_url, back_image_url, is_raw, grading_company, grade } = await req.json();
     if (!image_url) return Response.json({ error: 'image_url required' }, { status: 400 });
 
     // Validate URLs are strings and not absurdly long
@@ -144,8 +144,11 @@ Return a JSON object:
     }
 
     // Step 3: Pull market data
-    const gradedLabel = isGraded ? `${identification.grading_company} ${identification.grade}` : '';
-    const query = [identification.year, identification.card_name, identification.set_name, identification.card_number, rookieSuffix, gradedLabel]
+    // Use override if provided by user (pre-scan modal), otherwise use AI detection
+    const finalGradedLabel = (is_raw === false && grading_company && grade) 
+      ? `${grading_company} ${grade}`
+      : (isGraded ? `${identification.grading_company} ${identification.grade}` : '');
+    const query = [identification.year, identification.card_name, identification.set_name, identification.card_number, rookieSuffix, finalGradedLabel]
       .filter(Boolean).join(' ').trim();
 
     let internalTrades = [];
@@ -204,11 +207,15 @@ Return a JSON object:
       console.warn('Could not fetch card knowledge:', e.message);
     }
 
+    const isRawOverride = is_raw === true;
+    const isGradedOverride = is_raw === false && grading_company && grade;
+
     const marketPrompt = `You are a sports card & TCG market analyst. Research current market value for:
 
 Card: ${query}${cardKnowledgeContext}
-Visual condition: ${identification.condition_estimate || 'Unknown'}
-${isGraded ? `Graded: ${identification.grading_company} ${identification.grade}${popContext}` : ''}
+${isRawOverride ? `Card Condition: RAW (ungraded) — CRITICAL: You MUST ONLY search for and include UNGRADED/RAW card sales. Do NOT include any graded (PSA, BGS, SGC, CGC, HGA) sales in your results. Graded and raw cards sell for very different prices. Separate strictly.` : ''}
+${isGradedOverride ? `Card Condition: GRADED — You MUST ONLY search for and include sales of ${grading_company.toUpperCase()} ${grade} cards. Do NOT include other grades or raw sales. Only ${grading_company.toUpperCase()} ${grade} comps are valid.` : `${!isRawOverride && !isGradedOverride ? `Visual condition: ${identification.condition_estimate || 'Unknown'}` : ''}`}
+${isGraded && !gradedOverride ? `Graded: ${identification.grading_company} ${identification.grade}${popContext}` : ''}
 Notable attributes: ${(identification.visible_attributes || []).join(', ') || 'None noted'}
 ${isRookie ? `Rookie Card: YES — an RC/Rated Rookie/Freshman/rookie emblem was detected on this card. You MUST include "RC" in the search query and ONLY return sold listings for the ROOKIE version of this card. Do NOT include veteran base cards, non-rookie parallels, or reprints in the results.` : identification.is_rookie_card === null ? `Rookie Card: UNKNOWN — if unsure, search with and without "RC" and note which comps are rookie vs non-rookie versions. Prefer comps from the same production year (${identification.year || 'unknown'}).` : `Rookie Card: NO — this is NOT a rookie card. Do NOT include rookie card sales in the comps.`}
 Production Year: ${identification.year || 'Unknown'} — ONLY include sold listings for cards from this exact production year. Any sold listing for a card with a different year printed on it (e.g. a reprint, a different year's base card, or a different release) must be EXCLUDED from all averages and listings.
