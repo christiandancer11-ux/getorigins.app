@@ -12,13 +12,16 @@ const CATEGORY_MAP = {
   yugioh:      { sport: 'yugioh',   label: 'Yu-Gi-Oh! Cards' },
 };
 
+// In-memory cache: key -> { data, expires }
+const trendingCache = new Map();
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Verify expert subscription
     const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
     const isAdmin = user.role === 'admin';
     const activeSub = subs.find(s => s.status === 'active');
@@ -26,13 +29,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Pro subscription required' }, { status: 403 });
     }
 
-    const { category, limit = 25, viewMode = 'hottest' } = await req.json();
+    const { category, limit = 15, viewMode = 'hottest' } = await req.json();
     if (!CATEGORY_MAP[category]) {
       return Response.json({ error: 'Invalid category' }, { status: 400 });
     }
 
-    const cardCount = Math.min(Math.max(parseInt(limit) || 25, 25), 100);
+    const cardCount = Math.min(Math.max(parseInt(limit) || 15, 10), 100);
     const { sport, label } = CATEGORY_MAP[category];
+
+    // Check cache first
+    const cacheKey = `${category}__${viewMode}__${cardCount}`;
+    const cached = trendingCache.get(cacheKey);
+    if (cached && Date.now() < cached.expires) {
+      console.log('Cache hit:', cacheKey);
+      return Response.json(cached.data);
+    }
 
     // Pull Origins card show trades for this sport
     const allTrades = await base44.asServiceRole.entities.CardTrade.filter({ sport });
@@ -112,7 +123,7 @@ For this TCG category, you MUST factor in the following when determining card ra
    - Cards that are only collectible (high art, alt art, full art) but not competitively played may have different value drivers.
    - Grade/condition matters differently for TCG: PSA 10 holo/alt-art cards of competitive staples command extreme premiums.
 
-   5. TCGPLAYER VERIFIED SALES DATA (REQUIRED for all TCG cards)
+6. TCGPLAYER VERIFIED SALES DATA (REQUIRED for all TCG cards)
    - For every TCG card, look up TCGPlayer.com to get: Market Price (weighted avg of verified dealer sales), Low Price (lowest current verified listing), and recent sales history.
    - Use TCGPlayer Market Price as the PRIMARY price benchmark for estimated_value_avg for TCG cards — it reflects actual verified transactions, not just asking prices.
    - If TCGPlayer Market Price differs significantly from eBay comps, factor both in and use the median of the two as estimated_value_avg.
@@ -137,8 +148,8 @@ When sourcing eBay, TCGPlayer, CardMarket, or external market prices for estimat
 
 Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number — use TCGPlayer Market Price as primary source for TCG cards), heat_score (1-100), why_hot (one sentence explaining why it ranks here — for TCG cards mention tournament staple status, meta relevance, and TCGPlayer Market Price), trend (up/down/stable).`;
 
-    // Batch by 10 to avoid LLM JSON truncation with internet search
-    const BATCH_SIZE = 10;
+    // Single batch for default 15 cards, split into 2 for larger requests
+    const BATCH_SIZE = 15;
     const batches = [];
     for (let start = 1; start <= cardCount; start += BATCH_SIZE) {
       const end = Math.min(start + BATCH_SIZE - 1, cardCount);
@@ -159,13 +170,18 @@ Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria
     const allCards = batchResults.flatMap(r => r.cards || []);
     const categorySummary = batchResults[0]?.category_summary || '';
 
-    return Response.json({
+    const responseData = {
       category,
       label,
       cards: allCards,
       category_summary: categorySummary,
       generated_at: new Date().toISOString(),
-    });
+    };
+
+    // Cache the result
+    trendingCache.set(cacheKey, { data: responseData, expires: Date.now() + CACHE_TTL_MS });
+
+    return Response.json(responseData);
 
   } catch (error) {
     console.error('fetchTrending error:', error.message);

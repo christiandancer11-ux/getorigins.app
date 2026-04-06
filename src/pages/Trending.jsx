@@ -40,7 +40,7 @@ export default function Trending() {
     const key = `${categoryId}__${viewMode}`;
     if (trendingData[key]) return;
     setLoadingCategory(key);
-    const res = await base44.functions.invoke('fetchTrending', { category: categoryId, viewMode });
+    const res = await base44.functions.invoke('fetchTrending', { category: categoryId, viewMode, limit: 15 });
     if (res.data && !res.data.error) {
       setTrendingData(prev => ({ ...prev, [key]: res.data }));
     }
@@ -206,7 +206,7 @@ export default function Trending() {
             </div>
             <div>
               <p className="font-semibold text-foreground">{VIEW_MODES.find(m => m.id === selectedViewMode)?.desc} · {currentCategory?.label}</p>
-              <p className="text-sm text-muted-foreground mt-1">Analyzing eBay, 130point & Origins trades</p>
+              <p className="text-sm text-muted-foreground mt-1">Scanning eBay, 130point & Origins trades…</p>
             </div>
           </motion.div>
         ) : currentData ? (
@@ -235,7 +235,7 @@ export default function Trending() {
             </div>
 
             {/* Load More */}
-            {currentVisible < 100 && currentData.cards?.length >= 25 && (
+            {currentVisible < 100 && currentData.cards?.length >= 15 && (
               <div className="flex justify-center mt-5">
                 <Button
                   variant="outline"
