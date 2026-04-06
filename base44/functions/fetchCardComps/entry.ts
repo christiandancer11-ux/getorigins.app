@@ -66,9 +66,28 @@ Deno.serve(async (req) => {
     const cutoffISO = new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+    // Fetch relevant CardKnowledge for context
+    let cardKnowledgeContext = '';
+    try {
+      const knowledge = await base44.asServiceRole.entities.CardKnowledge.filter(
+        { card_name },
+        '-updated_date',
+        5
+      );
+      if (knowledge.length > 0) {
+        const k = knowledge[0];
+        const parallels = k.parallels?.map(p => `${p.name}${p.serial_number ? ' ' + p.serial_number : ''}`).join(', ') || '';
+        const shorts = k.short_prints?.map(s => s.designation).join(', ') || '';
+        const markers = k.key_visual_markers?.join(', ') || '';
+        cardKnowledgeContext = `\n\nCARD KNOWLEDGE CONTEXT:\nCommon Parallels: ${parallels || 'None documented'}\nShort Prints: ${shorts || 'None documented'}\nHow to Identify: ${markers || 'Standard design'}\nProduction Info: ${k.production_notes || ''}`;
+      }
+    } catch (e) {
+      console.warn('Could not fetch card knowledge:', e.message);
+    }
+
     const prompt = `You are a sports card & TCG market research assistant. Research recent SOLD prices for:
 
-Card: ${query}
+Card: ${query}${cardKnowledgeContext}
 ${internalTradeContext}
 
 === SEARCH QUERY FORMAT (SPORTS CARDS) ===

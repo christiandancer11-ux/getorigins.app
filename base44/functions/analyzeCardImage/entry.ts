@@ -185,9 +185,28 @@ Return a JSON object:
         ).join('\n')
       : '';
 
+    // Fetch relevant CardKnowledge for context
+    let cardKnowledgeContext = '';
+    try {
+      const knowledge = await base44.asServiceRole.entities.CardKnowledge.filter(
+        { card_name: identification.card_name },
+        '-updated_date',
+        5
+      );
+      if (knowledge.length > 0) {
+        const k = knowledge[0];
+        const parallels = k.parallels?.map(p => `${p.name} ${p.serial_number || ''}`).join(', ') || '';
+        const shorts = k.short_prints?.map(s => s.designation).join(', ') || '';
+        const markers = k.key_visual_markers?.join(', ') || '';
+        cardKnowledgeContext = `\n\nCARD KNOWLEDGE CONTEXT (from Origins AI database):\nParallels: ${parallels || 'None'}\nShort Prints: ${shorts || 'None'}\nVisual Markers: ${markers || 'None'}\nProduction Notes: ${k.production_notes || ''}`;
+      }
+    } catch (e) {
+      console.warn('Could not fetch card knowledge:', e.message);
+    }
+
     const marketPrompt = `You are a sports card & TCG market analyst. Research current market value for:
 
-Card: ${query}
+Card: ${query}${cardKnowledgeContext}
 Visual condition: ${identification.condition_estimate || 'Unknown'}
 ${isGraded ? `Graded: ${identification.grading_company} ${identification.grade}${popContext}` : ''}
 Notable attributes: ${(identification.visible_attributes || []).join(', ') || 'None noted'}
