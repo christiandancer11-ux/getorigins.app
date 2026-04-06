@@ -42,9 +42,15 @@ export default function Trending() {
     const key = `${categoryId}__${viewMode}`;
     if (trendingData[key]) return;
     setLoadingCategory(key);
-    const res = await base44.functions.invoke('fetchTrending', { category: categoryId, viewMode, limit: 15 });
-    if (res.data && !res.data.error) {
-      setTrendingData(prev => ({ ...prev, [key]: res.data }));
+    try {
+      const res = await base44.functions.invoke('fetchTrending', { category: categoryId, viewMode, limit: 15 });
+      if (res.data && !res.data.error) {
+        setTrendingData(prev => ({ ...prev, [key]: res.data }));
+      }
+    } catch (e) {
+      console.error('Failed to fetch trending:', e.message);
+      // Set empty data to show error state but prevent infinite loading
+      setTrendingData(prev => ({ ...prev, [key]: { cards: [], error: 'Failed to load trending data' } }));
     }
     setLoadingCategory(null);
   };
@@ -64,9 +70,13 @@ export default function Trending() {
     setTrendingData(prev => { const u = { ...prev }; delete u[cacheKey]; return u; });
     setVisibleCount(prev => ({ ...prev, [cacheKey]: 100 }));
     setLoadingCategory(cacheKey);
-    const res = await base44.functions.invoke('fetchTrending', { category: selectedCategory, viewMode: selectedViewMode, limit: 100 });
-    if (res.data && !res.data.error) {
-      setTrendingData(prev => ({ ...prev, [cacheKey]: res.data }));
+    try {
+      const res = await base44.functions.invoke('fetchTrending', { category: selectedCategory, viewMode: selectedViewMode, limit: 100 });
+      if (res.data && !res.data.error) {
+        setTrendingData(prev => ({ ...prev, [cacheKey]: res.data }));
+      }
+    } catch (e) {
+      console.error('Failed to load more:', e.message);
     }
     setLoadingCategory(null);
     setLoadingMore(false);
@@ -215,6 +225,13 @@ export default function Trending() {
               <p className="font-semibold text-foreground">{VIEW_MODES.find(m => m.id === selectedViewMode)?.desc} · {currentCategory?.label}</p>
               <p className="text-sm text-muted-foreground mt-1">Scanning eBay, 130point & Origins trades…</p>
             </div>
+          </motion.div>
+        ) : currentData?.error ? (
+          <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="flex flex-col items-center gap-4 py-12 text-center rounded-xl bg-destructive/5 border border-destructive/20 px-6">
+            <p className="font-semibold text-foreground">Failed to load data</p>
+            <p className="text-sm text-muted-foreground">Please try again or refresh the page.</p>
+            <Button variant="outline" onClick={handleRefresh} className="mt-2">Retry</Button>
           </motion.div>
         ) : currentData ? (
           <motion.div key={cacheKey} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
