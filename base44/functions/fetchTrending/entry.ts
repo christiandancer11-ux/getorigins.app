@@ -123,11 +123,13 @@ For this TCG category, you MUST factor in the following when determining card ra
    - Cards that are only collectible (high art, alt art, full art) but not competitively played may have different value drivers.
    - Grade/condition matters differently for TCG: PSA 10 holo/alt-art cards of competitive staples command extreme premiums.
 
-6. TCGPLAYER VERIFIED SALES DATA (REQUIRED for all TCG cards)
-   - For every TCG card, look up TCGPlayer.com to get: Market Price (weighted avg of verified dealer sales), Low Price (lowest current verified listing), and recent sales history.
-   - Use TCGPlayer Market Price as the PRIMARY price benchmark for estimated_value_avg for TCG cards — it reflects actual verified transactions, not just asking prices.
-   - If TCGPlayer Market Price differs significantly from eBay comps, factor both in and use the median of the two as estimated_value_avg.
-   - NM (Near Mint) is the baseline condition on TCGPlayer. Note if foil, alt-art, or first-edition versions carry a significant premium.
+6. TCGPLAYER VERIFIED SALES DATA — AUTHORITATIVE SOURCE (REQUIRED for all TCG cards)
+   - For EVERY TCG card, you MUST look up TCGPlayer.com Market Price. This is a NON-OPTIONAL step.
+   - TCGPlayer Market Price = weighted average of ACTUAL completed transactions from verified sellers. It is the single most reliable TCG price signal available.
+   - estimated_value_avg for any TCG card MUST be set to TCGPlayer Market Price (NM condition) as the primary value. DO NOT use eBay BIN listings, ask prices, or speculation as the primary source.
+   - Only deviate from TCGPlayer Market Price if: (a) the card does not exist on TCGPlayer, or (b) TCGPlayer Market Price is clearly stale (fewer than 5 recent sales in the last 30 days) — in which case use eBay confirmed sold average and note it.
+   - NM (Near Mint) is the baseline condition. If you are reporting a graded (PSA/BGS) copy, note the premium above TCGPlayer NM Market Price.
+   - Also report if the card has spiked or dropped recently vs its 30-day TCGPlayer average.
 ` : '';
 
     const buildPrompt = (startRank, endRank) =>

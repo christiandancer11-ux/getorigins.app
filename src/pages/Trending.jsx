@@ -10,6 +10,7 @@ import TrendingCardRow from '@/components/trending/TrendingCardRow';
 import TrendingCardDetailSheet from '@/components/trending/TrendingCardDetailSheet';
 import SetAlertModal from '@/components/alerts/SetAlertModal';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh.jsx';
+import BoxPriceTracker from '@/components/trending/BoxPriceTracker';
 
 const VIEW_MODES = [
   { id: 'hottest',      label: 'Hottest',        icon: Flame,       desc: 'Overall hottest cards right now' },
@@ -252,6 +253,9 @@ export default function Trending() {
             <p className="text-xs text-muted-foreground text-center mt-4">
               Data sourced from eBay sold listings, 130point.com, and Origins community trades.
             </p>
+
+            {/* Box Price Tracker */}
+            <BoxPriceTracker category={selectedCategory} />
           </motion.div>
         ) : null}
       </AnimatePresence>
