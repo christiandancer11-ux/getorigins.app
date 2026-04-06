@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Layers, BarChart2, History, Award, X } from 'lucide-react';
+import { Plus, Layers, BarChart2, History, Award, X, Store } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import CardGridItem from '../components/dashboard/CardGridItem';
 import CertLookupEntry from '../components/grading/CertLookupEntry';
@@ -14,6 +14,7 @@ import SoldTradedGrid from '../components/dashboard/SoldTradedGrid';
 import MarkSoldModal from '../components/dashboard/MarkSoldModal';
 import OwnershipRequests from '../components/dashboard/OwnershipRequests';
 import MarketPicksWidget from '../components/dashboard/MarketPicksWidget';
+import ListToStoreModal from '../components/dashboard/ListToStoreModal';
 import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
 import { useSubscription } from '../hooks/useSubscription';
 
@@ -27,14 +28,16 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('collection');
   const [markSoldCard, setMarkSoldCard] = useState(null);
   const [showCertLookup, setShowCertLookup] = useState(false);
+  const [showListToStore, setShowListToStore] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
   const [signals, setSignals] = useState({}); // cardId -> { signal, reason }
   const [signalsLoading, setSignalsLoading] = useState(false);
   const queryClient = useQueryClient();
   const { isPro } = useSubscription();
 
   useEffect(() => {
-    base44.auth.me().then(u => { if (u?.email) setCurrentUserEmail(u.email); }).catch(() => {});
+    base44.auth.me().then(u => { if (u?.email) { setCurrentUserEmail(u.email); setCurrentUser(u); } }).catch(() => {});
   }, []);
 
   const { data: allCards = [], isLoading } = useQuery({
@@ -142,6 +145,17 @@ export default function Dashboard() {
             >
               <Award className="w-3.5 h-3.5 text-amber-400" />Cert Lookup
             </Button>
+            {currentUser && ['ebay_store', 'fanatics_live', 'whatnot'].some(k => currentUser[k]) && ownedCards.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setShowListToStore(true)}
+                className="border-border/50 gap-1.5 text-xs sm:text-sm flex-1 sm:flex-none border-primary/30 text-primary hover:bg-primary/10"
+                size="sm"
+                title="List cards to your linked store"
+              >
+                <Store className="w-3.5 h-3.5" />List to Store
+              </Button>
+            )}
             <Link to="/register" className="flex-1 sm:flex-none">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full gap-1.5 text-xs sm:text-sm" size="sm">
                 <Plus className="w-3.5 h-3.5" />Add Card
@@ -277,6 +291,14 @@ export default function Dashboard() {
           card={markSoldCard}
           onClose={() => setMarkSoldCard(null)}
           onDone={refresh}
+        />
+      )}
+
+      {showListToStore && currentUser && (
+        <ListToStoreModal
+          cards={ownedCards}
+          user={currentUser}
+          onClose={() => setShowListToStore(false)}
         />
       )}
     </div>
