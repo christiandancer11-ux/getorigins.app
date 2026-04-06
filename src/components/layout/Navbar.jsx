@@ -1,34 +1,39 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, PieChart, ShieldAlert, Shield, FileText, Repeat2, Rss, Users, ScanSearch, Calculator } from 'lucide-react';
+import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, ShieldAlert, Repeat2, Rss, Users, ScanSearch, Calculator, MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
   // Core
-  { to: '/dashboard', icon: Layers, label: 'My Cards', category: 'core' },
-  { to: '/register', icon: Plus, label: 'Add Card', category: 'core' },
+  { to: '/dashboard', icon: Layers, label: 'My Cards', desc: 'Your card collection', category: 'core' },
   // Social
-  { to: '/feed', icon: Rss, label: 'Feed', category: 'social' },
-  { to: '/users', icon: Users, label: 'Collectors', category: 'social' },
+  { to: '/feed', icon: Rss, label: 'Feed', desc: 'Community activity', category: 'social' },
+  { to: '/users', icon: Users, label: 'Collectors', desc: 'Find other collectors', category: 'social' },
   // Tools
-  { to: '/market', icon: TrendingUp, label: 'Market', category: 'tools' },
-  { to: '/flipper', icon: Repeat2, label: 'Flipper', category: 'tools' },
-  { to: '/ai-grading', icon: ScanSearch, label: 'AI Grading', category: 'tools' },
-  { to: '/bulk-calculator', icon: Calculator, label: 'Deal Calc', category: 'tools' },
-  { to: '/card-show', icon: Handshake, label: 'Trades', category: 'tools' },
-  { to: '/trending', icon: Flame, label: 'Trending', category: 'tools' },
+  { to: '/market', icon: TrendingUp, label: 'Market Lookup', desc: 'Check card prices', category: 'tools' },
+  { to: '/trending', icon: Flame, label: 'Trending', desc: 'Hottest cards right now', category: 'tools' },
+  { to: '/card-show', icon: Handshake, label: 'Card Show Trades', desc: 'Log & browse trades', category: 'tools' },
+  { to: '/flipper', icon: Repeat2, label: 'Card Flipper', desc: 'Find flip opportunities', category: 'tools' },
+  { to: '/ai-grading', icon: ScanSearch, label: 'AI Grading', desc: 'Scan & grade a card', category: 'tools' },
+  { to: '/bulk-calculator', icon: Calculator, label: 'Deal Calculator', desc: 'Bulk deal math', category: 'tools' },
   // Insights
-  { to: '/analytics', icon: BarChart2, label: 'Analytics', category: 'insights' },
-  { to: '/alerts', icon: Bell, label: 'Alerts', category: 'insights' },
-  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', category: 'insights' },
+  { to: '/analytics', icon: BarChart2, label: 'Analytics', desc: 'Your scan stats', category: 'insights' },
+  { to: '/alerts', icon: Bell, label: 'Price Alerts', desc: 'Get notified on price changes', category: 'insights' },
+  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', desc: 'Top collectors', category: 'insights' },
   // More
-  { to: '/bolo', icon: ShieldAlert, label: 'BOLO Alerts', category: 'more' },
-  { to: '/profile', icon: User, label: 'Profile', category: 'more' },
+  { to: '/bolo', icon: ShieldAlert, label: 'BOLO Alerts', desc: 'Stolen card alerts', category: 'more' },
+  { to: '/profile', icon: User, label: 'Profile', desc: 'Your public profile', category: 'more' },
 ];
 
 const DESKTOP_NAV = NAV_LINKS.filter(l => ['core', 'social', 'tools', 'insights'].includes(l.category));
-const MOBILE_NAV = NAV_LINKS.slice(0, 5);
+// Mobile bottom bar: 4 most used + a "More" menu button
+const MOBILE_NAV_TABS = [
+  NAV_LINKS.find(l => l.to === '/dashboard'),
+  NAV_LINKS.find(l => l.to === '/market'),
+  NAV_LINKS.find(l => l.to === '/trending'),
+  NAV_LINKS.find(l => l.to === '/profile'),
+];
 
 export default function Navbar() {
   const location = useLocation();
@@ -114,18 +119,29 @@ export default function Navbar() {
                 </button>
               </div>
 
-              <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
-                {['core', 'social', 'tools', 'insights', 'more'].map(category => {
-                  const items = NAV_LINKS.filter(l => l.category === category);
+              <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+                {[
+                  { key: 'core', title: '📁 My Collection' },
+                  { key: 'social', title: '🌐 Community' },
+                  { key: 'tools', title: '🔧 Tools' },
+                  { key: 'insights', title: '📊 Insights' },
+                  { key: 'more', title: null },
+                ].map(({ key, title }) => {
+                  const items = NAV_LINKS.filter(l => l.category === key);
                   return (
-                    <div key={category}>
-                      {category !== 'more' && <p className="px-4 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{category}</p>}
-                      <div className="space-y-1">
-                        {items.map(({ to, icon: Icon, label }) => (
+                    <div key={key}>
+                      {title && <p className="px-2 pb-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>}
+                      <div className="space-y-0.5">
+                        {items.map(({ to, icon: Icon, label, desc }) => (
                           <Link key={to} to={to} onClick={() => setMenuOpen(false)}>
-                            <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors ${isActive(to) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}>
-                              <Icon className="w-4 h-4 shrink-0" />
-                              <span>{label}</span>
+                            <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${isActive(to) ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-secondary'}`}>
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive(to) ? 'bg-primary/20' : 'bg-secondary'}`}>
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium leading-tight">{label}</p>
+                                {desc && <p className="text-[11px] text-muted-foreground leading-tight">{desc}</p>}
+                              </div>
                             </div>
                           </Link>
                         ))}
@@ -162,7 +178,7 @@ export default function Navbar() {
       <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-xl border-t border-border/50"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-center justify-around px-1 py-2">
-          {MOBILE_NAV.map(({ to, icon: Icon, label }) => (
+          {MOBILE_NAV_TABS.map(({ to, icon: Icon, label }) => (
             <button key={to} onClick={() => handleTabPress(to)} className="flex-1 min-w-0 select-none">
               <div className={`flex flex-col items-center gap-0.5 py-1 px-0.5 rounded-lg transition-colors ${isActive(to) ? 'text-primary' : 'text-muted-foreground'}`}>
                 <Icon className="w-5 h-5" />
@@ -170,6 +186,12 @@ export default function Navbar() {
               </div>
             </button>
           ))}
+          <button onClick={() => setMenuOpen(true)} className="flex-1 min-w-0 select-none">
+            <div className={`flex flex-col items-center gap-0.5 py-1 px-0.5 rounded-lg transition-colors ${menuOpen ? 'text-primary' : 'text-muted-foreground'}`}>
+              <MoreHorizontal className="w-5 h-5" />
+              <span className="text-[10px] font-medium leading-tight">More</span>
+            </div>
+          </button>
         </div>
       </div>
     </>

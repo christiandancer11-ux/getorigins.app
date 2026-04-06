@@ -18,9 +18,9 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
 import { useSubscription } from '../hooks/useSubscription';
 
 const TABS = [
-  { id: 'collection', label: 'Collection', icon: Layers },
-  { id: 'portfolio',  label: 'Portfolio',  icon: BarChart2 },
-  { id: 'history',   label: 'Sold / Traded', icon: History },
+  { id: 'collection', label: 'Cards',        icon: Layers,    hint: 'Cards you own' },
+  { id: 'portfolio',  label: 'Portfolio',    icon: BarChart2, hint: 'Value & stats' },
+  { id: 'history',   label: 'Sold/Traded',  icon: History,   hint: 'Past sales' },
 ];
 
 export default function Dashboard() {
@@ -122,11 +122,14 @@ export default function Dashboard() {
         <MarketPicksWidget isPro={isPro} />
 
         {/* Header with Quick Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-1">My Collection</h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              {ownedCards.length} card{ownedCards.length !== 1 ? 's' : ''} {totalValue > 0 && <span className="text-primary font-medium">${totalValue.toLocaleString()}</span>}
+              {ownedCards.length === 0
+                ? 'Add your first card below to get started'
+                : <>{ownedCards.length} card{ownedCards.length !== 1 ? 's' : ''} {totalValue > 0 && <span className="text-primary font-medium">· ${totalValue.toLocaleString()} est. value</span>}</>
+              }
             </p>
           </div>
           <div className="flex gap-2 flex-wrap sm:flex-nowrap">
@@ -135,8 +138,9 @@ export default function Dashboard() {
               onClick={() => setShowCertLookup(v => !v)} 
               className="border-border/50 gap-1.5 text-xs sm:text-sm flex-1 sm:flex-none"
               size="sm"
+              title="Look up a graded card by its certification number"
             >
-              <Award className="w-3.5 h-3.5 text-amber-400" />Grading Lookup
+              <Award className="w-3.5 h-3.5 text-amber-400" />Cert Lookup
             </Button>
             <Link to="/register" className="flex-1 sm:flex-none">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full gap-1.5 text-xs sm:text-sm" size="sm">
@@ -146,30 +150,44 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Quick tip for new users */}
+        {ownedCards.length === 0 && !isLoading && (
+          <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 flex items-start gap-3">
+            <span className="text-xl shrink-0">👋</span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Welcome to Origins!</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Start by tapping <strong>Add Card</strong> — take a photo and AI will identify it automatically. Each card gets a unique QR code you can share or attach to the slab.</p>
+            </div>
+          </div>
+        )}
+
         {/* Cert lookup panel */}
         {showCertLookup && (
           <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5 relative">
             <button onClick={() => setShowCertLookup(false)} className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary transition-colors">
               <X className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
+            <p className="text-xs text-muted-foreground mb-3">Enter a PSA, BGS, or SGC certification number to look up a graded card.</p>
             <CertLookupEntry onClose={() => setShowCertLookup(false)} />
           </div>
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-secondary/30 rounded-lg border border-border/40 w-fit mb-6">
+        <div className="flex gap-1 p-1 bg-secondary/30 rounded-xl border border-border/40 mb-6 w-fit">
           {TABS.map(tab => {
             const Icon = tab.icon;
+            const active = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                title={tab.hint}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${active ? 'bg-primary/10 text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <Icon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <span>{tab.label}</span>
                 {tab.id === 'history' && soldTradedCards.length > 0 && (
-                  <span className="text-[9px] bg-destructive/20 text-destructive px-1.5 py-0.5 rounded-full font-semibold">{soldTradedCards.length}</span>
+                  <span className="text-[9px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded-full font-semibold">{soldTradedCards.length}</span>
                 )}
               </button>
             );
@@ -225,15 +243,17 @@ export default function Dashboard() {
             {/* Portfolio Tab */}
              {activeTab === 'portfolio' && (
                allCards.length === 0 ? (
-                 <EmptyState icon={BarChart2} title="No Cards Yet" description="Register cards and add estimated values to see your portfolio breakdown." />
+                 <EmptyState icon={BarChart2} title="No Cards Yet" description="Add cards and fill in their estimated value to see your portfolio breakdown here." />
                ) : (
                  <>
+                   <p className="text-xs text-muted-foreground mb-4">Your collection's estimated total value, profit/loss, and breakdown by sport. Update card values from each card's detail page.</p>
                    <CollectionValueWidget userEmail={currentUserEmail} />
                    <div className="mt-6">
                      <CollectionStats cards={allCards} />
                    </div>
                    <div className="mt-6">
-                     <h2 className="font-semibold text-foreground mb-4">Individual Card Values</h2>
+                     <h2 className="font-semibold text-foreground mb-1">Card-by-Card Breakdown</h2>
+                     <p className="text-xs text-muted-foreground mb-4">Each card's cost vs. estimated value and ROI.</p>
                      <CardValueBreakdown cards={allCards} />
                    </div>
                  </>
