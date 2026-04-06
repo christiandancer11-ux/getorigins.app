@@ -81,22 +81,55 @@ Deno.serve(async (req) => {
 
     const trendingCutoffISO = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
 
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece'].includes(sport);
+
+    const tcgContext = isTCG ? `
+=== TCG COMPETITIVE META & TOURNAMENT INTELLIGENCE ===
+For this TCG category, you MUST factor in the following when determining card rankings and values:
+
+1. CURRENT TOURNAMENT FORMAT & LEGALITY
+   - What sets/cards are currently legal in Standard, Expanded, Advanced, Modern, or equivalent formats?
+   - Any recent ban list updates, forbidden/limited lists (Yu-Gi-Oh! F&L list, MTG banned/restricted list, Pokémon rotation)?
+   - Cards that are newly banned often DROP sharply in value; newly unbanned cards often SPIKE.
+
+2. RECENT MAJOR TOURNAMENT RESULTS (last 30 days)
+   - What decks/archetypes placed 1st–8th at recent Regional Championships, Majors, or Pro Tour/Grand Prix/YCS events?
+   - Which specific cards are in winning decks right now? Those cards command premiums.
+   - Source from: Limitless TCG (Pokemon), MTG Goldfish/EDHREC (MTG), YGOProdeck/Yugipedia (Yu-Gi-Oh!), One Piece Card Game official site.
+
+3. PRO FORUM & COMMUNITY BUZZ
+   - What are players discussing on r/PokemonTCG, r/magicTCG, r/yugioh, r/OnePieceTCG, Limitless TCG forums, MTG Salvation, DuelingBook?
+   - Which cards are being tested in new archetypes or are considered "sleepers"?
+   - Upcoming set releases — what cards from upcoming sets are hyped and may push existing cards up or down?
+
+4. SET ROTATION & UPCOMING RELEASES
+   - Is a major set rotating out soon? Cards leaving the format often drop.
+   - New set announcement or pre-release? Cards that synergize with spoiled new cards spike early.
+   - Special sets (Secret Lair, 25th Anniversary reprints, etc.) can suppress prices of original printings.
+
+5. PLAY ABILITY IMPACT ON CARD VALUE
+   - Tournament-staple cards in competitive decks are worth MORE even at common/uncommon rarity.
+   - Cards that are only collectible (high art, alt art, full art) but not competitively played may have different value drivers.
+   - Grade/condition matters differently for TCG: PSA 10 holo/alt-art cards of competitive staples command extreme premiums.
+` : '';
+
     const buildPrompt = (startRank, endRank) =>
-      `You are a sports card market expert. List ranks #${startRank} to #${endRank} for the category "${label}", focused on: ${modeInstruction}.
+      `You are a trading card market expert specializing in both sports cards and TCG competitive play. List ranks #${startRank} to #${endRank} for the category "${label}", focused on: ${modeInstruction}.
 
 Context from Origins community trades:
 ${internalSummary}
-
+${tcgContext}
 === STRICT MARKET DATA QUALITY RULES ===
-When sourcing eBay or external market prices for estimated_value_avg:
+When sourcing eBay, TCGPlayer, CardMarket, or external market prices for estimated_value_avg:
 1. CONFIRMED SALES ONLY: Only use listings that are verified as SOLD. Exclude unsold, expired, relisted, or unaccepted-offer listings.
-2. OUTLIER FILTERING: If a single eBay sale is more than 100% above the established market average for that card:
+2. OUTLIER FILTERING: If a single sale is more than 100% above the established market average for that card:
    - Exclude it from value calculations UNLESS there are 2+ confirmed sales within 20-30% of each other AND all occurred more than 12 hours ago (before ${trendingCutoffISO})
    - A lone outlier sale within the last 12 hours must be excluded — it may be a manipulation attempt
-   - Use 130point.com as a cross-reference to validate values
+   - Use 130point.com or TCGPlayer market price as cross-reference to validate values
 3. BASE VALUES ON THE MEDIAN of qualifying confirmed sales, not on single high outliers.
+4. For TCG cards: factor in whether the card is currently tournament-legal and seeing competitive play — this directly impacts demand.
 
-Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence explaining why it ranks here for this specific filter), trend (up/down/stable).`;
+Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence explaining why it ranks here — for TCG cards mention if it's a tournament staple or meta-relevant), trend (up/down/stable).`;
 
     // Batch by 10 to avoid LLM JSON truncation with internet search
     const BATCH_SIZE = 10;

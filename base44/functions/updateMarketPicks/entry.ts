@@ -10,18 +10,27 @@ Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', m
 
 Generate the single #1 BUY, #1 HOLD, and #1 SELL pick for the trading card hobby market RIGHT NOW.
 
-Consider:
-- Current sports seasons (MLB, NBA playoffs, NFL offseason/draft season, NHL playoffs, Pokemon/TCG tournament circuit)
+Consider for ALL cards:
+- Current sports seasons (MLB, NBA playoffs, NFL offseason/draft season, NHL playoffs)
 - Recent player performance, awards, trades, injuries
 - Pop report data and market saturation
-- Upcoming catalysts (playoffs, draft, Hall of Fame announcements, Pokemon set releases)
+- Upcoming catalysts (playoffs, draft, Hall of Fame announcements)
 - Current eBay sold data trends
 - Collector sentiment and social media buzz
 
+For TCG cards (Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana, etc.) ALSO consider:
+- Current tournament format legality (Standard, Expanded, Advanced, Modern, Legacy, etc.)
+- Recent ban list / forbidden & limited list updates — newly banned cards DROP, newly unbanned cards SPIKE
+- Recent major tournament results (last 30 days): YCS, Regional Championships, Pro Tour, Pokémon Regionals/Worlds — what cards are in winning decklists?
+- Upcoming set releases and their impact on current card prices
+- Rotation schedules — cards rotating out of Standard often lose value
+- Competitive meta shifts — new archetypes that make old staples more or less relevant
+- Community discussion on r/PokemonTCG, r/magicTCG, r/yugioh, Limitless TCG, MTGGoldfish, YGOProdeck
+
 Rules:
-- Picks can be any sport: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh
+- Picks can be any sport or TCG: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh
 - Each pick should be a SPECIFIC card (include set, year, variant/grade)
-- The reasoning must be data-driven and timely — reference actual market context
+- The reasoning must be data-driven and timely — reference actual market context AND tournament/meta context for TCG picks
 - Estimated prices should reflect real current market values
 - Price targets are 30-90 day projections
 
