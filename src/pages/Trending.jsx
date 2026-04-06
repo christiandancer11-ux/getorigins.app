@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Loader2, RefreshCw, Lock, Zap, TrendingUp, DollarSign, Search, ShoppingCart, BarChart2, Package, Tag } from 'lucide-react';
+import { Flame, Loader2, RefreshCw, Lock, Zap, TrendingUp, DollarSign, Search, ShoppingCart, BarChart2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -13,13 +13,12 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh.jsx';
 import BoxPriceTracker from '@/components/trending/BoxPriceTracker';
 
 const VIEW_MODES = [
-  { id: 'hottest',       label: 'Hottest',           icon: Flame,       desc: 'Overall hottest cards right now',           isBox: false },
-  { id: 'highest_sold',  label: 'Highest Sold',      icon: DollarSign,  desc: 'Highest recent sale prices',                isBox: false },
-  { id: 'most_searched', label: 'Most Searched',     icon: Search,      desc: 'Most searched players & cards',             isBox: false },
-  { id: 'most_bought',   label: 'Most Bought',       icon: ShoppingCart,desc: 'Most bought cards recently',                isBox: false },
-  { id: 'rising',        label: '48hr Growth',       icon: BarChart2,   desc: 'Steady value growth in last 48 hours',      isBox: false },
-  { id: 'new_msrp',      label: 'New Product MSRP',  icon: Tag,         desc: 'Newest box/set releases at MSRP',           isBox: true  },
-  { id: 'lowest_box',    label: 'Lowest Box Prices',  icon: Package,     desc: 'Cheapest online prices for newest products',isBox: true  },
+  { id: 'hottest',       label: 'Hottest',        icon: Flame,       desc: 'Overall hottest cards right now'        },
+  { id: 'highest_sold',  label: 'Highest Sold',   icon: DollarSign,  desc: 'Highest recent sale prices'             },
+  { id: 'most_searched', label: 'Most Searched',  icon: Search,      desc: 'Most searched players & cards'          },
+  { id: 'most_bought',   label: 'Most Bought',    icon: ShoppingCart,desc: 'Most bought cards recently'             },
+  { id: 'rising',        label: '48hr Growth',    icon: BarChart2,   desc: 'Steady value growth in last 48 hours'   },
+  { id: 'new_releases',  label: 'New Releases',   icon: Package,     desc: 'Newest products — MSRP & best prices'  },
 ];
 
 export default function Trending() {
@@ -201,10 +200,10 @@ export default function Trending() {
 
       {/* Content */}
       <AnimatePresence mode="wait">
-        {/* Box price modes */}
-        {(selectedViewMode === 'new_msrp' || selectedViewMode === 'lowest_box') ? (
-          <motion.div key={`box-${selectedCategory}-${selectedViewMode}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <BoxPriceTracker category={selectedCategory} mode={selectedViewMode} />
+        {/* New Releases tab */}
+        {selectedViewMode === 'new_releases' ? (
+          <motion.div key={`box-${selectedCategory}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <BoxPriceTracker category={selectedCategory} />
           </motion.div>
         ) : loadingCategory === cacheKey ? (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
