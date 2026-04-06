@@ -76,10 +76,22 @@ function ProductCard({ product }) {
             {product.cheapest_free_shipping && (
               <span className="text-xs text-green-300">Free Ship</span>
             )}
-            {product.cheapest_seller_url && product.cheapest_seller_url.startsWith('http') && (
-              <a href={product.cheapest_seller_url} target="_blank" rel="noopener noreferrer">
+            {product.cheapest_seller_url ? (
+              <a 
+                href={product.cheapest_seller_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!product.cheapest_seller_url.startsWith('http')) {
+                    e.preventDefault();
+                    alert('Link not available for this product');
+                  }
+                }}
+              >
                 <ExternalLink className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
               </a>
+            ) : (
+              <span className="text-xs text-muted-foreground/50">No link</span>
             )}
           </div>
         )}
@@ -118,15 +130,27 @@ function ProductCard({ product }) {
                       {seller.free_shipping && <span className="text-xs text-green-300 shrink-0">Free Ship</span>}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-sm font-semibold ${i === 0 ? 'text-green-400' : 'text-foreground'}`}>
-                        ${seller.price?.toFixed(2) ?? '—'}
-                      </span>
-                      {seller.url && seller.url.startsWith('http') && (
-                        <a href={seller.url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
-                        </a>
-                      )}
-                    </div>
+                       <span className={`text-sm font-semibold ${i === 0 ? 'text-green-400' : 'text-foreground'}`}>
+                         ${seller.price?.toFixed(2) ?? '—'}
+                       </span>
+                       {seller.url ? (
+                         <a 
+                           href={seller.url} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           onClick={(e) => {
+                             if (!seller.url.startsWith('http')) {
+                               e.preventDefault();
+                               alert('Link not available for this product');
+                             }
+                           }}
+                         >
+                           <ExternalLink className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
+                         </a>
+                       ) : (
+                         <span className="text-xs text-muted-foreground/30">—</span>
+                       )}
+                     </div>
                   </div>
                 ))}
 

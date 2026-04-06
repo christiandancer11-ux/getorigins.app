@@ -81,11 +81,15 @@ PRICING RULES:
 7. Note if a seller offers free shipping (this affects true total cost).
 
 URL RULES — CRITICAL:
-- Only include "url" values for seller listings if you are CERTAIN the URL is a real, direct, working product page link that currently exists on that retailer's website.
-- Do NOT generate, guess, or construct URLs from patterns. Only use URLs you have actually visited and confirmed contain the product.
-- If you are not certain a URL is valid and live, set that seller's url field to null rather than providing a broken or hallucinated link.
-- URLs that go to a homepage, search results page, or 404 page are worse than null — leave url as null if uncertain.
-- For Amazon, use the full product URL with ASIN if known. For eBay, only link to active in-stock listings (not completed/sold).
+- For EVERY seller URL, you MUST find the DIRECT PRODUCT PAGE URL (not homepage, not search page, not category page).
+- The URL must go directly to where the customer can add the product to their cart or click "Buy Now".
+- VERIFY each URL by actually visiting it and confirming the product name and price match what you are reporting.
+- Only include a URL if you are 100% certain it links to the exact product at the exact price shown in the data.
+- For Amazon, use the full product URL with ASIN or direct /dp/ link.
+- For eBay, only link to active listings showing the product name in the title and current price.
+- For TCGPlayer, link directly to the product page, not search results.
+- For specialty retailers (Dave & Adam's, Blowout Cards, etc.), link to the specific product with quantity selector, not a search or category page.
+- Do NOT set a URL unless you have personally confirmed it loads the product at the right price. If uncertain, set url to null.
 
 Return a JSON object:
 {
