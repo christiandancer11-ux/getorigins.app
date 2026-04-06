@@ -21,7 +21,7 @@ const CATEGORY_MAP = {
 
 // In-memory cache: key -> { data, expires }
 const trendingCache = new Map();
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours (prioritize speed over freshness)
 
 Deno.serve(async (req) => {
   try {
@@ -44,13 +44,14 @@ Deno.serve(async (req) => {
     const cardCount = Math.min(Math.max(parseInt(limit) || 15, 10), 100);
     const { sport, label } = CATEGORY_MAP[category];
 
-    // Check cache first
+    // Check cache first (15-minute TTL for faster response)
     const cacheKey = `${category}__${viewMode}__${cardCount}`;
     const cached = trendingCache.get(cacheKey);
     if (cached && Date.now() < cached.expires) {
-      console.log('Cache hit:', cacheKey);
+      console.log('Cache hit for:', cacheKey);
       return Response.json(cached.data);
     }
+    console.log('Cache miss, fetching fresh data for:', cacheKey);
 
     // Pull Origins card show trades for this sport
     const allTrades = await base44.asServiceRole.entities.CardTrade.filter({ sport });
@@ -157,24 +158,21 @@ When sourcing eBay, TCGPlayer, CardMarket, or external market prices for estimat
 
 Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number — use TCGPlayer Market Price as primary source for TCG cards), heat_score (1-100), why_hot (one sentence explaining why it ranks here — for TCG cards mention tournament staple status, meta relevance, and TCGPlayer Market Price), trend (up/down/stable).`;
 
-    // Single batch for default 15 cards, split into 2 for larger requests
-    const BATCH_SIZE = 15;
-    const batches = [];
-    for (let start = 1; start <= cardCount; start += BATCH_SIZE) {
-      const end = Math.min(start + BATCH_SIZE - 1, cardCount);
-      batches.push({ start, end });
-    }
-
-    const batchResults = await Promise.all(
-      batches.map(({ start, end }) =>
-        base44.asServiceRole.integrations.Core.InvokeLLM({
-          prompt: buildPrompt(start, end),
-          add_context_from_internet: true,
-          response_json_schema: cardSchema,
-          model: 'gemini_3_flash',
-        })
-      )
-    );
+    // Fetch all cards in one optimized request to reduce LLM overhead
+    const promptAllCards = buildPrompt(1, cardCount);
+    
+    // Use flash model without internet search for speed (trades freshness for <10s response time)
+    const startTime = Date.now();
+    const batchResults = [
+      await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: promptAllCards,
+        add_context_from_internet: false,
+        response_json_schema: cardSchema,
+        model: 'gemini_3_flash',
+      })
+    ];
+    const elapsed = Date.now() - startTime;
+    console.log(`LLM inference took ${elapsed}ms for ${cardCount} cards`);
 
     const allCards = batchResults.flatMap(r => r.cards || []);
     const categorySummary = batchResults[0]?.category_summary || '';
