@@ -185,10 +185,10 @@ function CardEntry({ card, index, onDelete, onCorrect }) {
         </div>
       </div>
 
-      {/* Expanded notes */}
+      {/* Expanded details */}
       {expanded && isDone && card.result && (
-        <div className="px-3 pb-3 border-t border-border/30 pt-2">
-          <div className="flex flex-wrap gap-1 mb-2">
+        <div className="px-3 pb-3 border-t border-border/30 pt-2 space-y-2">
+          <div className="flex flex-wrap gap-1">
             {card.result.sport && <SportBadge sport={card.result.sport} />}
             <Badge className="text-xs bg-secondary border-border/50">{card.result.condition || 'Raw'}</Badge>
             <Badge className={`text-xs ${card.result.confidence === 'high' ? 'bg-green-500/10 text-green-400 border-green-500/20' : card.result.confidence === 'medium' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
@@ -200,6 +200,36 @@ function CardEntry({ card, index, onDelete, onCorrect }) {
               </Badge>
             )}
           </div>
+
+          {/* Market sources breakdown */}
+          <div className="grid grid-cols-3 gap-1.5">
+            {card.result.ebay_avg != null && (
+              <div className="rounded-lg bg-secondary/40 p-2 text-center">
+                <p className="text-[10px] text-muted-foreground">eBay Avg</p>
+                <p className="text-xs font-semibold text-foreground">${card.result.ebay_avg?.toLocaleString()}</p>
+                {card.result.ebay_sales_count != null && <p className="text-[10px] text-muted-foreground">{card.result.ebay_sales_count} sales</p>}
+              </div>
+            )}
+            {card.result.point130_avg != null && (
+              <div className="rounded-lg bg-secondary/40 p-2 text-center">
+                <p className="text-[10px] text-muted-foreground">130pt Avg</p>
+                <p className="text-xs font-semibold text-foreground">${card.result.point130_avg?.toLocaleString()}</p>
+              </div>
+            )}
+            {card.result.tcgplayer_market_price != null && (
+              <div className="rounded-lg bg-secondary/40 p-2 text-center">
+                <p className="text-[10px] text-muted-foreground">TCGPlayer</p>
+                <p className="text-xs font-semibold text-foreground">${card.result.tcgplayer_market_price?.toLocaleString()}</p>
+              </div>
+            )}
+            {card.result.average_sold_price != null && (
+              <div className="rounded-lg bg-primary/10 border border-primary/20 p-2 text-center col-span-3">
+                <p className="text-[10px] text-primary/70">Combined Avg Sold Price</p>
+                <p className="text-sm font-bold text-primary">${card.result.average_sold_price?.toLocaleString()}</p>
+              </div>
+            )}
+          </div>
+
           {card.result.notes && <p className="text-xs text-muted-foreground leading-relaxed">{card.result.notes}</p>}
         </div>
       )}
