@@ -26,6 +26,15 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Check subscription
+    if (user.role !== 'admin') {
+      const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
+      const activeSub = subs.find(s => s.status === 'active');
+      if (!activeSub || !['pro', 'expert'].includes(activeSub.plan)) {
+        return Response.json({ error: 'Pro subscription required for card analysis' }, { status: 403 });
+      }
+    }
+
     // Rate limit: 5 scans per user per 10 minutes (scans are expensive)
     const rl = checkRateLimit(`analyzeCardImage:${user.email}`, 5, 10 * 60 * 1000);
     if (!rl.allowed) {

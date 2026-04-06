@@ -25,6 +25,15 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Check subscription
+    if (user.role !== 'admin') {
+      const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
+      const activeSub = subs.find(s => s.status === 'active');
+      if (!activeSub || !['pro', 'expert'].includes(activeSub.plan)) {
+        return Response.json({ error: 'Pro subscription required for market data' }, { status: 403 });
+      }
+    }
+
     // Rate limit: 10 searches per user per 10 minutes
     const rl = checkRateLimit(`fetchCardComps:${user.email}`, 10, 10 * 60 * 1000);
     if (!rl.allowed) {

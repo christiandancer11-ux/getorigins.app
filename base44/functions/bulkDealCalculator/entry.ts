@@ -9,6 +9,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check subscription
+    if (user.role !== 'admin') {
+      const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
+      const activeSub = subs.find(s => s.status === 'active');
+      if (!activeSub || !['pro', 'expert'].includes(activeSub.plan)) {
+        return Response.json({ error: 'Pro subscription required for bulk calculator' }, { status: 403 });
+      }
+    }
+
     const { imageUrls, cardIndex, correctionHint } = await req.json();
 
     if (!imageUrls || imageUrls.length === 0) {
