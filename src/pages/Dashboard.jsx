@@ -41,8 +41,12 @@ export default function Dashboard() {
   }, []);
 
   const { data: allCards = [], isLoading } = useQuery({
-    queryKey: ['my-cards'],
-    queryFn: () => base44.entities.Card.list('-created_date', 500),
+    queryKey: ['my-cards', currentUserEmail],
+    queryFn: () => {
+      if (!currentUserEmail) return [];
+      return base44.entities.Card.filter({ created_by: currentUserEmail }, '-created_date', 500);
+    },
+    enabled: !!currentUserEmail,
     staleTime: 60000,
   });
 
