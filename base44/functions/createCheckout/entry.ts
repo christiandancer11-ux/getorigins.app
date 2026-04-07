@@ -16,12 +16,16 @@ Deno.serve(async (req) => {
     const { successUrl, cancelUrl, plan = 'pro', couponId, trialDays } = await req.json();
     const priceId = PRICES[plan] || PRICES.pro;
 
+    const baseUrl = Deno.env.get("PUBLISHED_URL") || Deno.env.get("APP_URL") || 'https://app.originscard.com';
+    const resolvedSuccessUrl = successUrl || `${baseUrl}/dashboard?upgraded=1`;
+    const resolvedCancelUrl = cancelUrl || `${baseUrl}/pricing`;
+
     const sessionParams = {
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      success_url: resolvedSuccessUrl,
+      cancel_url: resolvedCancelUrl,
       customer_email: user.email,
       metadata: {
         base44_app_id: Deno.env.get("BASE44_APP_ID"),
