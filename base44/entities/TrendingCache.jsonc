@@ -1,0 +1,44 @@
+{
+  "name": "TrendingCache",
+  "type": "object",
+  "properties": {
+    "cache_key": {
+      "type": "string",
+      "description": "Unique key: category__viewMode__limit (e.g. ncaa_football__hottest__15)"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category identifier"
+    },
+    "label": {
+      "type": "string",
+      "description": "Human-readable label"
+    },
+    "view_mode": {
+      "type": "string",
+      "description": "View mode (hottest, highest_sold, etc.)"
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Array of trending card objects"
+    },
+    "category_summary": {
+      "type": "string",
+      "description": "AI summary for this category"
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "ISO timestamp when data was generated"
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "ISO timestamp when this cache entry expires"
+    }
+  },
+  "required": [
+    "cache_key"
+  ]
+}

@@ -85,10 +85,38 @@ Return exactly 15 cards. For each include: rank, player_or_name, card_name, year
     model: 'gemini_3_flash',
   });
 
+  const cards = llmResult?.cards || [];
+  const categorySummary = llmResult?.category_summary || '';
+
+  // Write result to TrendingCache entity so fetchTrending can read it
+  const cacheKey = `${category}__hottest__15`;
+  const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(); // 4 hours
+  const generatedAt = new Date().toISOString();
+
+  try {
+    // Delete old cache entry for this key if it exists
+    const existing = await base44.asServiceRole.entities.TrendingCache.filter({ cache_key: cacheKey });
+    for (const entry of existing) {
+      await base44.asServiceRole.entities.TrendingCache.delete(entry.id);
+    }
+    // Write fresh entry
+    await base44.asServiceRole.entities.TrendingCache.create({
+      cache_key: cacheKey,
+      category,
+      label,
+      view_mode: 'hottest',
+      cards,
+      category_summary: categorySummary,
+      generated_at: generatedAt,
+      expires_at: expiresAt,
+    });
+  } catch (e) {
+    console.warn(`Could not write TrendingCache for ${category}:`, e.message);
+  }
+
   const elapsed = Date.now() - categoryStart;
-  const cardCount = llmResult?.cards?.length || 0;
-  console.log(`✓ ${category}: ${cardCount} cards in ${elapsed}ms`);
-  return { category, status: 'success', elapsed, cards: cardCount };
+  console.log(`✓ ${category}: ${cards.length} cards in ${elapsed}ms`);
+  return { category, status: 'success', elapsed, cards: cards.length };
 }
 
 Deno.serve(async (req) => {
@@ -96,7 +124,6 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
 
-    // Accept a 'group' param (A or B). Default to A if not specified.
     const group = (body.group || 'A').toUpperCase();
     const categories = CATEGORY_GROUPS[group];
     if (!categories) {
@@ -106,7 +133,7 @@ Deno.serve(async (req) => {
     console.log(`[preCacheTrending] Group ${group} starting at ${new Date().toISOString()}`);
     const startTime = Date.now();
 
-    // Run all 8 categories in this group in parallel
+    // Run all categories in parallel
     const results = await Promise.all(
       categories.map(cat => warmCategory(base44, cat).catch(err => {
         console.error(`✗ ${cat}: ${err.message}`);

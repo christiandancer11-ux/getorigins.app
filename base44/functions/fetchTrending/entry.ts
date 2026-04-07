@@ -56,9 +56,33 @@ Deno.serve(async (req) => {
     const cacheKey = `${category}__${viewMode}__${cardCount}`;
     const cached = trendingCache.get(cacheKey);
     if (cached && Date.now() < cached.expires) {
-      console.log('Cache hit for:', cacheKey);
+      console.log('Cache hit (memory) for:', cacheKey);
       return Response.json(cached.data);
     }
+
+    // Check DB-backed TrendingCache (populated by preCacheTrending automation)
+    if (viewMode === 'hottest' && cardCount === 15) {
+      try {
+        const dbCached = await base44.asServiceRole.entities.TrendingCache.filter({ cache_key: cacheKey });
+        const entry = dbCached[0];
+        if (entry && entry.expires_at && new Date(entry.expires_at) > new Date() && entry.cards?.length > 0) {
+          console.log('Cache hit (DB) for:', cacheKey);
+          const responseData = {
+            category,
+            label,
+            cards: entry.cards,
+            category_summary: entry.category_summary || '',
+            generated_at: entry.generated_at,
+          };
+          // Populate in-memory cache too
+          trendingCache.set(cacheKey, { data: responseData, expires: Date.now() + CACHE_TTL_MS });
+          return Response.json(responseData);
+        }
+      } catch (e) {
+        console.warn('DB cache lookup failed:', e.message);
+      }
+    }
+
     console.log('Cache miss, fetching fresh data for:', cacheKey);
 
     // Pull Origins card show trades for this sport
