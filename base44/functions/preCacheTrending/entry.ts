@@ -1,9 +1,23 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// Split into two groups so each run finishes well under the 180s timeout
+// Each group is a single category so each automation run completes in ~30s
 const CATEGORY_GROUPS = {
-  A: ['football', 'baseball', 'basketball', 'soccer', 'hockey', 'golf', 'ufc', 'wwe'],
-  B: ['f1', 'ncaa_football', 'ncaa_basketball', 'ncaa_baseball', 'pokemon', 'one_piece', 'mtg', 'yugioh'],
+  A: ['football'],
+  B: ['baseball'],
+  C: ['basketball'],
+  D: ['soccer'],
+  E: ['hockey'],
+  F: ['golf'],
+  G: ['ufc'],
+  H: ['wwe'],
+  I: ['f1'],
+  J: ['ncaa_football'],
+  K: ['ncaa_basketball'],
+  L: ['ncaa_baseball'],
+  M: ['pokemon'],
+  N: ['one_piece'],
+  O: ['mtg'],
+  P: ['yugioh'],
 };
 
 const CATEGORY_MAP = {
@@ -133,7 +147,7 @@ Deno.serve(async (req) => {
     console.log(`[preCacheTrending] Group ${group} starting at ${new Date().toISOString()}`);
     const startTime = Date.now();
 
-    // Run all categories in parallel
+    // Run the (single) category — parallel is fine since each group is 1 item
     const results = await Promise.all(
       categories.map(cat => warmCategory(base44, cat).catch(err => {
         console.error(`✗ ${cat}: ${err.message}`);
