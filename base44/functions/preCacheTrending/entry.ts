@@ -1,10 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const CATEGORIES = [
-  'football', 'baseball', 'basketball', 'soccer', 'hockey', 'golf', 'ufc', 'wwe', 'f1',
-  'ncaa_football', 'ncaa_basketball', 'ncaa_baseball',
-  'pokemon', 'one_piece', 'mtg', 'yugioh'
-];
+// Split into two groups so each run finishes well under the 180s timeout
+const CATEGORY_GROUPS = {
+  A: ['football', 'baseball', 'basketball', 'soccer', 'hockey', 'golf', 'ufc', 'wwe'],
+  B: ['f1', 'ncaa_football', 'ncaa_basketball', 'ncaa_baseball', 'pokemon', 'one_piece', 'mtg', 'yugioh'],
+};
 
 const CATEGORY_MAP = {
   football:         { sport: 'football',  label: 'Football Cards' },
@@ -50,88 +50,77 @@ const cardSchema = {
   }
 };
 
-// In-memory cache shared with fetchTrending isolate — note: each function has its own isolate,
-// so this cache is local to preCacheTrending. The actual user-facing cache lives in fetchTrending.
-// This automation's job is to trigger fetchTrending so ITS cache gets populated.
-// We do this by invoking it as asServiceRole with the warmup flag.
+async function warmCategory(base44, category) {
+  const { sport, label } = CATEGORY_MAP[category];
+  const categoryStart = Date.now();
 
-Deno.serve(async (req) => {
+  let internalSummary = `No Origins community trades recorded yet for ${label}.`;
   try {
-    const base44 = createClientFromRequest(req);
+    const allTrades = await base44.asServiceRole.entities.CardTrade.filter({ sport });
+    if (allTrades.length > 0) {
+      internalSummary = `Origins community trades for ${label} (${allTrades.length} trades):\n` +
+        allTrades.slice(0, 20).map(t =>
+          `${t.card_name} ${t.set_name || ''} - $${t.total_value || t.cash_paid || 0} (${t.condition || 'raw'})`
+        ).join('\n');
+    }
+  } catch (e) {
+    console.warn(`Could not fetch trades for ${category}:`, e.message);
+  }
 
-    console.log(`[preCacheTrending] Starting cache population at ${new Date().toISOString()}`);
+  const trendingCutoffISO = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
 
-    const startTime = Date.now();
-    const trendingCutoffISO = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
-
-    // Process in parallel batches of 4 to avoid timeout
-    const BATCH_SIZE = 4;
-    const allResults = [];
-
-    for (let i = 0; i < CATEGORIES.length; i += BATCH_SIZE) {
-      const batch = CATEGORIES.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.all(batch.map(async (category) => {
-        try {
-          const categoryStart = Date.now();
-          const { sport, label } = CATEGORY_MAP[category];
-
-          // Pull trade context
-          let internalSummary = `No Origins community trades recorded yet for ${label}.`;
-          try {
-            const allTrades = await base44.asServiceRole.entities.CardTrade.filter({ sport });
-            if (allTrades.length > 0) {
-              internalSummary = `Origins community trades for ${label} (${allTrades.length} trades):\n` +
-                allTrades.slice(0, 20).map(t =>
-                  `${t.card_name} ${t.set_name || ''} - $${t.total_value || t.cash_paid || 0} (${t.condition || 'raw'})`
-                ).join('\n');
-            }
-          } catch (e) {
-            console.warn(`Could not fetch trades for ${category}:`, e.message);
-          }
-
-          const prompt = `You are a trading card market expert. List the top 15 hottest and most in-demand ${label} right now based on collector buzz, sell-through rate, and market activity.
+  const prompt = `You are a trading card market expert. List the top 15 hottest and most in-demand ${label} right now based on collector buzz, sell-through rate, and market activity.
 
 Context from Origins community trades:
 ${internalSummary}
 
-=== STRICT MARKET DATA QUALITY RULES ===
-1. CONFIRMED SALES ONLY: Only use listings verified as SOLD.
-2. OUTLIER FILTERING: Exclude lone outlier sales within 12 hours before ${trendingCutoffISO}.
-3. BASE VALUES ON THE MEDIAN of qualifying confirmed sales.
+RULES: Only use confirmed SOLD listings. Exclude outlier sales within 12 hours before ${trendingCutoffISO}. Base values on the median of qualifying confirmed sales.
 
 Return exactly 15 cards. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence), trend (up/down/stable).`;
 
-          const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-            prompt,
-            add_context_from_internet: false,
-            response_json_schema: cardSchema,
-            model: 'gemini_3_flash',
-          });
+  const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+    prompt,
+    add_context_from_internet: false,
+    response_json_schema: cardSchema,
+    model: 'gemini_3_flash',
+  });
 
-          const elapsed = Date.now() - categoryStart;
-          const cardCount = llmResult?.cards?.length || 0;
-          console.log(`✓ ${category}: ${cardCount} cards in ${elapsed}ms`);
-          return { category, status: 'success', elapsed, cards: cardCount };
-        } catch (err) {
-          console.error(`✗ ${category}: ${err.message}`);
-          return { category, status: 'error', message: err.message };
-        }
-      }));
-      allResults.push(...batchResults);
+  const elapsed = Date.now() - categoryStart;
+  const cardCount = llmResult?.cards?.length || 0;
+  console.log(`✓ ${category}: ${cardCount} cards in ${elapsed}ms`);
+  return { category, status: 'success', elapsed, cards: cardCount };
+}
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const body = await req.json().catch(() => ({}));
+
+    // Accept a 'group' param (A or B). Default to A if not specified.
+    const group = (body.group || 'A').toUpperCase();
+    const categories = CATEGORY_GROUPS[group];
+    if (!categories) {
+      return Response.json({ error: `Invalid group "${group}". Use A or B.` }, { status: 400 });
     }
 
-    const results = allResults;
+    console.log(`[preCacheTrending] Group ${group} starting at ${new Date().toISOString()}`);
+    const startTime = Date.now();
+
+    // Run all 8 categories in this group in parallel
+    const results = await Promise.all(
+      categories.map(cat => warmCategory(base44, cat).catch(err => {
+        console.error(`✗ ${cat}: ${err.message}`);
+        return { category: cat, status: 'error', message: err.message };
+      }))
+    );
 
     const totalElapsed = Date.now() - startTime;
     const successCount = results.filter(r => r.status === 'success').length;
-    console.log(`[preCacheTrending] Completed in ${totalElapsed}ms. Success: ${successCount}/${CATEGORIES.length}`);
-
-    if (successCount === 0) {
-      return Response.json({ error: 'All categories failed', results }, { status: 500 });
-    }
+    console.log(`[preCacheTrending] Group ${group} done in ${totalElapsed}ms. Success: ${successCount}/${categories.length}`);
 
     return Response.json({
-      message: `Pre-warmed ${successCount}/${CATEGORIES.length} categories`,
+      message: `Group ${group}: warmed ${successCount}/${categories.length} categories`,
+      group,
       total_ms: totalElapsed,
       results,
       cached_at: new Date().toISOString()
