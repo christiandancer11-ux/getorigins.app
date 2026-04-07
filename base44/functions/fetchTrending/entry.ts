@@ -26,19 +26,25 @@ const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours (prioritize speed over fresh
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Check subscription
-    if (user.role !== 'admin') {
-      const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
-      const activeSub = subs.find(s => s.status === 'active');
-      if (!activeSub || !['pro', 'expert'].includes(activeSub.plan)) {
-        return Response.json({ error: 'Pro subscription required for trending data' }, { status: 403 });
+    const body = await req.json();
+    const { category, limit = 15, viewMode = 'hottest', internal_cache_warmup = false } = body;
+
+    // Allow internal cache warmup calls (from preCacheTrending automation) to bypass auth
+    if (!internal_cache_warmup) {
+      const user = await base44.auth.me();
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+      // Check subscription
+      if (user.role !== 'admin') {
+        const subs = await base44.asServiceRole.entities.UserSubscription.filter({ user_email: user.email });
+        const activeSub = subs.find(s => s.status === 'active');
+        if (!activeSub || !['pro', 'expert'].includes(activeSub.plan)) {
+          return Response.json({ error: 'Pro subscription required for trending data' }, { status: 403 });
+        }
       }
     }
 
-    const { category, limit = 15, viewMode = 'hottest' } = await req.json();
     if (!CATEGORY_MAP[category]) {
       return Response.json({ error: 'Invalid category' }, { status: 400 });
     }
