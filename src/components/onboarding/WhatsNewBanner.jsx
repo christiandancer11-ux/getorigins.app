@@ -1,44 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
-// Bump this version string whenever there are new updates to announce.
 const CURRENT_VERSION = '4.0.0';
 const STORAGE_KEY = 'origins_whats_new_seen';
-
-const UPDATES = [
-  {
-    badge: '🆕 New',
-    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    title: 'AI Buy / Hold / Sell Signals',
-    desc: 'Every card in your collection now shows an AI-powered Buy, Hold, or Sell signal based on live market trends, grading data, and player performance. Find it on each card in your dashboard.',
-  },
-  {
-    badge: '🆕 New',
-    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    title: 'AI Market Picks Widget',
-    desc: 'The dashboard now shows daily AI-generated top Buy, Hold, and Sell picks across all sports and TCGs — refreshed automatically with live internet market data.',
-  },
-  {
-    badge: '✨ Improved',
-    badgeColor: 'text-primary bg-primary/10 border-primary/20',
-    title: 'Smoother Scrolling',
-    desc: 'Fixed a scroll freeze issue on mobile that could occur when quickly swiping up or down through your collection. Everything should feel buttery smooth now.',
-  },
-  {
-    badge: '🆕 New',
-    badgeColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    title: 'Social Network & Collections Feed',
-    desc: 'Follow collectors, view their collections, and see new cards they add in your personalized feed. React with emojis and leave comments.',
-  },
-  {
-    badge: '✨ Improved',
-    badgeColor: 'text-primary bg-primary/10 border-primary/20',
-    title: 'Collector Profiles',
-    desc: 'View full card collections, favorite categories, and verified collector badges on public profiles. Profile reactions show collector appreciation.',
-  },
-];
 
 export default function WhatsNewBanner() {
   const [visible, setVisible] = useState(false);
@@ -46,7 +11,7 @@ export default function WhatsNewBanner() {
   useEffect(() => {
     const seen = localStorage.getItem(STORAGE_KEY);
     if (seen !== CURRENT_VERSION) {
-      const timer = setTimeout(() => setVisible(true), 1000);
+      const timer = setTimeout(() => setVisible(true), 1500);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -60,53 +25,26 @@ export default function WhatsNewBanner() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={dismiss}
+          initial={{ opacity: 0, y: 20, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.97 }}
+          transition={{ type: 'spring', damping: 24, stiffness: 300 }}
+          className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-sm"
         >
-          <motion.div
-            initial={{ scale: 0.92, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.92, opacity: 0, y: 20 }}
-            transition={{ type: 'spring', damping: 24, stiffness: 280 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-card border border-primary/30 rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-md overflow-hidden"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 bg-primary/10 border-b border-primary/20">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-primary">What's New in Origins</span>
-              </div>
-              <button onClick={dismiss} className="text-muted-foreground hover:text-foreground transition-colors p-1">
-                <X className="w-5 h-5" />
-              </button>
+          <div className="bg-card border border-primary/30 rounded-xl shadow-lg shadow-primary/10 px-4 py-3 flex items-start gap-3">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
             </div>
-
-            {/* Updates list */}
-            <div className="px-5 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
-              {UPDATES.map((u, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="mt-0.5 shrink-0">
-                    <span className={`text-[11px] font-bold border rounded-full px-2 py-0.5 ${u.badgeColor}`}>{u.badge}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{u.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{u.desc}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground">New: AI Buy/Hold/Sell Signals</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                Every card now shows an AI market signal. Check your dashboard to see them in action.
+              </p>
             </div>
-
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-border/30 flex justify-end">
-              <Button onClick={dismiss} className="bg-primary text-primary-foreground hover:bg-primary/90 px-6">
-                Got it!
-              </Button>
-            </div>
-          </motion.div>
+            <button onClick={dismiss} className="text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
