@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, CheckCircle2, Loader2, Lock, AlertCircle, RotateCcw } from 'lucide-react';
+import { Camera, ImageIcon, CheckCircle2, Loader2, Lock, AlertCircle, RotateCcw } from 'lucide-react';
 import UpgradeModal from '@/components/shared/UpgradeModal';
 import GradingResults from '@/components/grading/GradingResults';
 
@@ -55,6 +55,7 @@ export default function AICardGrading() {
   const [finalResult, setFinalResult] = useState(null);
   const [error, setError] = useState(null);
   const fileRef = useRef(null);
+  const galleryRef = useRef(null);
 
   const step = STEPS[currentStep];
   const isComplete = finalResult !== null;
@@ -64,6 +65,22 @@ export default function AICardGrading() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setCapturedImages(prev => ({ ...prev, [step.id]: { file, url } }));
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+  };
+
+  const openCamera = () => {
+    if (fileRef.current) {
+      fileRef.current.value = '';
+      fileRef.current.click();
+    }
+  };
+
+  const openGallery = () => {
+    if (galleryRef.current) {
+      galleryRef.current.value = '';
+      galleryRef.current.click();
+    }
   };
 
   const analyzeStep = async () => {
@@ -86,23 +103,23 @@ export default function AICardGrading() {
         cardType,
       });
 
-      setStepResults(prev => ({ ...prev, [step.id]: res.data.result }));
+      const newStepResults = { ...stepResults, [step.id]: res.data.result };
+      setStepResults(newStepResults);
 
       if (currentStep < STEPS.length - 1) {
         setCurrentStep(prev => prev + 1);
+        setAnalyzing(false);
       } else {
-        // Run final analysis
-        await runFinalAnalysis({ ...stepResults, [step.id]: res.data.result });
+        // Run final analysis — keep analyzing=true until complete
+        await runFinalAnalysis(newStepResults);
       }
     } catch (err) {
       setError(err.message || 'Analysis failed. Please try again.');
-    } finally {
       setAnalyzing(false);
     }
   };
 
   const runFinalAnalysis = async (allResults) => {
-    setAnalyzing(true);
     try {
       const summary = JSON.stringify(allResults, null, 2);
       const res = await base44.functions.invoke('aiCardGrading', {
@@ -249,25 +266,55 @@ export default function AICardGrading() {
               {capturedImages[step.id] ? (
                 <div className="relative rounded-xl overflow-hidden mb-4">
                   <img src={capturedImages[step.id].url} alt="Captured" className="w-full object-cover max-h-64 rounded-xl" />
-                  <button
-                    onClick={() => fileRef.current?.click()}
-                    className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg"
-                  >
-                    Retake
-                  </button>
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <button
+                      onClick={openCamera}
+                      className="bg-black/60 text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1"
+                    >
+                      <Camera className="w-3 h-3" /> Camera
+                    </button>
+                    <button
+                      onClick={openGallery}
+                      className="bg-black/60 text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1"
+                    >
+                      <ImageIcon className="w-3 h-3" /> Gallery
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="w-full border-2 border-dashed border-border rounded-xl h-48 flex flex-col items-center justify-center gap-3 hover:border-primary/50 transition-colors mb-4"
-                >
-                  <Camera className="w-10 h-10 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{step.prompt}</span>
-                </button>
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground text-center mb-3">{step.prompt}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={openCamera}
+                      className="border-2 border-dashed border-border rounded-xl h-32 flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      <Camera className="w-7 h-7 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground font-medium">Take Photo</span>
+                    </button>
+                    <button
+                      onClick={openGallery}
+                      className="border-2 border-dashed border-border rounded-xl h-32 flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      <ImageIcon className="w-7 h-7 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground font-medium">Choose from Library</span>
+                    </button>
+                  </div>
+                </div>
               )}
 
+              {/* Camera input (forces camera on mobile) */}
               <input
                 ref={fileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleImageCapture}
+              />
+              {/* Gallery input (no capture — opens photo library) */}
+              <input
+                ref={galleryRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
