@@ -81,12 +81,7 @@ function ProductCard({ product }) {
                 href={product.cheapest_seller_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                onClick={(e) => {
-                  if (!product.cheapest_seller_url.startsWith('http')) {
-                    e.preventDefault();
-                    alert('Link not available for this product');
-                  }
-                }}
+                title={`Search ${product.cheapest_seller} for this product`}
               >
                 <ExternalLink className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
               </a>
@@ -138,12 +133,7 @@ function ProductCard({ product }) {
                            href={seller.url} 
                            target="_blank" 
                            rel="noopener noreferrer"
-                           onClick={(e) => {
-                             if (!seller.url.startsWith('http')) {
-                               e.preventDefault();
-                               alert('Link not available for this product');
-                             }
-                           }}
+                           title={`Search ${seller.name} for this product`}
                          >
                            <ExternalLink className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
                          </a>

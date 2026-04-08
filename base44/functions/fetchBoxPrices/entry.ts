@@ -58,40 +58,63 @@ Deno.serve(async (req) => {
 Find the top 8 most notable NEW or RECENTLY RELEASED card box products for the "${label}" category that collectors are buying right now. Focus on products released in the last 6 months or highly anticipated upcoming releases within the next 60 days.
 
 For each product, search these specific retailer websites and return real current prices:
-- TCGPlayer.com (for TCG products like Pokémon, MTG, Yu-Gi-Oh!, One Piece)
+- TCGPlayer.com (for TCG: Pokémon, MTG, Yu-Gi-Oh!, One Piece)
 - Dave & Adam's Card World (dacardworld.com)
 - Steel City Collectibles (steelcitycollectibles.com)
 - Blowout Cards (blowoutcards.com)
-- eBay (new/sealed listings)
+- eBay (new/sealed listings — use eBay search)
 - Amazon (new/sealed listings)
 - Target.com
 - Walmart.com
-- Shop.tcgplayer.com
 - Miniature Market (miniaturemarket.com, for TCG)
-- CardboardConnection.com
-- Breakaway Cards
-- Collector's Cache
-- Hobby Haven / local hobby shops (generic)
 
 PRICING RULES:
-1. MSRP = the manufacturer's suggested retail price. This is the "official" price the manufacturer publishes. Always include it.
-2. For each seller, only report CURRENT IN-STOCK prices for NEW/SEALED products. Do NOT include out-of-stock, pre-order (unless explicitly a pre-order product), or sold listings.
-3. If a product is sold out somewhere, skip that seller for that product.
-4. Report prices in USD.
-5. Find at minimum 3 and ideally 5+ sellers per product showing their current price.
-6. The "cheapest_price" and "cheapest_seller" fields must be the verified lowest current in-stock price you found across all sellers.
-7. Note if a seller offers free shipping (this affects true total cost).
+1. MSRP = the manufacturer's suggested retail price. Always include it.
+2. Only report CURRENT IN-STOCK prices for NEW/SEALED products. Skip out-of-stock sellers.
+3. Report prices in USD. Find at minimum 3 sellers per product.
+4. The "cheapest_price" and "cheapest_seller" fields must be the verified lowest current in-stock price.
+5. Note if a seller offers free shipping.
 
-URL RULES — CRITICAL:
-- For EVERY seller URL, you MUST find the DIRECT PRODUCT PAGE URL (not homepage, not search page, not category page).
-- The URL must go directly to where the customer can add the product to their cart or click "Buy Now".
-- VERIFY each URL by actually visiting it and confirming the product name and price match what you are reporting.
-- Only include a URL if you are 100% certain it links to the exact product at the exact price shown in the data.
-- For Amazon, use the full product URL with ASIN or direct /dp/ link.
-- For eBay, only link to active listings showing the product name in the title and current price.
-- For TCGPlayer, link directly to the product page, not search results.
-- For specialty retailers (Dave & Adam's, Blowout Cards, etc.), link to the specific product with quantity selector, not a search or category page.
-- Do NOT set a URL unless you have personally confirmed it loads the product at the right price. If uncertain, set url to null.
+=== URL RULES — CRITICAL ===
+You CANNOT reliably verify direct product page URLs, so use SEARCH URLs that are GUARANTEED to work and show the product at the listed price. Use these exact URL formats:
+
+For eBay (REQUIRED for every product — always works):
+  Use: https://www.ebay.com/sch/i.html?_nkw=PRODUCT+NAME+ENCODED&LH_BIN=1&LH_ItemCondition=1000&_sop=15
+  Replace spaces in the product name with + signs. LH_BIN=1 = Buy It Now only, LH_ItemCondition=1000 = New, _sop=15 = lowest price first.
+  Example for "2025 Topps Series 1 Baseball Hobby Box":
+  https://www.ebay.com/sch/i.html?_nkw=2025+Topps+Series+1+Baseball+Hobby+Box&LH_BIN=1&LH_ItemCondition=1000&_sop=15
+
+For TCGPlayer (TCG products only):
+  Use: https://www.tcgplayer.com/search/all/product?q=PRODUCT+NAME+ENCODED&productLineName=GAME
+  Replace spaces with +. productLineName options: pokemon, magic, yugioh, one-piece-card-game
+  Example: https://www.tcgplayer.com/search/all/product?q=Surging+Sparks+Booster+Box&productLineName=pokemon
+
+For Dave & Adam's:
+  Use: https://www.dacardworld.com/catalogsearch/result/?q=PRODUCT+NAME+ENCODED
+  Example: https://www.dacardworld.com/catalogsearch/result/?q=2025+Topps+Series+1+Hobby+Box
+
+For Blowout Cards:
+  Use: https://www.blowoutcards.com/catalogsearch/result/?q=PRODUCT+NAME+ENCODED
+
+For Steel City Collectibles:
+  Use: https://www.steelcitycollectibles.com/catalogsearch/result/?q=PRODUCT+NAME+ENCODED
+
+For Amazon:
+  Use: https://www.amazon.com/s?k=PRODUCT+NAME+ENCODED&rh=n%3A166704011%2Cp_n_condition-type%3A1294777011
+  (This filters to new condition Toys & Games / Trading Cards category)
+
+For Target:
+  Use: https://www.target.com/s?searchTerm=PRODUCT+NAME+ENCODED
+
+For Walmart:
+  Use: https://www.walmart.com/search?q=PRODUCT+NAME+ENCODED
+
+RULES FOR URL GENERATION:
+- ALWAYS URL-encode the product name (replace spaces with +, remove special characters like ™ © ® / \\ etc.)
+- Use these search URL templates ONLY — do NOT invent or guess direct product page URLs.
+- Every seller entry MUST have a url using the search template above.
+- The cheapest_seller_url MUST also use the search template for that seller.
+- If a seller is not in the list above (e.g. a local shop), set url to null.
 
 Return a JSON object:
 {
@@ -105,11 +128,11 @@ Return a JSON object:
       "msrp": 99.99,
       "cheapest_price": 79.99,
       "cheapest_seller": "Name of cheapest seller",
-      "cheapest_seller_url": "Direct URL to product if known",
+      "cheapest_seller_url": "Search URL using template above",
       "cheapest_free_shipping": true,
       "sellers": [
-        { "name": "Seller Name", "price": 79.99, "free_shipping": true, "url": "https://..." },
-        { "name": "Seller Name 2", "price": 84.99, "free_shipping": false, "url": "https://..." }
+        { "name": "Seller Name", "price": 79.99, "free_shipping": true, "url": "Search URL using template above" },
+        { "name": "eBay", "price": 84.99, "free_shipping": false, "url": "https://www.ebay.com/sch/i.html?_nkw=..." }
       ],
       "cards_per_box": "24 packs / 10 cards per pack",
       "notable_hits": "What big hits can be found (e.g. autographs, relics, 1/1s)",
@@ -119,7 +142,7 @@ Return a JSON object:
   "generated_at": "${now.toISOString()}"
 }
 
-Focus on products with real collector demand. Mix of price tiers (hobby, blaster, etc.) is fine. Prioritize products that are actively selling well.`;
+Focus on products with real collector demand. Mix of price tiers (hobby, blaster, etc.) is fine. Prioritize actively selling products.`;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
