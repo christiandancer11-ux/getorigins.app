@@ -47,6 +47,7 @@ const STEPS = [
 export default function AICardGrading() {
   const { isPro, loading: subLoading } = useSubscription();
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [cardType, setCardType] = useState(null); // 'sports' | 'tcg'
   const [currentStep, setCurrentStep] = useState(0);
   const [capturedImages, setCapturedImages] = useState({});
   const [stepResults, setStepResults] = useState({});
@@ -82,6 +83,7 @@ export default function AICardGrading() {
       const res = await base44.functions.invoke('aiCardGrading', {
         imageUrls: [file_url],
         step: analysisStep,
+        cardType,
       });
 
       setStepResults(prev => ({ ...prev, [step.id]: res.data.result }));
@@ -106,6 +108,7 @@ export default function AICardGrading() {
       const res = await base44.functions.invoke('aiCardGrading', {
         imageUrls: [summary],
         step: 'final',
+        cardType,
       });
       setFinalResult(res.data.result);
     } catch (err) {
@@ -116,6 +119,7 @@ export default function AICardGrading() {
   };
 
   const reset = () => {
+    setCardType(null);
     setCurrentStep(0);
     setCapturedImages({});
     setStepResults({});
@@ -151,13 +155,53 @@ export default function AICardGrading() {
     return <GradingResults result={finalResult} images={capturedImages} onReset={reset} />;
   }
 
+  // Card type selection screen
+  if (!cardType) {
+    return (
+      <div className="min-h-screen bg-background p-4 pb-24">
+        <div className="max-w-lg mx-auto">
+          <div className="mb-8 pt-2">
+            <h1 className="text-2xl font-bold font-display">AI Card Grading</h1>
+            <p className="text-muted-foreground text-sm mt-1">Get grading predictions from PSA, BGS, SGC & CGC</p>
+          </div>
+          <p className="text-sm font-medium text-foreground mb-4">What type of card are you grading?</p>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => setCardType('sports')}
+              className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/60 hover:bg-primary/5 transition-all"
+            >
+              <span className="text-4xl">⚾</span>
+              <div className="text-center">
+                <p className="font-semibold text-foreground">Sports Card</p>
+                <p className="text-xs text-muted-foreground mt-1">Baseball, Basketball, Football, Hockey, Soccer, UFC…</p>
+              </div>
+            </button>
+            <button
+              onClick={() => setCardType('tcg')}
+              className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/60 hover:bg-primary/5 transition-all"
+            >
+              <span className="text-4xl">🃏</span>
+              <div className="text-center">
+                <p className="font-semibold text-foreground">TCG Card</p>
+                <p className="text-xs text-muted-foreground mt-1">Pokémon, Magic, Yu-Gi-Oh!, One Piece, Lorcana…</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 pb-24">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="mb-6 pt-2">
-          <h1 className="text-2xl font-bold font-display">AI Card Grading</h1>
-          <p className="text-muted-foreground text-sm mt-1">Get grading predictions from PSA, BGS, SGC & CGC</p>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold font-display">AI Card Grading</h1>
+            <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">{cardType === 'tcg' ? '🃏 TCG' : '⚾ Sports'}</Badge>
+          </div>
+          <p className="text-muted-foreground text-sm">Get grading predictions from PSA, BGS, SGC & CGC</p>
         </div>
 
         {/* Progress */}
@@ -226,7 +270,6 @@ export default function AICardGrading() {
                 ref={fileRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 className="hidden"
                 onChange={handleImageCapture}
               />

@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { imageUrls, step } = await req.json();
+    const { imageUrls, step, cardType } = await req.json();
 
     if (!imageUrls || imageUrls.length === 0) {
       return Response.json({ error: 'No images provided' }, { status: 400 });
@@ -42,21 +42,27 @@ Deno.serve(async (req) => {
     }
 
     let prompt = '';
+    const isTCG = cardType === 'tcg';
+    const cardTypeLabel = isTCG ? 'TCG card (Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, etc.)' : 'sports trading card (baseball, basketball, football, hockey, etc.)';
 
     if (step === 'centering') {
-      prompt = `You are an expert card grading analyst trained on thousands of PSA, BGS, SGC, and CGC graded cards.
-      
-Analyze the centering of this trading card image carefully.
+      prompt = `You are an expert card grading analyst trained on thousands of PSA, BGS, SGC, CGC, and TAG graded cards — both sports cards and TCG cards (Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana, etc.).
+
+The card being analyzed is a ${cardTypeLabel}.
+
+Analyze the centering of this card image carefully.
 
 Evaluate:
 1. Left-to-right centering ratio (e.g. 55/45, 60/40, 70/30)
 2. Top-to-bottom centering ratio
-3. Whether the centering meets PSA 10, BGS 9.5/10, SGC 10, or CGC 10 standards
+3. Whether the centering meets standards for top grades
 
-PSA 10 requires: 55/45 or better on all sides
-BGS 10 Black Label requires: 50/50 on all sides
-SGC 10 requires: approximately 55/45 or better
-CGC 10 requires: approximately 55/45 or better
+Centering standards:
+- PSA 10: 55/45 or better on all sides (applies to both sports and TCG)
+- BGS 10 Black Label: 50/50 on all sides
+- SGC 10: approximately 55/45 or better
+- CGC 10 (TCG): 55/45 or better — CGC primarily grades TCG cards
+- TAG 10 (TCG): very strict, near-perfect centering required
 
 Respond in JSON with:
 {
@@ -68,29 +74,35 @@ Respond in JSON with:
   "bgs_black_label_ok": false
 }`;
     } else if (step === 'surface') {
-      prompt = `You are an expert card grading analyst trained on thousands of PSA, BGS, SGC, and CGC graded cards.
+      prompt = `You are an expert card grading analyst trained on thousands of PSA, BGS, SGC, CGC, and TAG graded cards — both sports cards and TCG cards.
 
-Analyze this trading card image for surface defects. The card has been shown under various lighting conditions to reveal scratches, print lines, dimples, stains, or other surface issues.
+The card being analyzed is a ${cardTypeLabel}.
+
+Analyze this card image for surface defects under various lighting conditions.
 
 Evaluate:
-1. Presence of scratches (none / minor / moderate / major)
-2. Print defects or lines
+1. Scratches (none / minor / moderate / major)
+2. Print defects or print lines
 3. Stains or smudges
-4. Foil or surface integrity (if applicable)
-5. Overall surface grade impact
+4. Holo or foil surface integrity — IMPORTANT for TCG cards (Pokémon holos, Magic foils, etc.): check for holo scratches, foil peeling, swirl patterns, or silvering
+5. Loss of gloss or surface texture issues
+6. Overall surface grade impact
 
 Respond in JSON with:
 {
   "scratches": "none|minor|moderate|major",
   "print_defects": "none|minor|moderate|major",
   "stains": "none|minor|moderate|major",
+  "holo_issues": "none|minor|moderate|major",
   "surface_score": 9.0,
-  "surface_notes": "brief explanation of what you see"
+  "surface_notes": "brief explanation of what you see, including any holo/foil observations"
 }`;
     } else if (step === 'corners') {
-      prompt = `You are an expert card grading analyst trained on thousands of PSA, BGS, SGC, and CGC graded cards.
+      prompt = `You are an expert card grading analyst trained on thousands of PSA, BGS, SGC, CGC, and TAG graded cards — both sports cards and TCG cards.
 
-Analyze the corners of this trading card. Examine all four corners closely.
+The card being analyzed is a ${cardTypeLabel}.
+
+Analyze the corners of this card. Examine all four corners closely.
 
 Evaluate each corner:
 - Sharp and perfect (10)
@@ -98,10 +110,10 @@ Evaluate each corner:
 - Moderate wear (6-7)
 - Heavy wear (below 6)
 
-PSA 10 requires: All corners sharp with no visible wear
-BGS 10 requires: All corners perfect under magnification
-SGC 10 requires: All corners sharp
-CGC 10 requires: All corners sharp
+Note: TCG cards (especially Pokémon) are often more prone to corner whitening on dark-bordered cards. Sports cards with white borders may show different wear patterns. Account for card type when evaluating.
+
+PSA 10 / CGC 10 / SGC 10 / BGS 10: All corners sharp with no visible wear
+PSA 9 / CGC 9: Corners show slight wear at one or two points only
 
 Respond in JSON with:
 {
@@ -110,20 +122,27 @@ Respond in JSON with:
   "bottom_left": "sharp|slight_wear|moderate_wear|heavy_wear",
   "bottom_right": "sharp|slight_wear|moderate_wear|heavy_wear",
   "corners_score": 9.5,
-  "corners_notes": "brief explanation of what you see on each corner"
+  "corners_notes": "brief explanation of what you see, note if corner whitening is present for dark-bordered TCG cards"
 }`;
     } else if (step === 'final') {
       // Final analysis — receives all prior analysis as JSON string in imageUrls[0]
       const analysisData = imageUrls[0]; // This is actually a JSON string of prior results
-      prompt = `You are an expert card grading analyst with deep knowledge of PSA, BGS, SGC, and CGC grading standards.
+      prompt = `You are an expert card grading analyst with deep knowledge of PSA, BGS, SGC, CGC, and TAG grading standards for both sports cards and TCG cards (Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Lorcana, etc.).
 
-Based on the following analysis data collected from examining this trading card:
+Based on the following analysis data collected from examining this ${cardTypeLabel}:
 
 ${analysisData}
 
-Provide your expert opinion on what grades this card would likely receive from each major grading company. Be honest and realistic — grade inflation helps no one.
+Provide your expert grading opinion. Be honest and realistic — grade inflation helps no one.
 
-Consider the combined impact of centering, surface condition, and corner wear on the final grade.
+Important context:
+- PSA grades all card types (sports + TCG). Very popular for Pokémon and sports.
+- BGS (Beckett) grades both sports and TCG with subgrades.
+- SGC grades primarily sports cards but also some TCG.
+- CGC grades primarily TCG cards (Pokémon, MTG, Yu-Gi-Oh!, etc.) — very relevant for TCG collectors.
+- TAG is an emerging TCG-focused grader.
+
+Consider the combined impact of centering, surface (including holo/foil), and corner wear on the final grade.
 
 Respond in JSON with:
 {
@@ -144,8 +163,8 @@ Respond in JSON with:
   "sgc_notes": "explanation",
   "cgc_grade": 9,
   "cgc_confidence": "high|medium|low",
-  "cgc_notes": "explanation",
-  "overall_assessment": "2-3 sentence honest summary of the card's condition and grading outlook",
+  "cgc_notes": "explanation (note: CGC is most relevant for TCG cards)",
+  "overall_assessment": "2-3 sentence honest summary of the card's condition and grading outlook, accounting for card type",
   "recommendation": "submit|raw_ok|not_worth_grading"
 }`;
     } else {
