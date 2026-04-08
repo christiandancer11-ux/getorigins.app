@@ -66,26 +66,43 @@ Deno.serve(async (req) => {
     const identification = await base44.integrations.Core.InvokeLLM({
       prompt: `You are an expert sports card and TCG card grader and identifier. Analyze the provided card image(s) (front${back_image_url ? ' and back' : ''}) carefully.
 
-Also check if this is a GRADED card (in a PSA, BGS, SGC, CGC, HGA, or any other grading company slab).
+=== CRITICAL: RAW vs GRADED DETERMINATION ===
+You MUST determine whether this card is RAW or GRADED. Follow these rules EXACTLY:
+
+GRADED card indicators (ALL of these must be true):
+- The card is sealed inside a hard, thick plastic slab/case (not a soft sleeve or top loader)
+- There is a clearly visible label on the slab showing a grading company name (PSA, BGS, BGS Black Label, SGC, CGC, HGA, CSG, TAG, or similar)
+- There is a numeric grade prominently displayed on the label (e.g. 10, 9.5, 9, 8, 7, etc.)
+- There is a certification/serial number on the label
+
+RAW card (ungraded) — set grading_company and grade to null if ANY of these apply:
+- The card is loose (no case/slab at all)
+- The card is in a penny sleeve, soft sleeve, or soft plastic — even if there is glare
+- The card is in a top loader (rigid plastic sleeve open at the top) — top loaders do NOT grade cards
+- The card is in a card saver, team bag, or any holder that is NOT a permanently sealed slab
+- There is glare on the card surface — glare from a sleeve or top loader does NOT mean it is graded
+- The label visible belongs to the top loader/sleeve manufacturer, not a grading company
+- You cannot clearly see a grading company name AND numeric grade on a sealed slab label
+- If uncertain between top loader and slab, default to RAW
 
 Identify the card and return a JSON object with:
 - card_name: player name or card title (string)
 - set_name: card set or collection name (string or null)
 - year: year of the card (string or null) — this is the PRODUCTION YEAR printed on the card or slab label, not the current year
 - card_number: card number if visible (string or null)
-- sport: one of baseball/basketball/football/hockey/soccer/golf/ufc/wwe/f1/pokemon/magic_the_gathering/yugioh/other
-- condition_estimate: visual condition estimate — e.g. "Near Mint", "PSA 8-9 equivalent" (string)
-- grading_company: name of grading company if this is a graded slab (e.g. "PSA", "BGS", "SGC", "CGC", "HGA") — null if raw
-- grade: the numeric grade if graded (e.g. "10", "9.5") — null if raw
-- cert_number: certification/serial number visible on the slab label — null if not graded
-- is_rookie_card: true if ANY of the following are present on the card or slab label: an "RC" logo/emblem, the text "Rated Rookie", "Freshman", "Rookie Card", a rookie trophy icon, or any other official rookie designation. Also set true if the card is in a known rookie year set for the player (e.g. their first Topps/Panini/Upper Deck base set). Set to false if none of these are present. Set to null if you are genuinely unsure.
-- visible_attributes: array of notable attributes (e.g. ["rookie card", "autograph", "refractor", "1st edition", "RC logo"])
+- sport: one of baseball/basketball/football/hockey/soccer/golf/ufc/wwe/f1/pokemon/magic_the_gathering/yugioh/lorcana/one_piece/other
+- condition_estimate: visual condition estimate — e.g. "Near Mint", "Lightly Played", "PSA 8-9 equivalent" (string)
+- grading_company: name of grading company ONLY if this is a confirmed graded slab (e.g. "PSA", "BGS", "SGC", "CGC", "HGA") — null if raw or in a sleeve/top loader
+- grade: the numeric grade ONLY if graded in a confirmed slab (e.g. "10", "9.5") — null if raw
+- cert_number: certification/serial number visible on the confirmed slab label — null if not graded
+- is_rookie_card: true if ANY of the following are present on the card or slab label: an "RC" logo/emblem, the text "Rated Rookie", "Freshman", "Rookie Card", a rookie trophy icon, or any other official rookie designation. Also set true if the card is in a known rookie year set for the player. Set to false if none. Set to null if genuinely unsure.
+- visible_attributes: array of notable attributes (e.g. ["rookie card", "autograph", "refractor", "1st edition", "RC logo", "holo", "full art"])
 - identified: true if you can confidently identify the card, false if too unclear
 - confidence: "high", "medium", or "low"
-- needs_back_image: true ONLY if you could NOT identify the card and you think the back would significantly help — false otherwise
-- notes: any additional observations about condition, centering, surface, corners, edges, and whether an RC/rookie emblem was detected
+- needs_back_image: true ONLY if you could NOT identify the card and the back would significantly help — false otherwise
+- notes: observations about whether this is raw or graded, what container the card is in (loose/penny sleeve/top loader/slab), condition, centering, surface, and whether an RC/rookie emblem was detected
 
-Be as specific as possible. For graded slabs, extract ALL label information carefully including any RC designation on the label.`,
+Be as specific as possible. For confirmed graded slabs, read ALL label information carefully including grading company, grade, cert number, and any RC designation.`,
       file_urls: fileUrls,
       response_json_schema: {
         type: 'object',
@@ -207,7 +224,7 @@ Return a JSON object:
     const nowDate = new Date();
     const yesterday = new Date(nowDate.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'other'].includes(identification.sport) ||
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'lorcana', 'one_piece'].includes(identification.sport) ||
       /pokemon|charizard|pikachu|eevee|mewtwo|magic|yugioh|yu-gi-oh|mtg|blue-eyes|dark magician|lorcana|one piece|digimon/i.test(query);
 
     const internalTradeContext = internalTrades.length > 0
@@ -244,7 +261,7 @@ Return a JSON object:
 Card: ${query}${cardKnowledgeContext}
 ${isRawOverride ? `Card Condition: RAW (ungraded) — CRITICAL: You MUST ONLY search for and include UNGRADED/RAW card sales. Do NOT include any graded (PSA, BGS, SGC, CGC, HGA) sales in your results. Graded and raw cards sell for very different prices. Separate strictly.` : ''}
 ${isGradedOverride ? `Card Condition: GRADED — You MUST ONLY search for and include sales of ${grading_company.toUpperCase()} ${grade} cards. Do NOT include other grades or raw sales. Only ${grading_company.toUpperCase()} ${grade} comps are valid.` : `${!isRawOverride && !isGradedOverride ? `Visual condition: ${identification.condition_estimate || 'Unknown'}` : ''}`}
-${isGraded && !gradedOverride ? `Graded: ${identification.grading_company} ${identification.grade}${popContext}` : ''}
+${isGraded && !isGradedOverride ? `Graded: ${identification.grading_company} ${identification.grade}${popContext}` : ''}
 Notable attributes: ${(identification.visible_attributes || []).join(', ') || 'None noted'}
 ${isRookie ? `Rookie Card: YES — an RC/Rated Rookie/Freshman/rookie emblem was detected on this card. You MUST include "RC" in the search query and ONLY return sold listings for the ROOKIE version of this card. Do NOT include veteran base cards, non-rookie parallels, or reprints in the results.` : identification.is_rookie_card === null ? `Rookie Card: UNKNOWN — if unsure, search with and without "RC" and note which comps are rookie vs non-rookie versions. Prefer comps from the same production year (${identification.year || 'unknown'}).` : `Rookie Card: NO — this is NOT a rookie card. Do NOT include rookie card sales in the comps.`}
 Production Year: ${identification.year || 'Unknown'} — ONLY include sold listings for cards from this exact production year. Any sold listing for a card with a different year printed on it (e.g. a reprint, a different year's base card, or a different release) must be EXCLUDED from all averages and listings.
@@ -267,7 +284,30 @@ BEFORE calculating any averages, strictly separate graded and raw sales:
 - GRADED card → use ONLY sales matching the same grade AND grading company. Never include raw or differently-graded copies.
 - This separation is mandatory. Mixing graded and raw sales produces inaccurate valuations.
 
-Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 24 hours from ${yesterday}), 130point.com confirmed sales, PSA's Price Guide / SMR${isTCG ? ', and TCGPlayer.com verified market prices' : ''}.
+Search ${isTCG ? 'THESE THREE TCG-SPECIFIC SOURCES ONLY: (1) PriceCharting.com (pricecharting.com — the primary TCG price authority), (2) eBay completed/sold listings ONLY, (3) TCGPlayer.com verified market prices. DO NOT use 130point.com or PSA SMR for TCG cards.' : 'THREE sources: eBay completed/sold listings (last 24 hours from ' + yesterday + '), 130point.com confirmed sales, and PSA\'s Price Guide / SMR.'}
+
+${isTCG ? `=== TCG DATA SOURCES — MANDATORY RULES ===
+
+1. PRICECHARTING.COM (PRIMARY TCG SOURCE — check this first):
+   - Go to pricecharting.com and search for this exact card.
+   - PriceCharting aggregates real sold listings and is the most widely used TCG price reference.
+   - For RAW cards: return the "Ungraded" price from PriceCharting as pricecharting_ungraded.
+   - For GRADED cards: return the grade-specific price (e.g. "Grade 9", "Grade 10") as pricecharting_graded. Only use the exact same grade — do NOT average across grades.
+   - Also return pricecharting_loose (loose/played price) and pricecharting_new (sealed/NM price) if available.
+
+2. TCGPLAYER.COM (REQUIRED for all TCG cards):
+   - TCGPlayer "Market Price" = weighted average of ACTUAL completed verified sales. This is the most reliable live TCG benchmark.
+   - Return tcgplayer_market_price (NM condition by default), tcgplayer_low, tcgplayer_high.
+   - Include up to 5 actual sold transactions in tcgplayer_recent_sales: { date, price, condition (NM/LP/MP/HP/DMG), title, source: "tcgplayer" }.
+
+3. EBAY SOLD LISTINGS (confirmed sales only):
+   - Use ONLY confirmed SOLD listings from eBay's completed/sold listings section.
+   - For GRADED cards on eBay: ONLY include sales of the exact same grading company AND grade (e.g. PSA 10 only — NOT PSA 9, NOT BGS 9.5, NOT raw).
+   - For RAW cards on eBay: ONLY include ungraded/raw sold copies — exclude ALL slabbed/graded sales.
+   - Exclude: unsold listings, relisted items, strikethrough (offer-accepted hidden prices), buy-it-now never purchased.
+
+DO NOT use 130point.com or PSA SMR as sources for TCG card values.` : ''}
+
 
 === STRICT DATA QUALITY RULES — FOLLOW EXACTLY ===
 
@@ -299,16 +339,7 @@ Search ${isTCG ? 'FOUR' : 'THREE'} sources: eBay completed/sold listings (last 2
    - Return the PSA SMR value as psa_value and the grade used as psa_grade_used.
    - psa_value is a SEPARATE reference figure only — do NOT include it in any averages.
 
-${isTCG ? `6. TCGPLAYER VERIFIED MARKET PRICE (REQUIRED for TCG cards — non-optional):
-   - Go to TCGPlayer.com and find this exact card.
-   - TCGPlayer "Market Price" = weighted average of ACTUAL completed verified sales (last 30 days). This is the most reliable TCG benchmark — return it as tcgplayer_market_price.
-   - Return tcgplayer_low (lowest current verified listing) and tcgplayer_high (highest recent sale).
-   - For tcgplayer_recent_sales: find up to 5 actual sold transactions (not just listings): { date, price, condition (NM/LP/MP/HP/DMG), title, source: "tcgplayer" }.
-   - Default to NM (Near Mint) condition unless the query specifies otherwise.
-   - Cross-reference CardMarket (cardmarket.com) if TCGPlayer data is thin.
-   - If card doesn't exist on TCGPlayer, set all tcgplayer fields to null and explain in market_summary.` : ''}
-
-7. ORIGINS CARD SHOW TRADES:
+6. ORIGINS CARD SHOW TRADES:
    - Internal verified in-person trade data is provided above (if any). These are REAL ground-truth transactions from the Origins community.
    - Use these to validate or calibrate your estimated_value. If the internal trades show prices diverging from online comps, note it in market_summary.
 
@@ -332,7 +363,11 @@ Return a JSON object with:
 - estimated_value: your best single-number estimate of current value in USD, informed by all sources including any Origins trade data (number)
 - value_range_low: conservative low estimate USD (number)
 - value_range_high: optimistic high estimate USD (number)
-- market_summary: 3-5 sentences covering eBay 24h avg, 130point avg, ${isTCG ? 'TCGPlayer Market Price, ' : ''}PSA reference, condition impact, and trend direction${isGraded ? ', and how the pop count affects value' : ''}. If Origins card show trade data was available, mention how it compares to online comps.
+- pricecharting_ungraded: PriceCharting ungraded/raw price (number or null — TCG only)
+- pricecharting_graded: PriceCharting price for the specific grade on this card (number or null — TCG graded only, exact grade match)
+- pricecharting_loose: PriceCharting loose/played price (number or null — TCG only)
+- grading_company_comparison: ${isGraded ? `REQUIRED — for the graded card you identified (${identification.grading_company || 'the grading company'} ${identification.grade || 'grade'}), look up what the SAME card at the SAME numeric grade sells for from OTHER major grading companies (PSA, BGS, SGC, CGC, HGA — whichever are different from the card's actual company). Return an array of objects: [{ company: "PSA", grade: "10", avg_sold_price: number or null, notes: "brief note on availability/demand" }]. Show all companies you can find data for. These are for COMPARISON ONLY and must never be blended into the main estimated_value.` : 'null — only populate for graded cards'}
+- market_summary: ${isTCG ? '3-5 sentences covering: PriceCharting price, TCGPlayer Market Price, eBay sold average. For graded cards, explicitly call out the exact grade (company + grade) comps used and note what the same grade sells for from other companies.' : '3-5 sentences covering eBay 24h avg, 130point avg, PSA reference, condition impact, and trend direction'}${isGraded ? ' Include pop report context and how the pop count affects value.' : ''} If Origins card show trade data was available, mention how it compares to online comps.
 - search_query_used: the exact search query used`;
 
     const saleItemSchema = { type: 'object', properties: { date: { type: 'string' }, price: { type: 'number' }, condition: { type: 'string' }, title: { type: 'string' }, source: { type: 'string' } } };
@@ -363,6 +398,21 @@ Return a JSON object with:
           tcgplayer_recent_sales: { type: 'array', items: saleItemSchema },
           psa_value: { type: 'number' },
           psa_grade_used: { type: 'string' },
+          pricecharting_ungraded: { type: 'number' },
+          pricecharting_graded: { type: 'number' },
+          pricecharting_loose: { type: 'number' },
+          grading_company_comparison: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                company: { type: 'string' },
+                grade: { type: 'string' },
+                avg_sold_price: { type: 'number' },
+                notes: { type: 'string' },
+              }
+            }
+          },
           estimated_value: { type: 'number' },
           value_range_low: { type: 'number' },
           value_range_high: { type: 'number' },
