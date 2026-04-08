@@ -92,12 +92,20 @@ RULES: Only use confirmed SOLD listings. Exclude outlier sales within 12 hours b
 
 Return exactly 15 cards. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence), trend (up/down/stable).`;
 
-  const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-    prompt,
-    add_context_from_internet: false,
-    response_json_schema: cardSchema,
-    model: 'gemini_3_flash',
-  });
+  // Wrap LLM call with a 50-second timeout so automations never hard-fail due to slow LLM
+  let llmResult = null;
+  const llmTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('LLM timeout after 50s')), 50000)
+  );
+  llmResult = await Promise.race([
+    base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt,
+      add_context_from_internet: false,
+      response_json_schema: cardSchema,
+      model: 'gemini_3_flash',
+    }),
+    llmTimeout,
+  ]);
 
   const cards = llmResult?.cards || [];
   const categorySummary = llmResult?.category_summary || '';
