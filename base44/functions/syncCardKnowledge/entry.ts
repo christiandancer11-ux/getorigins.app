@@ -148,6 +148,12 @@ Return a JSON object:
       if (sourceItem.source === 'new_set_releases' && data.sets) {
         for (const set of data.sets) {
           for (const card of set.cards || []) {
+            // Skip records missing required fields
+            if (!card.card_name || !set.set_name || !set.sport) {
+              console.warn(`Skipping card with missing required fields in set ${set.set_name}`);
+              skipCount++;
+              continue;
+            }
             try {
               // Check if this knowledge already exists
               const existing = await base44.asServiceRole.entities.CardKnowledge.filter({
@@ -191,6 +197,12 @@ Return a JSON object:
       // Process trending cards
       if (sourceItem.source === 'trending_community' && data.trending_cards) {
         for (const card of data.trending_cards) {
+          // Skip records missing required fields
+          if (!card.card_name || !card.set_name || !card.sport) {
+            console.warn(`Skipping trending card with missing required fields: ${JSON.stringify(card)}`);
+            skipCount++;
+            continue;
+          }
           try {
             const existing = await base44.asServiceRole.entities.CardKnowledge.filter({
               card_name: card.card_name,
