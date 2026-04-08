@@ -21,19 +21,25 @@ export default function LessonViewer({ lesson, onComplete, onBack, onChangePlan 
       className="space-y-6"
     >
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
             <ChevronLeft className="w-4 h-4" />
             Back to Lessons
           </Button>
           <Button variant="outline" size="sm" onClick={onChangePlan} className="gap-2">
-            <ChevronLeft className="w-4 h-4" />
             Change Plan
           </Button>
         </div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">{lesson.title}</h1>
-        <p className="text-muted-foreground text-lg">{lesson.description}</p>
+        <div className="flex items-start gap-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-semibold text-primary">Lesson {lesson.lesson_number}</span>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{lesson.title}</h1>
+            <p className="text-muted-foreground text-lg">{lesson.description}</p>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}

@@ -102,11 +102,12 @@ export default function LearningCenter() {
   };
 
   const completeLesson = async () => {
-    if (!learningPath) return;
+    if (!learningPath || !plan) return;
 
-    const newIndex = learningPath.current_lesson_index + 1;
+    const isLastLesson = learningPath.current_lesson_index === plan.total_lessons - 1;
+    const newIndex = isLastLesson ? learningPath.current_lesson_index : learningPath.current_lesson_index + 1;
     const completedCount = learningPath.lessons_completed + 1;
-    const completionPct = (completedCount / learningPath.total_lessons) * 100;
+    const completionPct = (completedCount / plan.total_lessons) * 100;
 
     // Update path
     const updated = await base44.entities.LearningPath.update(learningPath.id, {
@@ -117,9 +118,10 @@ export default function LearningCenter() {
     });
 
     setLearningPath(updated);
+    setSelectedLesson(null);
 
     // Award achievement when plan is completed
-    if (completedCount === learningPath.total_lessons) {
+    if (completedCount === plan.total_lessons) {
       const categoryLabel = learningPath.category === 'tcg' ? 'TCG' : 
                            learningPath.category === 'sports_cards' ? 'Sports Cards' : 'All Cards';
       await unlockAchievement('plan_completed', `Completed ${categoryLabel} Learning Path`, 14, '🎓');
@@ -218,21 +220,32 @@ export default function LearningCenter() {
               />
             ) : (
               <div className="space-y-4">
-                {plan.lessons.filter(l => l && l.title).map((lesson, idx) => {
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold text-foreground">Learning Lessons</h2>
+                  {learningPath.lessons_completed > 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      {learningPath.lessons_completed} of {plan.total_lessons} completed
+                    </span>
+                  )}
+                </div>
+                {plan.lessons && plan.lessons.filter(l => l && l.title).map((lesson, idx) => {
                   const isCompleted = idx < learningPath.lessons_completed;
                   const isCurrent = idx === learningPath.current_lesson_index;
+                  const isLocked = idx > learningPath.current_lesson_index && !isCompleted;
 
                   return (
                     <motion.div
                       key={idx}
-                      whileHover={{ x: 4 }}
-                      onClick={() => setSelectedLesson(idx)}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        isCurrent
-                          ? 'border-primary bg-primary/10'
+                      whileHover={!isLocked ? { x: 4 } : {}}
+                      onClick={() => !isLocked && setSelectedLesson(idx)}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        isLocked
+                          ? 'border-border/30 bg-muted/30 cursor-not-allowed opacity-50'
+                          : isCurrent
+                          ? 'border-primary bg-primary/10 cursor-pointer'
                           : isCompleted
-                          ? 'border-green-500/30 bg-green-500/5'
-                          : 'border-border/50 bg-card hover:border-border'
+                          ? 'border-green-500/30 bg-green-500/5 cursor-pointer'
+                          : 'border-border/50 bg-card hover:border-border cursor-pointer'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -242,6 +255,7 @@ export default function LearningCenter() {
                               Lesson {lesson.lesson_number}
                             </span>
                             {isCompleted && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                            {isLocked && <span className="text-xs text-muted-foreground">🔒</span>}
                           </div>
                           <h3 className="font-semibold text-foreground truncate">{lesson.title}</h3>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{lesson.description}</p>
