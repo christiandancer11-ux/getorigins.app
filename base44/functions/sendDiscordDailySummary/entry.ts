@@ -24,7 +24,8 @@ Deno.serve(async (req) => {
           name: `${i + 1}. ${p.card_name} (${p.set_name})`,
           value: `💰 $${p.estimated_price} | Target: $${p.price_target}`,
           inline: false
-        }))
+        })),
+        footer: { text: '✨ Free daily market insights from Origins' }
       },
       {
         title: '⏸️ Hold Picks',
@@ -34,7 +35,8 @@ Deno.serve(async (req) => {
           name: `${i + 1}. ${p.card_name} (${p.set_name})`,
           value: `💰 $${p.estimated_price}`,
           inline: false
-        }))
+        })),
+        footer: { text: '✨ Free daily market insights from Origins' }
       },
       {
         title: '📉 Sell Picks',
@@ -44,7 +46,8 @@ Deno.serve(async (req) => {
           name: `${i + 1}. ${p.card_name} (${p.set_name})`,
           value: `💰 $${p.estimated_price}`,
           inline: false
-        }))
+        })),
+        footer: { text: '✨ Free daily market insights from Origins' }
       },
       {
         title: '🔥 Trending Now',
@@ -54,7 +57,8 @@ Deno.serve(async (req) => {
           name: `${i + 1}. ${c.name || c.card_name}`,
           value: c.heat_score ? `Heat Score: ${c.heat_score}` : 'Trending',
           inline: false
-        }))
+        })),
+        footer: { text: '✨ Free daily market insights from Origins' }
       }
     ];
 
