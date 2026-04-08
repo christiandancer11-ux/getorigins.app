@@ -32,7 +32,7 @@ import ProCardFlipper from './pages/ProCardFlipper';
 import SocialFeed from './pages/SocialFeed';
 import UserSearch from './pages/UserSearch';
 import Pricing from './pages/Pricing';
-import AICardGrading from './pages/AICardGrading';
+import AICardGrading from './pages/AICardGrading.jsx';
 import BulkDealCalculator from './pages/BulkDealCalculator';
 import AdminCardKnowledge from './pages/AdminCardKnowledge';
 import LoadTestResults from './pages/LoadTestResults';
