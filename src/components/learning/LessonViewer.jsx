@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import ReactMarkdown from 'react-markdown';
 import { ChevronLeft, CheckCircle2, ExternalLink, Lightbulb } from 'lucide-react';
 
-export default function LessonViewer({ lesson, onComplete, onBack }) {
+export default function LessonViewer({ lesson, onComplete, onBack, onChangePlan }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -14,10 +14,16 @@ export default function LessonViewer({ lesson, onComplete, onBack }) {
     >
       {/* Header */}
       <div>
-        <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 gap-2">
-          <ChevronLeft className="w-4 h-4" />
-          Back to Lessons
-        </Button>
+        <div className="flex items-center gap-2 mb-4">
+          <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
+            <ChevronLeft className="w-4 h-4" />
+            Back to Lessons
+          </Button>
+          <Button variant="outline" size="sm" onClick={onChangePlan} className="gap-2">
+            <ChevronLeft className="w-4 h-4" />
+            Change Plan
+          </Button>
+        </div>
         <h1 className="text-3xl font-bold text-foreground mb-2">{lesson.title}</h1>
         <p className="text-muted-foreground text-lg">{lesson.description}</p>
       </div>

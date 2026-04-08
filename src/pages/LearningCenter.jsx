@@ -196,7 +196,20 @@ export default function LearningCenter() {
     setAchievements([...achievements, achievement]);
   };
 
-  const changeInterests = () => {
+  const changeInterests = async () => {
+    if (learningPath) {
+      const confirmed = confirm('This will delete your current progress. Continue?');
+      if (!confirmed) return;
+      
+      try {
+        await base44.entities.LearningPath.delete(learningPath.id);
+        setLearningPath(null);
+        setPlan(null);
+        setSelectedLesson(null);
+      } catch (e) {
+        console.error('Failed to delete learning path:', e);
+      }
+    }
     setShowInterestSelector(true);
   };
 
@@ -256,6 +269,7 @@ export default function LearningCenter() {
                 lesson={plan.lessons[selectedLesson]}
                 onComplete={completeLesson}
                 onBack={() => setSelectedLesson(null)}
+                onChangePlan={changeInterests}
               />
             ) : (
               <div className="space-y-4">
