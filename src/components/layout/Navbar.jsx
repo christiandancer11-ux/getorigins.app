@@ -1,9 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, ShieldAlert, Repeat2, Rss, Users, ScanSearch, Calculator, MoreHorizontal, Bookmark } from 'lucide-react';
+import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, ShieldAlert, Repeat2, Rss, Users, ScanSearch, Calculator, MoreHorizontal, Bookmark, ChevronDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 import FeaturesDropdown from './FeaturesDropdown.jsx';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NAV_LINKS = [
   // Core
@@ -28,8 +34,14 @@ const NAV_LINKS = [
   { to: '/bolo', icon: ShieldAlert, label: 'BOLO Alerts', desc: 'Stolen card alerts', category: 'more' },
 ];
 
-// Desktop: show all main nav categories
-const DESKTOP_NAV = NAV_LINKS;
+// Desktop: categories with dropdown
+const DESKTOP_CATEGORIES = [
+  { key: 'core', label: 'My Cards', icon: Layers },
+  { key: 'discover', label: 'Discover', icon: Flame },
+  { key: 'tools', label: 'Tools', icon: Calculator },
+  { key: 'account', label: 'Account', icon: User },
+];
+
 // Mobile bottom bar: 4 most used + a "More" menu button
 const MOBILE_NAV_TABS = [
   NAV_LINKS.find(l => l.to === '/dashboard'),
@@ -65,19 +77,39 @@ export default function Navbar() {
             <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7231ac246_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.jpeg" alt="Origins" className="h-10 w-10 rounded-lg" />
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-0.5 flex-wrap">
-            {DESKTOP_NAV.map(({ to, icon: Icon, label }) => (
-              <Link key={to} to={to}>
-                <Button
-                  variant="ghost" size="sm"
-                  className={`transition-colors text-xs ${isActive(to) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  <Icon className="w-3.5 h-3.5 mr-1.5" />
-                  {label}
-                </Button>
-              </Link>
-            ))}
+          {/* Desktop Nav with Dropdowns */}
+          <div className="hidden lg:flex items-center gap-2">
+            {DESKTOP_CATEGORIES.map(({ key, label, icon: Icon }) => {
+              const items = NAV_LINKS.filter(l => l.category === key);
+              const activeItem = items.find(l => isActive(l.to));
+              return (
+                <DropdownMenu key={key}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost" size="sm"
+                      className={`text-xs gap-1.5 transition-colors ${activeItem ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {label}
+                      <ChevronDown className="w-3 h-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    {items.map(({ to, icon: ItemIcon, label: itemLabel, desc }) => (
+                      <DropdownMenuItem key={to} asChild>
+                        <Link to={to} className="cursor-pointer">
+                          <ItemIcon className="w-4 h-4 mr-2" />
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm">{itemLabel}</span>
+                            {desc && <span className="text-xs text-muted-foreground">{desc}</span>}
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            })}
             <FeaturesDropdown />
           </div>
 
