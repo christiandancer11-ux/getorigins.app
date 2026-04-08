@@ -61,24 +61,29 @@ Return as JSON array of pulls. ONLY include pulls from the last 24 hours that me
     const pullData = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
       add_context_from_internet: true,
-      model: 'gemini_3_1_pro', // Use Pro for web search capability
+      model: 'gemini_3_1_pro',
       response_json_schema: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            product_name: { type: 'string' },
-            product_category: { type: 'string' },
-            sport: { type: 'string' },
-            tcg_type: { type: 'string' },
-            card_name: { type: 'string' },
-            card_type: { type: 'string' },
-            estimated_value: { type: 'number' },
-            platforms: { type: 'array', items: { type: 'string' } },
-            engagement_score: { type: 'number' },
-            verified_accounts: { type: 'array', items: { type: 'string' } },
-            authenticity_confidence: { type: 'string' },
-            impact_analysis: { type: 'string' }
+        type: 'object',
+        properties: {
+          pulls: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                product_name: { type: 'string' },
+                product_category: { type: 'string' },
+                sport: { type: 'string' },
+                tcg_type: { type: 'string' },
+                card_name: { type: 'string' },
+                card_type: { type: 'string' },
+                estimated_value: { type: 'number' },
+                platforms: { type: 'array', items: { type: 'string' } },
+                engagement_score: { type: 'number' },
+                verified_accounts: { type: 'array', items: { type: 'string' } },
+                authenticity_confidence: { type: 'string' },
+                impact_analysis: { type: 'string' }
+              }
+            }
           }
         }
       }
@@ -90,7 +95,7 @@ Return as JSON array of pulls. ONLY include pulls from the last 24 hours that me
     });
 
     const newPulls = [];
-    for (const pull of (Array.isArray(pullData) ? pullData : [])) {
+    for (const pull of (Array.isArray(pullData?.pulls) ? pullData.pulls : [])) {
       // Check if this pull already exists
       const isDuplicate = existingAlerts.some(existing =>
         existing.product_name === pull.product_name &&
