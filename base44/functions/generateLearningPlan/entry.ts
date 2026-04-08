@@ -81,7 +81,7 @@ Return as valid JSON object with:
     const planData = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
       add_context_from_internet: true,
-      model: 'gemini_3_1_pro', // Supports web search for current resources
+      model: 'gemini_3_flash', // Supports web search for current resources
       response_json_schema: {
         type: 'object',
         properties: {
