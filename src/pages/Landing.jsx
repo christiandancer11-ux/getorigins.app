@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, QrCode, Sparkles, Tag, Gift, Star, TrendingUp, Shield, ChevronRight, Scan, Video, BarChart3, CheckCircle, Bell } from 'lucide-react';
+import { ArrowRight, QrCode, Sparkles, Tag, Gift, Star, TrendingUp, Shield, ChevronRight, Scan, Video, BarChart3, CheckCircle, Bell, BookOpen, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
 import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
@@ -323,6 +323,47 @@ export default function Landing() {
       <section className="py-16 px-6 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
           <MajorPullAlerts />
+        </div>
+      </section>
+
+      {/* ── LEARNING CENTER ── */}
+      <section className="py-20 px-6 bg-secondary/15 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="text-center mb-10">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">New Collectors</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">
+              Learn how to collect the right way.
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-lg mx-auto">Free, personalized learning paths designed to teach you everything from card types and buying strategies to grading and flipping tactics.</p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-3 gap-5 mb-8">
+            {[
+              { icon: BookOpen, title: '10-20 Lessons', desc: 'Comprehensive guides tailored to your goals' },
+              { icon: Zap, title: 'Unlock Rewards', desc: '7-day Pro access for each milestone' },
+              { icon: Sparkles, title: 'Learn by Doing', desc: 'Practice with Origins features as you go' },
+            ].map((item, i) => (
+              <motion.div key={item.title} {...fadeUp(i * 0.1)}
+                className="p-6 rounded-2xl bg-card border border-border/50 flex flex-col gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground mb-1">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="flex justify-center">
+            <Link to="/learn">
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-10 text-base font-semibold gap-2 shadow-lg shadow-primary/25">
+                <BookOpen className="w-4 h-4" />
+                Start Learning Free
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

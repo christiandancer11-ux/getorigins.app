@@ -1,0 +1,70 @@
+{
+  "name": "LearningPath",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user following this path"
+    },
+    "card_interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Selected card types (pokemon, basketball, football, etc.)"
+    },
+    "use_case": {
+      "type": "string",
+      "enum": [
+        "collecting",
+        "collecting_selling",
+        "flipping",
+        "business"
+      ],
+      "description": "What the user plans to use cards for"
+    },
+    "plan_id": {
+      "type": "string",
+      "description": "Reference to the LearningPlan entity"
+    },
+    "lessons_completed": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of lessons completed"
+    },
+    "total_lessons": {
+      "type": "number",
+      "description": "Total lessons in this plan"
+    },
+    "completion_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage of plan completed (0-100)"
+    },
+    "achievements_unlocked": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of achievement IDs unlocked"
+    },
+    "current_lesson_index": {
+      "type": "number",
+      "default": 0,
+      "description": "Index of the current lesson user is on"
+    },
+    "started_at": {
+      "type": "string",
+      "description": "ISO timestamp when user started the path"
+    },
+    "last_accessed": {
+      "type": "string",
+      "description": "ISO timestamp of last access"
+    }
+  },
+  "required": [
+    "user_email",
+    "card_interests",
+    "use_case"
+  ]
+}

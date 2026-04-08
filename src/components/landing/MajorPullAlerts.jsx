@@ -10,7 +10,7 @@ export default function MajorPullAlerts() {
   useEffect(() => {
     const fetchLatestPulls = async () => {
       try {
-        const recentPulls = await base44.asServiceRole.entities.MajorPullAlert.filter({
+        const recentPulls = await base44.entities.MajorPullAlert.filter({
           status: 'active',
           verified: true
         }, '-created_date', 5);

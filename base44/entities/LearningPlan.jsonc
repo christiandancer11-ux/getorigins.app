@@ -1,0 +1,132 @@
+{
+  "name": "LearningPlan",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the learning plan (e.g. 'Pokemon TCG for Flippers')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the plan"
+    },
+    "card_interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Card types this plan covers"
+    },
+    "use_case": {
+      "type": "string",
+      "enum": [
+        "collecting",
+        "collecting_selling",
+        "flipping",
+        "business"
+      ],
+      "description": "Intended use case for this plan"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "sports_cards",
+        "tcg"
+      ],
+      "description": "Whether this is for sports cards or TCG"
+    },
+    "lessons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lesson_number": {
+            "type": "number",
+            "description": "Lesson order (1-20)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Lesson title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Lesson overview"
+          },
+          "content": {
+            "type": "string",
+            "description": "Full lesson content (markdown)"
+          },
+          "key_takeaways": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Key points from the lesson"
+          },
+          "learning_resources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "article",
+                    "video",
+                    "guide",
+                    "reddit",
+                    "tool"
+                  ]
+                },
+                "platform": {
+                  "type": "string",
+                  "description": "youtube, tiktok, instagram, x, website, reddit, etc"
+                }
+              }
+            },
+            "description": "Links to videos, articles, guides from top creators"
+          },
+          "practical_exercise": {
+            "type": "string",
+            "description": "What the user should do to apply this lesson"
+          },
+          "origins_feature_integration": {
+            "type": "string",
+            "description": "How to use Origins features to practice this lesson"
+          }
+        }
+      },
+      "description": "Array of lesson objects (10-20 lessons)"
+    },
+    "total_lessons": {
+      "type": "number",
+      "description": "Total number of lessons in this plan"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "When this plan was created"
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "Last time this plan was updated (monthly updates)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this plan is currently available"
+    }
+  },
+  "required": [
+    "name",
+    "card_interests",
+    "use_case",
+    "category",
+    "lessons"
+  ]
+}
