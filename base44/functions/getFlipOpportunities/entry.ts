@@ -98,39 +98,42 @@ For each of the top 10 flip opportunities return:
 
 Sort by potential_gain_pct descending. Only include cards with real, verifiable recent sales data from the sources above.`;
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          opportunities: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                rank: { type: 'number' },
-                card_name: { type: 'string' },
-                set_name: { type: 'string' },
-                year: { type: 'string' },
-                sport_or_tcg: { type: 'string' },
-                current_buy_price: { type: 'number' },
-                target_sell_price: { type: 'number' },
-                potential_gain_pct: { type: 'number' },
-                buy_reason: { type: 'string' },
-                sell_catalyst: { type: 'string' },
-                time_horizon: { type: 'string' },
-                risk_level: { type: 'string' },
-                data_source: { type: 'string' },
+    const result = await Promise.race([
+      base44.integrations.Core.InvokeLLM({
+        prompt,
+        add_context_from_internet: true,
+        model: 'gemini_3_flash',
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            opportunities: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  rank: { type: 'number' },
+                  card_name: { type: 'string' },
+                  set_name: { type: 'string' },
+                  year: { type: 'string' },
+                  sport_or_tcg: { type: 'string' },
+                  current_buy_price: { type: 'number' },
+                  target_sell_price: { type: 'number' },
+                  potential_gain_pct: { type: 'number' },
+                  buy_reason: { type: 'string' },
+                  sell_catalyst: { type: 'string' },
+                  time_horizon: { type: 'string' },
+                  risk_level: { type: 'string' },
+                  data_source: { type: 'string' },
+                },
               },
             },
+            summary: { type: 'string' },
+            generated_at: { type: 'string' },
           },
-          summary: { type: 'string' },
-          generated_at: { type: 'string' },
         },
-      },
-    });
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout after 25s')), 25000))
+    ]);
 
     console.log('getFlipOpportunities completed, found:', result?.opportunities?.length, 'opportunities');
     return Response.json({ ...result, generated_at: new Date().toISOString() });
