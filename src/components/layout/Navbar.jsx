@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, ShieldAlert, Repeat2, Rss, Users, ScanSearch, Calculator, MoreHorizontal, Bookmark } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
+import FeaturesDropdown from './FeaturesDropdown.jsx';
 
 const NAV_LINKS = [
   // Core
@@ -77,6 +78,7 @@ export default function Navbar() {
                 </Button>
               </Link>
             ))}
+            <FeaturesDropdown />
           </div>
 
           <div className="flex items-center gap-2">
