@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import CardGridItem from '../components/dashboard/CardGridItem';
 import CertLookupEntry from '../components/grading/CertLookupEntry';
 import EmptyState from '../components/shared/EmptyState';
-import CollectionStats from '../components/dashboard/CollectionStats';
-import CollectionValueWidget from '../components/dashboard/CollectionValueWidget';
+import PortfolioTracker from '../components/dashboard/PortfolioTracker';
 import CardValueBreakdown from '../components/dashboard/CardValueBreakdown';
 import SoldTradedGrid from '../components/dashboard/SoldTradedGrid';
 import MarkSoldModal from '../components/dashboard/MarkSoldModal';
@@ -261,14 +260,10 @@ export default function Dashboard() {
             {/* Portfolio Tab */}
              {activeTab === 'portfolio' && (
                allCards.length === 0 ? (
-                 <EmptyState icon={BarChart2} title="No Cards Yet" description="Add cards and fill in their estimated value to see your portfolio breakdown here." />
+                 <EmptyState icon={BarChart2} title="No Cards Yet" description="Add cards and fill in their estimated value to see your portfolio here." />
                ) : (
                  <>
-                   <p className="text-xs text-muted-foreground mb-4">Your collection's estimated total value, profit/loss, and breakdown by sport. Update card values from each card's detail page.</p>
-                   <CollectionValueWidget userEmail={currentUserEmail} />
-                   <div className="mt-6">
-                     <CollectionStats cards={allCards} />
-                   </div>
+                   <PortfolioTracker cards={allCards} />
                    <div className="mt-6">
                      <h2 className="font-semibold text-foreground mb-1">Card-by-Card Breakdown</h2>
                      <p className="text-xs text-muted-foreground mb-4">Each card's cost vs. estimated value and ROI.</p>
