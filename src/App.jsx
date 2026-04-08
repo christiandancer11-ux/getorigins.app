@@ -39,6 +39,7 @@ import LoadTestResults from './pages/LoadTestResults';
 import CardWatchlist from './pages/CardWatchlist';
 import LearningCenter from './pages/LearningCenter';
 import SystemHealthCheck from './pages/SystemHealthCheck';
+import DiscordSetup from './pages/DiscordSetup';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -95,6 +96,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/health-check" element={<SystemHealthCheck />} />
         <Route path="/watchlist" element={<CardWatchlist />} />
         <Route path="/learn" element={<LearningCenter />} />
+        <Route path="/discord" element={<DiscordSetup />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
