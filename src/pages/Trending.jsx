@@ -11,6 +11,7 @@ import TrendingCardDetailSheet from '@/components/trending/TrendingCardDetailShe
 import SetAlertModal from '@/components/alerts/SetAlertModal';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh.jsx';
 import BoxPriceTracker from '@/components/trending/BoxPriceTracker';
+import TrendingLegend from '@/components/trending/TrendingLegend';
 
 const VIEW_MODES = [
   { id: 'hottest',       label: 'Hottest',        icon: Flame,       desc: 'Overall hottest cards right now'        },
@@ -255,6 +256,9 @@ export default function Trending() {
                 Updated {currentData.generated_at ? new Date(currentData.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
               </span>
             </div>
+
+            {/* Legend */}
+            <TrendingLegend />
 
             {/* Card list */}
             <div className="rounded-2xl border border-border/40 overflow-hidden bg-card">

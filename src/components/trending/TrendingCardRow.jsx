@@ -8,11 +8,18 @@ const trendIcon = (trend) => {
   return <Minus className="w-3.5 h-3.5 text-muted-foreground" />;
 };
 
-const heatColor = (score) => {
+const buzzColor = (score) => {
   if (score >= 90) return 'text-red-400';
   if (score >= 75) return 'text-orange-400';
   if (score >= 60) return 'text-amber-400';
   return 'text-muted-foreground';
+};
+
+const buzzLabel = (score) => {
+  if (score >= 90) return '🔥 On Fire';
+  if (score >= 75) return '⚡ Hot';
+  if (score >= 60) return '↑ Rising';
+  return 'Steady';
 };
 
 export default function TrendingCardRow({ card, highlight, onClick, onSetAlert, userEmail }) {
@@ -38,7 +45,9 @@ export default function TrendingCardRow({ card, highlight, onClick, onSetAlert, 
         <p className="text-xs text-muted-foreground truncate">
           {[card.year, card.set_name, card.variant].filter(Boolean).join(' · ')}
         </p>
-        <p className="text-xs text-muted-foreground/70 truncate mt-0.5 italic">{card.why_hot}</p>
+        {card.why_hot && (
+          <p className="text-xs text-muted-foreground/70 truncate mt-0.5 italic">"{card.why_hot}"</p>
+        )}
       </div>
 
       {/* Watchlist + Alert buttons */}
@@ -67,11 +76,11 @@ export default function TrendingCardRow({ card, highlight, onClick, onSetAlert, 
         </div>
         {(card.estimated_value_low || card.estimated_value_high) && (
           <p className="text-xs text-muted-foreground">
-            ${card.estimated_value_low || 0} – ${card.estimated_value_high || 0}
+            ${card.estimated_value_low || 0}–${card.estimated_value_high || 0}
           </p>
         )}
-        <div className={`text-xs font-semibold mt-0.5 ${heatColor(card.heat_score)}`}>
-          {card.heat_score}° heat
+        <div className={`text-xs font-semibold mt-0.5 flex items-center justify-end gap-0.5 ${buzzColor(card.heat_score)}`}>
+          {buzzLabel(card.heat_score)}
         </div>
       </div>
     </div>
