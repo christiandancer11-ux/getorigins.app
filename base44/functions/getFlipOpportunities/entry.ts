@@ -45,26 +45,41 @@ Deno.serve(async (req) => {
 
     const prompt = `You are an expert sports card & TCG investment analyst. Your job is to find the TOP 10 best "buy low, sell high" flip opportunities RIGHT NOW across all card categories (sports and TCG).
 
-Use data from:
-- eBay recently sold listings (last 7-30 days)
-- 130point.com confirmed sales
-- PSA, BGS price guides
-- Known upcoming auctions, player news, sports seasons, and release announcements
-- Origins community trade data below
+=== PRIMARY DATA SOURCES — YOU MUST USE ALL OF THESE ===
 
-Origins recent trade data:
+For ALL sports cards (baseball, basketball, football, hockey, soccer, golf, UFC, WWE, F1, NCAA):
+1. **130point.com** — REQUIRED. Use as the primary confirmed sales database. Pull the most recent sold transactions for each card (last 7-30 days). 130point aggregates eBay sold data with verified prices — treat it as ground truth for sports card comps.
+2. **Alt (alt.com)** — REQUIRED for sports cards. Alt is a verified card marketplace with authenticated graded cards. Check their recent sales and current listings to find undervalued slabs.
+3. **Collx / Ludex / Cardbase** — REQUIRED. These apps aggregate collector pricing and community data. Collx tracks recent scan-and-price data from the collector community. Use them to cross-reference fair market value.
+4. **Card Ladder (cardladder.com)** — REQUIRED for graded sports cards. Card Ladder tracks grade-specific population data and price trends over time. Use it to identify cards with price momentum or undervalued grades.
+5. **eBay recently sold listings** — Use as supplementary validation, not primary source.
+6. **PSA, BGS, SGC population reports** — Use to assess scarcity and grade premiums.
+
+For TCG cards (Pokemon, Magic, Yu-Gi-Oh, One Piece):
+- TCGPlayer Market Price (primary), CardMarket, eBay sold, MTGGoldfish, Limitless TCG, YGOProdeck
+- Factor in tournament legality, ban lists, meta shifts, and upcoming set releases
+
+=== PRICING RULES ===
+- CONFIRMED SALES ONLY: Only use verified sold transactions, not asking prices or unaccepted offers.
+- Cross-reference at least 2 of the above sources before setting current_buy_price.
+- For graded cards, check Card Ladder for grade-specific price trends — a PSA 9 spiking while PSA 10 is flat is a signal.
+- data_source field MUST name the specific platform(s) you used (e.g. "130point.com + Card Ladder" or "Alt.com + Collx").
+
+Origins recent trade data (what the Origins community is actually buying and selling):
 ${tradesSummary || 'No recent trade data'}
 
 Origins collection data (bought vs estimated value):
 ${collectionSummary || 'No collection data'}
 
-Find cards currently trading BELOW their true market value where there's a clear catalyst or trend that will push prices HIGHER soon. Consider:
-- Cards being bought below recent comps
+=== WHAT TO LOOK FOR ===
+Find cards currently trading BELOW their true market value where there's a clear catalyst or trend that will push prices HIGHER soon:
+- Cards being bought below recent 130point comps
 - Rookie cards of players trending up (recent signings, award winners, breakout performances)
-- Upcoming sports seasons driving demand
+- Upcoming sports seasons or playoffs driving demand
+- Slabs on Alt or Card Ladder trading near or below raw card prices (grading arb)
 - Low recent sale volume creating artificially suppressed prices
-- Graded slabs trading near or below raw card prices
 - TCG cards with upcoming set releases, bans, or meta shifts
+- Cards where Collx/Cardbase community data shows growing collector interest ahead of eBay price movement
 
 For each of the top 10 flip opportunities return:
 - rank: 1-10
@@ -72,16 +87,16 @@ For each of the top 10 flip opportunities return:
 - set_name: set or collection
 - year: year of card (string)
 - sport_or_tcg: category (baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh, other)
-- current_buy_price: estimated current buy price in USD
+- current_buy_price: estimated current buy price in USD (based on 130point/Alt/Card Ladder confirmed sales)
 - target_sell_price: realistic sell target in USD
 - potential_gain_pct: percentage gain potential (number)
-- buy_reason: 1-2 sentences on WHY it's undervalued right now
+- buy_reason: 1-2 sentences on WHY it's undervalued right now, citing specific data source
 - sell_catalyst: 1-2 sentences on WHAT will drive the price up
 - time_horizon: "short" (days-weeks), "medium" (1-3 months), or "long" (3-6+ months)
 - risk_level: "low", "medium", or "high"
-- data_source: where you found the pricing data
+- data_source: SPECIFIC platforms used (e.g. "130point.com, Card Ladder, Alt.com")
 
-Sort by potential_gain_pct descending. Only include cards with real, verifiable recent sales data.`;
+Sort by potential_gain_pct descending. Only include cards with real, verifiable recent sales data from the sources above.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt,
