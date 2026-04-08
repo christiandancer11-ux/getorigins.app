@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import InterestSelector from '@/components/learning/InterestSelector';
-import LessonViewer from '@/components/learning/LessonViewer';
+import LessonSlideshow from '@/components/learning/LessonSlideshow';
 import AchievementBadge from '@/components/learning/AchievementBadge';
 import { BookOpen, CheckCircle2, Zap, ExternalLink } from 'lucide-react';
 
@@ -212,11 +212,10 @@ export default function LearningCenter() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {selectedLesson !== null ? (
-              <LessonViewer
+              <LessonSlideshow
                 lesson={plan.lessons[selectedLesson]}
                 onComplete={completeLesson}
                 onBack={() => setSelectedLesson(null)}
-                onChangePlan={changeInterests}
               />
             ) : (
               <div className="space-y-4">
