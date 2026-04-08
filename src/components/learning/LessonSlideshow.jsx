@@ -5,7 +5,15 @@ import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export default function LessonSlideshow({ lesson, onComplete, onBack }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const slides = lesson.slides || [];
+  
+  // Handle both direct slides and slides in lesson object
+  let slides = [];
+  if (Array.isArray(lesson.slides)) {
+    slides = lesson.slides;
+  } else if (lesson.slides && typeof lesson.slides === 'object') {
+    slides = Object.values(lesson.slides);
+  }
+  
   const isFirstSlide = currentSlide === 0;
   const isLastSlide = currentSlide === slides.length - 1;
 
@@ -26,7 +34,12 @@ export default function LessonSlideshow({ lesson, onComplete, onBack }) {
   };
 
   if (!slides || slides.length === 0) {
-    return <div className="text-center py-8">No slides available</div>;
+    return (
+      <div className="text-center py-12 space-y-4">
+        <p className="text-muted-foreground">Loading lesson content...</p>
+        <p className="text-xs text-muted-foreground">Lesson object: {JSON.stringify(lesson?.slides ? 'has slides' : 'no slides')}</p>
+      </div>
+    );
   }
 
   const slide = slides[currentSlide];
