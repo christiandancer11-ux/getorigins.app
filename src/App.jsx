@@ -36,6 +36,7 @@ import AICardGrading from './pages/AICardGrading';
 import BulkDealCalculator from './pages/BulkDealCalculator';
 import AdminCardKnowledge from './pages/AdminCardKnowledge';
 import LoadTestResults from './pages/LoadTestResults';
+import CardWatchlist from './pages/CardWatchlist';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
         <Route path="/bulk-calculator" element={<BulkDealCalculator />} />
         <Route path="/admin/card-knowledge" element={<AdminCardKnowledge />} />
         <Route path="/admin/load-test" element={<LoadTestResults />} />
+        <Route path="/watchlist" element={<CardWatchlist />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

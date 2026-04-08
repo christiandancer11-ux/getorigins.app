@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Flame, Bell } from 'lucide-react';
+import WatchlistButton from '@/components/trending/WatchlistButton';
 
 const trendIcon = (trend) => {
   if (trend === 'up')   return <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />;
@@ -14,7 +15,7 @@ const heatColor = (score) => {
   return 'text-muted-foreground';
 };
 
-export default function TrendingCardRow({ card, highlight, onClick, onSetAlert }) {
+export default function TrendingCardRow({ card, highlight, onClick, onSetAlert, userEmail }) {
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 transition-colors ${highlight ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-secondary/30'}`}
@@ -40,16 +41,21 @@ export default function TrendingCardRow({ card, highlight, onClick, onSetAlert }
         <p className="text-xs text-muted-foreground/70 truncate mt-0.5 italic">{card.why_hot}</p>
       </div>
 
-      {/* Alert button */}
-      {onSetAlert && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onSetAlert(card); }}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
-          title="Set Price Alert"
-        >
-          <Bell className="w-3.5 h-3.5" />
-        </button>
-      )}
+      {/* Watchlist + Alert buttons */}
+      <div className="flex items-center gap-1 shrink-0">
+        {userEmail && (
+          <WatchlistButton card={card} userEmail={userEmail} />
+        )}
+        {onSetAlert && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onSetAlert(card); }}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            title="Set Price Alert"
+          >
+            <Bell className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
 
       {/* Value + trend */}
       <div className="text-right shrink-0 cursor-pointer" onClick={onClick}>

@@ -57,22 +57,27 @@ Deno.serve(async (req) => {
     const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece'].includes(CATEGORY_MAP[category].sport);
     const tcgPlayerGame = { pokemon: 'pokemon', magic_the_gathering: 'magic', yugioh: 'yugioh', one_piece: 'one-piece-card-game' }[CATEGORY_MAP[category].sport] || '';
 
-    const prompt = `You are a trading card hobby market expert. Today is ${todayStr}.
+    const prompt = `You are a trading card hobby market expert with access to live retailer websites. Today is ${todayStr}.
 
 Find the top 8 most notable NEW or RECENTLY RELEASED sealed card box products for the "${label}" category. Focus on products released in the last 6 months or upcoming within 60 days.
 
-Research current in-stock prices from: ${isTCG ? 'TCGPlayer, ' : ''}Dave & Adam's (dacardworld.com), Blowout Cards (blowoutcards.com), Steel City (steelcitycollectibles.com), eBay (new/sealed), Amazon, Target, Walmart. Only include sellers that have the product in stock. Find 3-5 sellers per product.
+Browse these retailer websites and find DIRECT product page URLs for each item:
+${isTCG ? '- TCGPlayer (tcgplayer.com)\n' : ''}- Dave & Adam's Card World (dacardworld.com)
+- Blowout Cards (blowoutcards.com)
+- Steel City Collectibles (steelcitycollectibles.com)
+- eBay (ebay.com — find the specific sealed listing)
+- Amazon (amazon.com — specific ASIN product page)
+- Target (target.com — specific product page)
+- Walmart (walmart.com — specific product page)
 
-For each product's seller URLs, use SEARCH page URLs in this exact format (replace QUERY with URL-encoded product name, spaces become +):
-- eBay: https://www.ebay.com/sch/i.html?_nkw=QUERY&LH_BIN=1&LH_ItemCondition=1000&_sop=15
-- Dave & Adam's: https://www.dacardworld.com/catalogsearch/result/?q=QUERY
-- Blowout Cards: https://www.blowoutcards.com/catalogsearch/result/?q=QUERY
-- Steel City: https://www.steelcitycollectibles.com/catalogsearch/result/?q=QUERY
-- Amazon: https://www.amazon.com/s?k=QUERY
-- Target: https://www.target.com/s?searchTerm=QUERY
-- Walmart: https://www.walmart.com/search?q=QUERY${isTCG ? `\n- TCGPlayer: https://www.tcgplayer.com/search/all/product?q=QUERY&productLineName=${tcgPlayerGame}` : ''}
+IMPORTANT URL RULES:
+- Use real, direct product page URLs you find on those sites (e.g. https://www.dacardworld.com/sports-cards/2025-topps-series-1-baseball-hobby-box)
+- For eBay, link to a specific Buy It Now sealed listing (e.g. https://www.ebay.com/itm/...)
+- For Amazon, link to the specific ASIN page (e.g. https://www.amazon.com/dp/ASIN)
+- If you cannot find a direct product page for a seller, omit that seller entirely — do NOT fabricate URLs
+- Only include sellers that actually have the item in stock at the price you list
 
-Return JSON with this structure (no extra fields, keep strings short to avoid JSON errors):
+Return JSON (keep all strings concise to avoid parse errors):
 {
   "products": [
     {

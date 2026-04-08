@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, ShieldAlert, Repeat2, Rss, Users, ScanSearch, Calculator, MoreHorizontal } from 'lucide-react';
+import { Layers, Plus, Trophy, BarChart2, User, Handshake, Menu, X, TrendingUp, Flame, Bell, ShieldAlert, Repeat2, Rss, Users, ScanSearch, Calculator, MoreHorizontal, Bookmark } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { to: '/bulk-calculator', icon: Calculator, label: 'Deal Calculator', desc: 'Bulk deal math', category: 'tools' },
   // Insights
   { to: '/analytics', icon: BarChart2, label: 'Analytics', desc: 'Your scan stats', category: 'insights' },
+  { to: '/watchlist', icon: Bookmark, label: 'Watchlist', desc: 'Track cards from Trending', category: 'insights' },
   { to: '/alerts', icon: Bell, label: 'Price Alerts', desc: 'Get notified on price changes', category: 'insights' },
   { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', desc: 'Top collectors', category: 'insights' },
   // More

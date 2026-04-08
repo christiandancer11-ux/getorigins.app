@@ -32,6 +32,11 @@ export default function Trending() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [alertCard, setAlertCard] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(u => setUserEmail(u?.email || null)).catch(() => {});
+  }, []);
 
   const cacheKey = `${selectedCategory}__${selectedViewMode}`;
   const currentData = trendingData[cacheKey];
@@ -254,7 +259,7 @@ export default function Trending() {
             {/* Card list */}
             <div className="rounded-2xl border border-border/40 overflow-hidden bg-card">
             {currentData.cards?.slice(0, currentVisible).map((card, i) => (
-            <TrendingCardRow key={card.rank} card={card} highlight={i < 3} onClick={() => setSelectedCard(card)} onSetAlert={(c) => setAlertCard(c)} />
+            <TrendingCardRow key={card.rank} card={card} highlight={i < 3} onClick={() => setSelectedCard(card)} onSetAlert={(c) => setAlertCard(c)} userEmail={userEmail} />
             ))}
             </div>
 
