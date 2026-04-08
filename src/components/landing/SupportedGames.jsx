@@ -15,16 +15,16 @@ const GAMES = [
     img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/f203740fd_generated_image.png',
   },
   {
+    name: 'Lorcana',
+    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/e422a6473_generated_image.png',
+  },
+  {
     name: 'One Piece',
     img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/0134c7499_generated_image.png',
   },
   {
     name: 'Sports Cards',
     img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/1ccbf62c9_generated_image.png',
-  },
-  {
-    name: 'MTG Black Lotus',
-    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7d7779665_generated_image.png',
   },
 ];
 
@@ -40,7 +40,7 @@ export default function SupportedGames() {
         Supports 100+ Games & Sports
       </p>
       <div className="flex items-end justify-center gap-4 sm:gap-6 flex-wrap">
-        {GAMES.map((game, i) => (
+        {GAMES.map((game) => (
           <div key={game.name} className="text-center group">
             <div className="w-14 h-20 mx-auto mb-2 relative">
               <img

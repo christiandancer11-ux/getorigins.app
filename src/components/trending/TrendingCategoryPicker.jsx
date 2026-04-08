@@ -18,6 +18,7 @@ const CATEGORIES = [
   { id: 'one_piece',        label: 'One Piece',       emoji: '☠️', group: 'TCG' },
   { id: 'mtg',              label: 'MTG',             emoji: '🧙', group: 'TCG' },
   { id: 'yugioh',           label: 'Yu-Gi-Oh!',       emoji: '🃏', group: 'TCG' },
+  { id: 'lorcana',          label: 'Lorcana',         emoji: '👑', group: 'TCG' },
 ];
 
 const CATEGORY_GROUPS = [

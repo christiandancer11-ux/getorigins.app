@@ -117,6 +117,42 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── LORCANA SPOTLIGHT ── */}
+      <section className="py-16 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="flex flex-col sm:flex-row items-center gap-10">
+            {/* Card image */}
+            <div className="shrink-0 w-40 sm:w-48">
+              <img
+                src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/e422a6473_generated_image.png"
+                alt="Disney Lorcana card example"
+                className="w-full drop-shadow-2xl"
+                style={{ filter: 'drop-shadow(0 8px 24px rgba(94,200,255,0.25))' }}
+              />
+            </div>
+            {/* Text */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-400 text-xs font-semibold mb-4 tracking-wide">
+                👑 Now Fully Supported
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-3 leading-tight">
+                Disney Lorcana collectors — Origins has you covered.
+              </h2>
+              <p className="text-muted-foreground text-base leading-relaxed mb-4">
+                Track your Lorcana collection, scan cards for instant identification, get real-time TCGPlayer market prices, and see what's trending — all the same tools sports card collectors use, built for Lorcana.
+              </p>
+              <ul className="space-y-1.5">
+                {['AI card identification from photos', 'Live TCGPlayer & eBay market pricing', 'Trending hot cards by set', 'AI Bulk Deal Calculator for trades'].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="text-sky-400">✓</span> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
       <section className="py-20 px-6 border-t border-border/30">
         <div className="max-w-4xl mx-auto">

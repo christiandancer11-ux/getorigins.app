@@ -17,6 +17,7 @@ const CATEGORY_MAP = {
   one_piece:        { sport: 'one_piece', label: 'One Piece Cards' },
   mtg:              { sport: 'magic_the_gathering', label: 'Magic: The Gathering Cards' },
   yugioh:           { sport: 'yugioh',    label: 'Yu-Gi-Oh! Cards' },
+  lorcana:          { sport: 'lorcana',   label: 'Disney Lorcana Cards' },
 };
 
 // In-memory cache: key -> { data, expires }
@@ -132,7 +133,7 @@ Deno.serve(async (req) => {
 
     const trendingCutoffISO = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
 
-    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece'].includes(sport);
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece', 'lorcana'].includes(sport);
 
     const tcgContext = isTCG ? `
 === TCG COMPETITIVE META & TOURNAMENT INTELLIGENCE ===
@@ -146,7 +147,7 @@ For this TCG category, you MUST factor in the following when determining card ra
 2. RECENT MAJOR TOURNAMENT RESULTS (last 30 days)
    - What decks/archetypes placed 1st–8th at recent Regional Championships, Majors, or Pro Tour/Grand Prix/YCS events?
    - Which specific cards are in winning decks right now? Those cards command premiums.
-   - Source from: Limitless TCG (Pokemon), MTG Goldfish/EDHREC (MTG), YGOProdeck/Yugipedia (Yu-Gi-Oh!), One Piece Card Game official site, TCGPlayer.com sales history.
+   - Source from: Limitless TCG (Pokemon), MTG Goldfish/EDHREC (MTG), YGOProdeck/Yugipedia (Yu-Gi-Oh!), One Piece Card Game official site, Dreamborn.ink / Lorcana TCG official site (Lorcana), TCGPlayer.com sales history.
 
 3. PRO FORUM & COMMUNITY BUZZ
    - What are players discussing on r/PokemonTCG, r/magicTCG, r/yugioh, r/OnePieceTCG, Limitless TCG forums, MTG Salvation, DuelingBook?

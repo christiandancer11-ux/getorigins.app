@@ -57,7 +57,7 @@ Return a JSON object:
   "card_name": "string",
   "set_name": "string or null",
   "year": "string or null",
-  "sport": "baseball|basketball|football|hockey|soccer|golf|ufc|wwe|f1|pokemon|magic_the_gathering|yugioh|other",
+  "sport": "baseball|basketball|football|hockey|soccer|golf|ufc|wwe|f1|pokemon|magic_the_gathering|yugioh|lorcana|one_piece|other",
   "card_number": "string or null",
   "variant": "string or null",
   "is_graded": true or false,
@@ -131,8 +131,8 @@ Return a JSON object:
     const query = [identification.year, identification.card_name, identification.set_name, identification.card_number, rookieSuffix, gradedLabel]
       .filter(Boolean).join(' ').trim();
 
-    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh'].includes(identification.sport) ||
-      /pokemon|charizard|pikachu|mewtwo|magic|yugioh|yu-gi-oh|mtg/i.test(query);
+    const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'lorcana', 'one_piece'].includes(identification.sport) ||
+      /pokemon|charizard|pikachu|mewtwo|magic|yugioh|yu-gi-oh|mtg|lorcana|disney lorcana|one piece/i.test(query);
 
     // Step 3: Market valuation with full multi-source research
     const rawVsGradedInstruction = isGraded

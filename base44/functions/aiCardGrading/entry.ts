@@ -42,6 +42,8 @@ Deno.serve(async (req) => {
     }
 
     let prompt = '';
+    // isTCG is set by the frontend based on cardType param (tcg vs sports)
+    // Lorcana, One Piece, Pokemon, MTG, Yu-Gi-Oh! are all TCG types
     const isTCG = cardType === 'tcg';
     const cardTypeLabel = isTCG ? 'TCG card (Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, etc.)' : 'sports trading card (baseball, basketball, football, hockey, etc.)';
 
