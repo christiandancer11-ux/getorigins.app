@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, QrCode, Sparkles, Tag, Gift, Star, TrendingUp, Shield, Zap, ChevronRight, Scan, Video, History, BarChart3, CheckCircle, Users, Eye } from 'lucide-react';
+import { ArrowRight, QrCode, Sparkles, Tag, Gift, Star, TrendingUp, Shield, ChevronRight, Scan, Video, BarChart3, CheckCircle, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RedeemCodeModal from '@/components/shared/RedeemCodeModal';
 import OnboardingWalkthrough from '@/components/onboarding/OnboardingWalkthrough';
@@ -98,57 +98,46 @@ export default function Landing() {
       </section>
 
       {/* ── PROBLEM ── */}
-      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+      <section className="py-20 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div {...fadeUp()}>
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-5">The Problem</p>
-            <h2 className="font-display text-3xl sm:text-5xl font-bold text-foreground leading-tight mb-8">
-              Trading cards lose their history<br />the moment they change hands.
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground leading-tight mb-5">
+              Your cards deserve a better home.
             </h2>
-            <p className="text-muted-foreground text-lg mb-10 leading-relaxed font-medium">
-              No proof. No story. No trust.
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Origins is the all-in-one app for tracking, valuing, and sharing your card collection — whether you collect sports cards, Pokémon, Lorcana, or any TCG.
             </p>
-            <div className="space-y-4 max-w-xl mx-auto text-left">
-              {[
-                "You don't know where a card came from",
-                "You don't know if it's been flipped 10 times",
-                "You don't know if you're overpaying",
-              ].map((p, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-destructive/5 border border-destructive/15">
-                  <span className="text-destructive font-bold text-lg leading-none mt-0.5">✕</span>
-                  <p className="text-foreground/80 text-sm leading-relaxed">{p}</p>
-                </div>
-              ))}
-            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ── SOLUTION ── */}
-      <section className="py-28 px-6 border-t border-border/30">
-        <div className="max-w-5xl mx-auto">
-          <motion.div {...fadeUp()} className="text-center mb-16">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">The Solution</p>
-            <h2 className="font-display text-3xl sm:text-5xl font-bold text-foreground mb-4">
-              Origins gives every card<br />a permanent identity.
+      {/* ── HOW IT WORKS ── */}
+      <section className="py-20 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <motion.div {...fadeUp()} className="text-center mb-12">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">How It Works</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">
+              Set up in 2 minutes. Use it forever.
             </h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Set up in under 2 minutes. Then your card does the work forever.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { icon: Scan, label: 'Scan your card in seconds', desc: 'AI identifies player, set, year, and grade from a photo.' },
-              { icon: QrCode, label: 'Generate a unique QR code', desc: 'A permanent sticker that travels with your card forever.' },
-              { icon: Video, label: 'Attach videos & ownership history', desc: 'Record a message. Every owner adds to the story.' },
-              { icon: TrendingUp, label: 'Track real-time value', desc: 'Live eBay comps and AI-powered market signals.' },
+              { icon: Scan,      num: '1', label: 'Photo your card', desc: 'AI instantly identifies the player, set, year, and grade.' },
+              { icon: QrCode,    num: '2', label: 'Get a QR code', desc: 'A unique sticker that stays with your card forever.' },
+              { icon: TrendingUp,num: '3', label: 'Track its value', desc: 'Live market prices and AI-powered signals update automatically.' },
+              { icon: Video,     num: '4', label: 'Share its story', desc: 'Leave a video message. Every owner adds to the history.' },
             ].map((item, i) => (
               <motion.div key={item.label} {...fadeUp(i * 0.1)}
-                className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 flex flex-col gap-4">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-primary" />
+                className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                    <item.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="text-xs font-bold text-primary/60 uppercase tracking-widest">Step {item.num}</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground mb-1.5 leading-snug">{item.label}</h3>
+                  <h3 className="text-sm font-bold text-foreground mb-1 leading-snug">{item.label}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
@@ -158,7 +147,7 @@ export default function Landing() {
       </section>
 
       {/* ── SCAN SPEED DEMO ── */}
-      <section className="py-28 px-6 border-t border-border/30">
+      <section className="py-20 px-6 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
           <motion.div {...fadeUp()} className="text-center mb-10">
             <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Instant Inventory</p>
@@ -172,186 +161,111 @@ export default function Landing() {
       </section>
 
       {/* ── VALUE / MONEY ── */}
-      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+      <section className="py-20 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
-          <motion.div {...fadeUp()} className="text-center mb-16">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">The Money Angle</p>
-            <h2 className="font-display text-3xl sm:text-5xl font-bold text-foreground mb-4">
-              Never overpay for a card again.
+          <motion.div {...fadeUp()} className="text-center mb-10">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Know What Your Cards Are Worth</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">
+              Real prices. Real time.
             </h2>
-            <p className="text-muted-foreground text-lg max-w-lg mx-auto">Real data. Real prices. Right when you need it.</p>
+            <p className="text-muted-foreground text-base max-w-lg mx-auto">Live eBay comps, TCGPlayer pricing, portfolio ROI tracking, and price alerts — all in one place.</p>
           </motion.div>
 
-          <div className="space-y-6">
-            <div className="grid sm:grid-cols-3 gap-6">
-              {[
-                { icon: BarChart3, title: 'Professional Market Comps', body: 'Real-time eBay Sold, TCGPlayer, Heritage Auctions, and verified dealer pricing. Updated every 15 minutes.' },
-                { icon: Sparkles, title: 'Portfolio ROI Tracking', body: 'Watch your collection value grow. Track gains/losses by grade, set, and sport. See your best movers instantly.' },
-                { icon: TrendingUp, title: 'Investor-Grade Alerts', body: 'Set price targets. Get notified when underpriced deals hit the market. Never miss a flip opportunity.' },
-              ].map((item, i) => (
-                <motion.div key={item.title} {...fadeUp(i * 0.1)}
-                  className="p-7 rounded-2xl bg-primary/5 border border-primary/15 flex flex-col gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-foreground mb-2">{item.title}</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{item.body}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            <DataTransparency />
+          <div className="grid sm:grid-cols-3 gap-5 mb-6">
+            {[
+              { icon: BarChart3, title: 'Live Market Comps', body: 'Real-time eBay Sold, TCGPlayer, and Heritage Auctions data updated constantly.' },
+              { icon: Sparkles, title: 'Portfolio Tracking', body: 'Watch your collection value grow. See gains and losses by grade, set, and sport.' },
+              { icon: Bell, title: 'Price Alerts', body: 'Set a target price and get notified the moment a card hits your number.' },
+            ].map((item, i) => (
+              <motion.div key={item.title} {...fadeUp(i * 0.1)}
+                className="p-6 rounded-2xl bg-primary/5 border border-primary/15 flex flex-col gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground mb-1">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.body}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
+
+          <DataTransparency />
         </div>
       </section>
 
-      {/* ── IMPORT / MIGRATION ── */}
-      <section className="py-28 px-6 border-t border-border/30">
-        <div className="max-w-4xl mx-auto">
-          <motion.div {...fadeUp()} className="mb-12">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Graded & Raw Support</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5">
-              Whether it's raw or slabbed,<br />
-              <span className="text-primary">Origins knows your card.</span>
+      {/* ── GRADED & RAW + IMPORT ── */}
+      <section className="py-20 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto grid sm:grid-cols-2 gap-12 items-start">
+          <motion.div {...fadeUp()}>
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Graded & Raw Cards</p>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              Raw or slabbed — Origins knows your card.
             </h2>
-            <p className="text-muted-foreground text-lg mb-8">
-              Instant PSA/BGS cert lookups. Automatic population reports. Grade-specific pricing (PSA 10 vs Raw vs BGS 9.5).
+            <p className="text-muted-foreground mb-6">
+              Instant PSA/BGS cert lookups, automatic pop reports, and grade-specific pricing.
             </p>
             <GradingSupport />
           </motion.div>
-        </div>
-      </section>
-
-      {/* ── IMPORT / MIGRATION ── */}
-      <section className="py-28 px-6 border-t border-border/30">
-        <div className="max-w-4xl mx-auto">
-          <motion.div {...fadeUp()} className="mb-12">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Zero Switching Cost</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5">
-              Your 5,000 cards don't need to be re-scanned.
+          <motion.div {...fadeUp(0.1)}>
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Easy Import</p>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              Already have a collection elsewhere?
             </h2>
-            <p className="text-muted-foreground text-lg mb-8">
-              Import your entire collection from PriceGuide, Ludex, TCGPlayer, or a spreadsheet in minutes. No manual re-entry.
+            <p className="text-muted-foreground mb-6">
+              Import from PriceGuide, Ludex, TCGPlayer, or any spreadsheet. No re-scanning needed.
             </p>
             <ImportCTA />
           </motion.div>
         </div>
       </section>
 
-      {/* ── SET COMPLETION / GAMIFICATION ── */}
-      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid sm:grid-cols-2 gap-12 items-start">
-            <motion.div {...fadeUp()}>
-              <SetProgressViz />
-            </motion.div>
-            <motion.div {...fadeUp(0.15)}>
-              <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Collectors Are Completionists</p>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5 leading-tight">
-                Visualize your progress.<br />
-                <span className="text-primary">Find what's missing.</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                Collectors don't just want to list their cards—they want to manage their hobby. Origins shows you exactly which cards you need to complete your sets, and helps you find them.
-              </p>
-              <ul className="space-y-3">
-                {[
-                  "See completion % for each set you own",
-                  "Get alerts when missing cards appear for sale",
-                  "Track how close you are to mastering a set",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <CheckCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── PORTFOLIO TRENDS / INVESTOR ANGLE ── */}
-      <section className="py-28 px-6 border-t border-border/30">
-        <div className="max-w-4xl mx-auto">
-          <motion.div {...fadeUp()} className="mb-12">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Asset Tracking</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5">
-              Your collection is an investment.
+      {/* ── PORTFOLIO + SET PROGRESS ── */}
+      <section className="py-20 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto grid sm:grid-cols-2 gap-12 items-start">
+          <motion.div {...fadeUp()}>
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Track Your Collection</p>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              See your portfolio grow in real time.
             </h2>
-            <p className="text-muted-foreground text-lg mb-8">
-              Watch your portfolio grow. Origins Pro tracks daily market movers and shows you your ROI in real time.
-            </p>
+            <p className="text-muted-foreground mb-6">Daily market movers, ROI tracking, and total collection value — all in your dashboard.</p>
             <PortfolioTrends />
+          </motion.div>
+          <motion.div {...fadeUp(0.1)}>
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Set Completion</p>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              Know exactly what you're missing.
+            </h2>
+            <p className="text-muted-foreground mb-6">Origins shows your set completion %, alerts you when missing cards go up for sale, and keeps you on track.</p>
+            <SetProgressViz />
           </motion.div>
         </div>
       </section>
 
-      {/* ── DIFFERENTIATOR ── */}
-      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+      {/* ── WHY ORIGINS ── */}
+      <section className="py-20 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-4xl mx-auto">
-          <div className="grid sm:grid-cols-2 gap-12 items-center">
-            <motion.div {...fadeUp()}>
-              <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Your Secret Weapon</p>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-5 leading-tight">
-                This isn't just collecting...<br />
-                <span className="text-primary">it's ownership.</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                When a card has a verified story, it becomes more than cardboard. It becomes a digital asset with documented provenance — and that makes it worth more.
-              </p>
-              <Link to="/pricing">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-                  Claim Founder Status <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </motion.div>
-
-            <motion.div {...fadeUp(0.15)} className="space-y-4">
-              {[
-                { icon: CheckCircle, label: 'Every card becomes a digital asset', sub: 'Verified identity, documented value, permanent record.' },
-                { icon: History, label: 'Ownership history travels with the card', sub: 'Every hand it passes through is logged forever.' },
-                { icon: Video, label: 'Stories stay attached forever', sub: 'Owner messages, videos, and notes — all preserved on the QR.' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-card border border-border/50">
-                  <item.icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{item.sub}</p>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── VIRAL LOOP ── */}
-      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
-        <div className="max-w-4xl mx-auto">
-          <motion.div {...fadeUp()} className="text-center mb-16">
-            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Viral by Design</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Scan any card. Discover its story.
+          <motion.div {...fadeUp()} className="text-center mb-10">
+            <p className="text-xs font-bold tracking-widest text-primary uppercase mb-4">Why Origins</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-3">
+              More than a collection app.
             </h2>
-            <p className="text-muted-foreground text-lg max-w-lg mx-auto">Every QR sticker is a gateway into the Origins network.</p>
+            <p className="text-muted-foreground text-base max-w-lg mx-auto">Origins gives your cards a permanent identity — verified value, ownership history, and community all in one QR code.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-3 gap-5">
             {[
-              { icon: Users, title: 'Follow cards across owners', body: 'Watch a card move through the hobby. See every collector who touched it.' },
-              { icon: Eye, title: 'See scan activity', body: 'Real-time scan counts show how much attention your card is getting at shows and online.' },
-              { icon: Star, title: 'Build reputation as a collector', body: 'Your verified trade history and collection become your calling card in the hobby.' },
+              { icon: CheckCircle, title: 'Verified ownership', body: 'Every card gets a permanent QR code. Ownership history is logged forever — across every collector who touches it.' },
+              { icon: Star, title: 'Build your reputation', body: 'Your verified trade history and collection become your identity in the hobby.' },
+              { icon: Shield, title: 'Protected & trusted', body: 'BOLO alerts for stolen cards. Verified trade comps. AI-checked authenticity at every step.' },
             ].map((item, i) => (
               <motion.div key={item.title} {...fadeUp(i * 0.1)}
-                className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 flex flex-col gap-4">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 flex flex-col gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                   <item.icon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground mb-2">{item.title}</h3>
+                  <h3 className="text-sm font-bold text-foreground mb-1">{item.title}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{item.body}</p>
                 </div>
               </motion.div>
@@ -363,7 +277,7 @@ export default function Landing() {
       <CommunityProof />
 
       {/* ── PRICING ── */}
-      <section className="py-28 px-6 bg-secondary/15 border-t border-border/30">
+      <section className="py-20 px-6 bg-secondary/15 border-t border-border/30">
         <div className="max-w-3xl mx-auto">
           <motion.div {...fadeUp()} className="text-center mb-14">
             <p className="text-xs font-bold tracking-widest text-primary uppercase mb-3">Pricing</p>
@@ -415,22 +329,10 @@ export default function Landing() {
             ))}
           </div>
 
-          <motion.div {...fadeUp(0.1)} className="mt-6 grid sm:grid-cols-3 gap-4">
-            {[
-              { icon: Gift, title: '7-Day Free Trial', desc: 'Try Origins Pro free — no commitment.' },
-              { icon: Tag, title: 'Referral Program', desc: 'You and a friend both get 7 free days.' },
-              { icon: Sparkles, title: 'Creator Codes', desc: '50% off for 3 months for partner creators.' },
-            ].map(p => (
-              <div key={p.title} className="flex gap-3 p-4 rounded-xl bg-card border border-border/50">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                  <p.icon className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{p.title}</p>
-                  <p className="text-xs text-muted-foreground">{p.desc}</p>
-                </div>
-              </div>
-            ))}
+          <motion.div {...fadeUp(0.1)} className="mt-5 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><Gift className="w-3.5 h-3.5 text-primary" /> 7-Day Free Trial</span>
+            <span className="flex items-center gap-1.5"><Tag className="w-3.5 h-3.5 text-primary" /> Referral Program — you and a friend both get 7 free days</span>
+            <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-primary" /> Creator Codes — 50% off for 3 months</span>
           </motion.div>
         </div>
       </section>

@@ -7,27 +7,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 const NAV_LINKS = [
   // Core
   { to: '/dashboard', icon: Layers, label: 'My Cards', desc: 'Your card collection', category: 'core' },
-  // Social
-  { to: '/feed', icon: Rss, label: 'Feed', desc: 'Community activity', category: 'social' },
-  { to: '/users', icon: Users, label: 'Collectors', desc: 'Find other collectors', category: 'social' },
+  // Discover
+  { to: '/market', icon: TrendingUp, label: 'Market', desc: 'Check card prices', category: 'discover' },
+  { to: '/trending', icon: Flame, label: 'Trending', desc: 'Hottest cards right now', category: 'discover' },
+  { to: '/feed', icon: Rss, label: 'Community', desc: 'Community activity', category: 'discover' },
   // Tools
-  { to: '/market', icon: TrendingUp, label: 'Market Lookup', desc: 'Check card prices', category: 'tools' },
-  { to: '/trending', icon: Flame, label: 'Trending', desc: 'Hottest cards right now', category: 'tools' },
-  { to: '/card-show', icon: Handshake, label: 'Card Show Trades', desc: 'Log & browse trades', category: 'tools' },
+  { to: '/ai-grading', icon: ScanSearch, label: 'AI Grading', desc: 'Estimate your card grade', category: 'tools' },
+  { to: '/card-show', icon: Handshake, label: 'Card Show', desc: 'Log & browse trades', category: 'tools' },
   { to: '/flipper', icon: Repeat2, label: 'Card Flipper', desc: 'Find flip opportunities', category: 'tools' },
-  { to: '/ai-grading', icon: ScanSearch, label: 'AI Grading', desc: 'Scan & grade a card', category: 'tools' },
   { to: '/bulk-calculator', icon: Calculator, label: 'Deal Calculator', desc: 'Bulk deal math', category: 'tools' },
-  // Insights
-  { to: '/analytics', icon: BarChart2, label: 'Analytics', desc: 'Your scan stats', category: 'insights' },
-  { to: '/watchlist', icon: Bookmark, label: 'Watchlist', desc: 'Track cards from Trending', category: 'insights' },
-  { to: '/alerts', icon: Bell, label: 'Price Alerts', desc: 'Get notified on price changes', category: 'insights' },
-  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', desc: 'Top collectors', category: 'insights' },
+  // My Account
+  { to: '/alerts', icon: Bell, label: 'Price Alerts', desc: 'Get notified on price changes', category: 'account' },
+  { to: '/watchlist', icon: Bookmark, label: 'Watchlist', desc: 'Track cards you want', category: 'account' },
+  { to: '/analytics', icon: BarChart2, label: 'Analytics', desc: 'Your scan stats', category: 'account' },
+  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', desc: 'Top collectors', category: 'account' },
+  { to: '/users', icon: Users, label: 'Find Collectors', desc: 'Browse other collectors', category: 'account' },
+  { to: '/profile', icon: User, label: 'My Profile', desc: 'Your public profile', category: 'account' },
   // More
   { to: '/bolo', icon: ShieldAlert, label: 'BOLO Alerts', desc: 'Stolen card alerts', category: 'more' },
-  { to: '/profile', icon: User, label: 'Profile', desc: 'Your public profile', category: 'more' },
 ];
 
-const DESKTOP_NAV = NAV_LINKS.filter(l => ['core', 'social', 'tools', 'insights'].includes(l.category));
+// Desktop: only show the most important items to avoid overwhelm
+const DESKTOP_NAV = NAV_LINKS.filter(l => ['core', 'discover'].includes(l.category));
 // Mobile bottom bar: 4 most used + a "More" menu button
 const MOBILE_NAV_TABS = [
   NAV_LINKS.find(l => l.to === '/dashboard'),
@@ -123,9 +124,9 @@ export default function Navbar() {
               <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
                 {[
                   { key: 'core', title: '📁 My Collection' },
-                  { key: 'social', title: '🌐 Community' },
+                  { key: 'discover', title: '🔍 Discover' },
                   { key: 'tools', title: '🔧 Tools' },
-                  { key: 'insights', title: '📊 Insights' },
+                  { key: 'account', title: '👤 My Account' },
                   { key: 'more', title: null },
                 ].map(({ key, title }) => {
                   const items = NAV_LINKS.filter(l => l.category === key);

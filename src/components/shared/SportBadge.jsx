@@ -6,9 +6,15 @@ const sportLabels = {
   football: '🏈 Football',
   hockey: '🏒 Hockey',
   soccer: '⚽ Soccer',
+  golf: '⛳ Golf',
+  ufc: '🥊 UFC',
+  wwe: '🤼 WWE',
+  f1: '🏎 F1',
   pokemon: '⚡ Pokémon',
   magic_the_gathering: '🧙 Magic: The Gathering',
   yugioh: '🃏 Yu-Gi-Oh!',
+  lorcana: '👑 Lorcana',
+  one_piece: '⛵ One Piece',
   other: '🎴 Other',
 };
 

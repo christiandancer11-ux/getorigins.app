@@ -25,6 +25,8 @@
         "pokemon",
         "magic_the_gathering",
         "yugioh",
+        "lorcana",
+        "one_piece",
         "other"
       ],
       "description": "Sport or TCG type"
