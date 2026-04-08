@@ -61,15 +61,14 @@ export default function LearningCenter() {
     try {
       setLoading(true);
 
-      // Fetch pre-generated plan from database
+      // Fetch master plan based on category
       const plans = await base44.entities.LearningPlan.filter({
-        card_interests: selection.cardInterests,
-        use_case: selection.useCase,
+        category: selection.category,
         is_active: true
       });
 
       if (plans.length === 0) {
-        alert('No learning plan available for this selection. Please try again.');
+        alert('Learning plan unavailable. Please try again.');
         setLoading(false);
         return;
       }
@@ -79,7 +78,7 @@ export default function LearningCenter() {
       // Create learning path
       const newPath = await base44.entities.LearningPath.create({
         user_email: user.email,
-        card_interests: selection.cardInterests,
+        category: selection.category,
         use_case: selection.useCase,
         plan_id: selectedPlan.id,
         lessons_completed: 0,
@@ -119,68 +118,15 @@ export default function LearningCenter() {
 
     setLearningPath(updated);
 
-    // Check for milestone achievements
-    if (completedCount === 5) {
-      await unlockAchievement('lesson_5_completed', '5 Lessons Completed', 3);
-    } else if (completedCount === 10) {
-      await unlockAchievement('lesson_10_completed', '10 Lessons Completed', 7);
-    } else if (completedCount === 15) {
-      await unlockAchievement('lesson_15_completed', '15 Lessons Completed', 7);
-    } else if (completedCount === learningPath.total_lessons) {
-      await unlockAchievement('plan_completed', 'Completed Learning Path', 14);
-      // Award card-type mastery badges for each interest
-      for (const cardType of learningPath.card_interests) {
-        await awardCardTypeMasteryBadge(cardType);
-      }
-      // Check if all card types are mastered
-      await checkAllCardTypesMastery();
+    // Award achievement when plan is completed
+    if (completedCount === learningPath.total_lessons) {
+      const categoryLabel = learningPath.category === 'tcg' ? 'TCG' : 
+                           learningPath.category === 'sports_cards' ? 'Sports Cards' : 'All Cards';
+      await unlockAchievement('plan_completed', `Completed ${categoryLabel} Learning Path`, 14, '🎓');
     }
   };
 
-  const awardCardTypeMasteryBadge = async (cardType) => {
-    const cardTypeBadges = {
-      'pokemon': '🔴',
-      'magic_the_gathering': '🦁',
-      'yugioh': '⚫',
-      'lorcana': '👑',
-      'sports_cards': '⭐',
-      'one_piece': '🏴‍☠️'
-    };
-
-    const achievementType = `card_type_mastery_${cardType}`;
-    
-    // Check if already unlocked
-    const existing = achievements.find(a => a.achievement_type === achievementType);
-    if (!existing) {
-      await unlockAchievement(achievementType, `Master of ${cardType.replace(/_/g, ' ').toUpperCase()}`, 7, cardType, cardTypeBadges[cardType]);
-    }
-  };
-
-  const checkAllCardTypesMastery = async () => {
-    const cardTypes = ['pokemon', 'magic_the_gathering', 'yugioh', 'lorcana', 'sports_cards', 'one_piece'];
-    const userAchievements = await base44.entities.LearningAchievement.filter({
-      user_email: user.email
-    });
-
-    const masteredTypes = userAchievements
-      .filter(a => a.achievement_type.startsWith('card_type_mastery_'))
-      .map(a => a.card_type);
-
-    if (cardTypes.every(type => masteredTypes.includes(type))) {
-      await unlockAchievement('all_card_types_mastery', 'Master of All Cards', 30, null, '🏆');
-    }
-  };
-
-  const unlockAchievement = async (type, description, rewardDays, cardType = null, badgeIcon = null) => {
-    const cardTypeBadges = {
-      'pokemon': '🔴',
-      'magic_the_gathering': '🦁',
-      'yugioh': '⚫',
-      'lorcana': '👑',
-      'sports_cards': '⭐',
-      'one_piece': '🏴‍☠️'
-    };
-
+  const unlockAchievement = async (type, description, rewardDays, badgeIcon) => {
     const achievementData = {
       user_email: user.email,
       achievement_type: type,
@@ -188,8 +134,7 @@ export default function LearningCenter() {
       reward_value: rewardDays,
       unlocked_at: new Date().toISOString(),
       description,
-      badge_icon: badgeIcon || (cardType ? cardTypeBadges[cardType] : null),
-      card_type: cardType
+      badge_icon: badgeIcon
     };
 
     const achievement = await base44.entities.LearningAchievement.create(achievementData);
@@ -349,16 +294,12 @@ export default function LearningCenter() {
               </Card>
             )}
 
-            {/* Card Interests */}
+            {/* Category */}
             <Card className="p-4 border-border/50">
-              <h3 className="font-semibold text-foreground mb-2">Your Interests</h3>
-              <div className="flex flex-wrap gap-2">
-                {learningPath.card_interests.map(interest => (
-                  <span key={interest} className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-xs font-semibold">
-                    {interest.replace(/_/g, ' ').toUpperCase()}
-                  </span>
-                ))}
-              </div>
+              <h3 className="font-semibold text-foreground mb-2">Learning Category</h3>
+              <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-xs font-semibold">
+                {learningPath.category?.replace(/_/g, ' ').toUpperCase()}
+              </span>
             </Card>
           </div>
         </div>

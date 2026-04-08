@@ -9,27 +9,13 @@
     "achievement_type": {
       "type": "string",
       "enum": [
-        "lesson_5_completed",
-        "lesson_10_completed",
-        "lesson_15_completed",
         "plan_completed",
         "first_scan",
         "first_watchlist",
         "first_price_alert",
-        "first_trade_logged",
-        "card_type_mastery_pokemon",
-        "card_type_mastery_magic_the_gathering",
-        "card_type_mastery_yugioh",
-        "card_type_mastery_lorcana",
-        "card_type_mastery_sports_cards",
-        "card_type_mastery_one_piece",
-        "all_card_types_mastery"
+        "first_trade_logged"
       ],
       "description": "Type of achievement"
-    },
-    "card_type": {
-      "type": "string",
-      "description": "The card type this achievement relates to (for card_type_mastery badges)"
     },
     "badge_icon": {
       "type": "string",

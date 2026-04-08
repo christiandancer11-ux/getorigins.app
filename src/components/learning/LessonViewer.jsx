@@ -38,9 +38,11 @@ export default function LessonViewer({ lesson, onComplete, onBack, onChangePlan 
 
       {/* Main Content */}
       {lesson.content && (
-        <Card className="p-8 border-border/50 prose prose-sm prose-invert max-w-none">
-          <ReactMarkdown>{lesson.content}</ReactMarkdown>
-        </Card>
+        <div className="space-y-6">
+          <Card className="p-8 border-border/50 prose prose-sm prose-invert max-w-none max-h-96 overflow-y-auto">
+            <ReactMarkdown>{lesson.content}</ReactMarkdown>
+          </Card>
+        </div>
       )}
 
       {/* Key Takeaways */}
