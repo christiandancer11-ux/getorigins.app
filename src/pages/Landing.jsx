@@ -17,6 +17,7 @@ import StickyHeader from '@/components/landing/StickyHeader';
 import GradingSupport from '@/components/landing/GradingSupport';
 import DataTransparency from '@/components/landing/DataTransparency';
 import CommunityProof from '@/components/landing/CommunityProof';
+import BrandLogos from '@/components/landing/BrandLogos';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -96,6 +97,11 @@ export default function Landing() {
           ))}
         </motion.div>
       </section>
+
+      {/* ── BRAND LOGOS ── */}
+      <div className="px-6 max-w-4xl mx-auto w-full">
+        <BrandLogos />
+      </div>
 
       {/* ── PROBLEM ── */}
       <section className="py-20 px-6 bg-secondary/15 border-t border-border/30">
