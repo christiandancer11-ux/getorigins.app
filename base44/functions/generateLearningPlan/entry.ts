@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     const isPrimarySports = category === 'sports_cards';
 
     // Generate structured learning plan via LLM
-    const prompt = `You are an expert card collector and educator. Create a comprehensive, personalized learning plan for someone interested in ${card_interests.join(', ')}.
+    const prompt = `You are an expert card collector and educator creating content for ALL AGES (including children). Create a comprehensive, personalized learning plan for someone interested in ${card_interests.join(', ')}.
 
 Use Case: ${USE_CASE_DESCRIPTIONS[use_case]}
 
@@ -39,11 +39,17 @@ Create a lesson plan with exactly 15 lessons that covers:
 For each lesson, provide:
 - Clear, actionable content written for beginners
 - 3-5 key takeaways
-- 5-10 relevant learning resources (YouTube, Reddit, websites, TikTok creators)
+- 5-10 relevant learning resources (YouTube, Reddit, websites, TikTok creators) - ONLY kid-friendly content suitable for ages 8+
 - A practical exercise they can do
 - How to use Origins features to practice
 
 Focus on ${isPrimarySports ? 'sports cards' : 'TCG'} specific knowledge.
+
+CRITICAL: All resources must be verified as kid-friendly:
+- No channels with mature language, violence, or inappropriate themes
+- Prefer educational creators and official brand channels
+- If a creator has some kid-friendly content but also mature content, use information from them but DO NOT include their URL
+- Include creator name and platform (e.g., "Video content by John Doe") without linking to non-kid-friendly channels
 
 Return as valid JSON object with:
 {
@@ -60,7 +66,7 @@ Return as valid JSON object with:
         "learning_resources": [
           {
             "title": string,
-            "url": string,
+            "url": string (only include URL if content is 100% kid-friendly),
             "type": "article|video|guide|reddit|tool",
             "platform": string
           }
@@ -100,7 +106,10 @@ Return as valid JSON object with:
       throw new Error('Invalid plan structure from LLM');
     }
 
-    // Store the plan
+    // Store the plan with 3-month update schedule
+    const now = new Date();
+    const nextUpdateDate = new Date(now.getTime() + 3 * 30 * 24 * 60 * 60 * 1000); // Approximately 3 months
+    
     const savedPlan = await base44.asServiceRole.entities.LearningPlan.create({
       name: planData.plan.name,
       description: planData.plan.description,
@@ -109,8 +118,9 @@ Return as valid JSON object with:
       category,
       lessons: planData.plan.lessons,
       total_lessons: planData.plan.lessons.length,
-      created_at: new Date().toISOString(),
-      last_updated: new Date().toISOString(),
+      created_at: now.toISOString(),
+      last_updated: now.toISOString(),
+      next_update_date: nextUpdateDate.toISOString(),
       is_active: true
     });
 

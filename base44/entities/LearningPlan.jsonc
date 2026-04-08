@@ -90,7 +90,7 @@
                 }
               }
             },
-            "description": "Links to videos, articles, guides from top creators"
+            "description": "Links to videos, articles, guides from top creators (kid-friendly only)"
           },
           "practical_exercise": {
             "type": "string",
@@ -114,7 +114,11 @@
     },
     "last_updated": {
       "type": "string",
-      "description": "Last time this plan was updated (monthly updates)"
+      "description": "Last time this plan was updated (every 3 months)"
+    },
+    "next_update_date": {
+      "type": "string",
+      "description": "ISO date when this plan should be updated with current data (3 months after last_updated)"
     },
     "is_active": {
       "type": "boolean",
