@@ -60,36 +60,30 @@ export default function LearningCenter() {
   const handleSelectInterests = async (selection) => {
     try {
       setLoading(true);
-      
-      // Generate a new learning plan
-      const planResponse = await base44.functions.invoke('generateLearningPlan', {
+
+      // Fetch pre-generated plan from database
+      const plans = await base44.entities.LearningPlan.filter({
         card_interests: selection.cardInterests,
-        use_case: selection.useCase
+        use_case: selection.useCase,
+        is_active: true
       });
 
-      const selectedPlan = planResponse.data;
-
-      if (!selectedPlan) {
-        alert('Failed to generate learning plan. Please try again.');
+      if (plans.length === 0) {
+        alert('No learning plan available for this selection. Please try again.');
         setLoading(false);
         return;
       }
 
-      // Personalize plan via AI
-      const personalizedPlan = await base44.functions.invoke('personalizeLearningPlan', {
-        base_plan_id: selectedPlan.id,
-        card_interests: selection.cardInterests,
-        use_case: selection.useCase
-      });
+      const selectedPlan = plans[0];
 
       // Create learning path
       const newPath = await base44.entities.LearningPath.create({
         user_email: user.email,
         card_interests: selection.cardInterests,
         use_case: selection.useCase,
-        plan_id: personalizedPlan.data.id,
+        plan_id: selectedPlan.id,
         lessons_completed: 0,
-        total_lessons: personalizedPlan.data.total_lessons,
+        total_lessons: selectedPlan.total_lessons,
         completion_percentage: 0,
         achievements_unlocked: [],
         current_lesson_index: 0,
@@ -100,13 +94,13 @@ export default function LearningCenter() {
       setLearningPath(newPath);
       setPlan(selectedPlan);
       setShowInterestSelector(false);
-      } catch (e) {
+    } catch (e) {
       console.error('Failed to create learning path:', e);
       alert('Error creating learning path. Please try again.');
-      } finally {
+    } finally {
       setLoading(false);
-      }
-      };
+    }
+  };
 
   const completeLesson = async () => {
     if (!learningPath) return;
