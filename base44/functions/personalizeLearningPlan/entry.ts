@@ -90,7 +90,7 @@ Return valid JSON:
       }
     });
 
-    // Create personalized plan
+    // Create personalized plan (badges awarded after completion)
     const personalizedPlan = await base44.asServiceRole.entities.LearningPlan.create({
       name: basePlan.name,
       description: basePlan.description,
@@ -104,38 +104,6 @@ Return valid JSON:
       next_update_date: new Date(Date.now() + 3 * 30 * 24 * 60 * 60 * 1000).toISOString(),
       is_active: true
     });
-
-    // Award card-type mastery badges for each interest
-    for (const interest of card_interests) {
-      const achievementType = CARD_TYPE_MASTERY_MAP[interest];
-      if (achievementType) {
-        const cardTypeBadges = {
-          'pokemon': '🔴',
-          'magic_the_gathering': '🦁',
-          'yugioh': '⚫',
-          'lorcana': '👑',
-          'sports_cards': '⭐',
-          'one_piece': '🏴‍☠️'
-        };
-
-        const existingAchievement = await base44.asServiceRole.entities.LearningAchievement.filter({
-          user_email: user.email,
-          achievement_type: achievementType
-        });
-
-        if (existingAchievement.length === 0) {
-          await base44.asServiceRole.entities.LearningAchievement.create({
-            user_email: user.email,
-            achievement_type: achievementType,
-            card_type: interest,
-            badge_icon: cardTypeBadges[interest],
-            reward_type: 'badge',
-            unlocked_at: new Date().toISOString(),
-            description: `Master of ${interest.replace(/_/g, ' ').toUpperCase()}`
-          });
-        }
-      }
-    }
 
     return Response.json(personalizedPlan);
 

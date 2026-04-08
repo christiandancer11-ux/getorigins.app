@@ -134,8 +134,31 @@ export default function LearningCenter() {
       await unlockAchievement('lesson_15_completed', '15 Lessons Completed', 7);
     } else if (completedCount === learningPath.total_lessons) {
       await unlockAchievement('plan_completed', 'Completed Learning Path', 14);
+      // Award card-type mastery badges for each interest
+      for (const cardType of learningPath.card_interests) {
+        await awardCardTypeMasteryBadge(cardType);
+      }
       // Check if all card types are mastered
       await checkAllCardTypesMastery();
+    }
+  };
+
+  const awardCardTypeMasteryBadge = async (cardType) => {
+    const cardTypeBadges = {
+      'pokemon': '🔴',
+      'magic_the_gathering': '🦁',
+      'yugioh': '⚫',
+      'lorcana': '👑',
+      'sports_cards': '⭐',
+      'one_piece': '🏴‍☠️'
+    };
+
+    const achievementType = `card_type_mastery_${cardType}`;
+    
+    // Check if already unlocked
+    const existing = achievements.find(a => a.achievement_type === achievementType);
+    if (!existing) {
+      await unlockAchievement(achievementType, `Master of ${cardType.replace(/_/g, ' ').toUpperCase()}`, 7, cardType, cardTypeBadges[cardType]);
     }
   };
 
