@@ -134,18 +134,48 @@ export default function LearningCenter() {
       await unlockAchievement('lesson_15_completed', '15 Lessons Completed', 7);
     } else if (completedCount === learningPath.total_lessons) {
       await unlockAchievement('plan_completed', 'Completed Learning Path', 14);
+      // Check if all card types are mastered
+      await checkAllCardTypesMastery();
     }
+  };
+
+  const checkAllCardTypesMastery = async () => {
+    const cardTypes = ['pokemon', 'magic_the_gathering', 'yugioh', 'lorcana', 'sports_cards', 'one_piece'];
+    const userAchievements = await base44.entities.LearningAchievement.filter({
+      user_email: user.email
+    });
+
+    const masteredTypes = userAchievements
+      .filter(a => a.achievement_type.startsWith('card_type_mastery_'))
+      .map(a => a.card_type);
+
+    if (cardTypes.every(type => masteredTypes.includes(type))) {
+      await unlockAchievement('all_card_types_mastery', 'Master of All Cards', 30, null, '🏆');
+    }
+  };
+
+  const unlockAchievement = async (type, description, rewardDays, cardType = null, badgeIcon = null) => {
+    const cardTypeBadges = {
+      'pokemon': '🔴',
+      'magic_the_gathering': '🦁',
+      'yugioh': '⚫',
+      'lorcana': '👑',
+      'sports_cards': '⭐',
+      'one_piece': '🏴‍☠️'
     };
 
-  const unlockAchievement = async (type, description, rewardDays) => {
-    const achievement = await base44.entities.LearningAchievement.create({
+    const achievementData = {
       user_email: user.email,
       achievement_type: type,
       reward_type: 'pro_days',
       reward_value: rewardDays,
       unlocked_at: new Date().toISOString(),
-      description
-    });
+      description,
+      badge_icon: badgeIcon || (cardType ? cardTypeBadges[cardType] : null),
+      card_type: cardType
+    };
+
+    const achievement = await base44.entities.LearningAchievement.create(achievementData);
     setAchievements([...achievements, achievement]);
   };
 
