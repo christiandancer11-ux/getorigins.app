@@ -21,7 +21,7 @@ export default function LearningCenter() {
   useEffect(() => {
     const loadLearningPath = async () => {
       try {
-        const paths = await base44.asServiceRole.entities.LearningPath.filter({
+        const paths = await base44.entities.LearningPath.filter({
           user_email: user.email
         });
 
@@ -30,7 +30,7 @@ export default function LearningCenter() {
           setLearningPath(path);
 
           // Load the associated plan
-          const plans = await base44.asServiceRole.entities.LearningPlan.filter({
+          const plans = await base44.entities.LearningPlan.filter({
             id: path.plan_id
           });
           if (plans.length > 0) {
@@ -38,7 +38,7 @@ export default function LearningCenter() {
           }
 
           // Load achievements
-          const userAchievements = await base44.asServiceRole.entities.LearningAchievement.filter({
+          const userAchievements = await base44.entities.LearningAchievement.filter({
             user_email: user.email
           });
           setAchievements(userAchievements);
@@ -75,14 +75,21 @@ export default function LearningCenter() {
         return;
       }
 
+      // Personalize plan via AI
+      const personalizedPlan = await base44.functions.invoke('personalizeLearningPlan', {
+        base_plan_id: selectedPlan.id,
+        card_interests: selection.cardInterests,
+        use_case: selection.useCase
+      });
+
       // Create learning path
-      const newPath = await base44.asServiceRole.entities.LearningPath.create({
+      const newPath = await base44.entities.LearningPath.create({
         user_email: user.email,
         card_interests: selection.cardInterests,
         use_case: selection.useCase,
-        plan_id: selectedPlan.id,
+        plan_id: personalizedPlan.data.id,
         lessons_completed: 0,
-        total_lessons: selectedPlan.total_lessons,
+        total_lessons: personalizedPlan.data.total_lessons,
         completion_percentage: 0,
         achievements_unlocked: [],
         current_lesson_index: 0,
@@ -109,7 +116,7 @@ export default function LearningCenter() {
     const completionPct = (completedCount / learningPath.total_lessons) * 100;
 
     // Update path
-    const updated = await base44.asServiceRole.entities.LearningPath.update(learningPath.id, {
+    const updated = await base44.entities.LearningPath.update(learningPath.id, {
       current_lesson_index: newIndex,
       lessons_completed: completedCount,
       completion_percentage: completionPct,
@@ -128,10 +135,10 @@ export default function LearningCenter() {
     } else if (completedCount === learningPath.total_lessons) {
       await unlockAchievement('plan_completed', 'Completed Learning Path', 14);
     }
-  };
+    };
 
   const unlockAchievement = async (type, description, rewardDays) => {
-    const achievement = await base44.asServiceRole.entities.LearningAchievement.create({
+    const achievement = await base44.entities.LearningAchievement.create({
       user_email: user.email,
       achievement_type: type,
       reward_type: 'pro_days',
