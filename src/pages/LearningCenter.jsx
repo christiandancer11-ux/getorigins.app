@@ -59,29 +59,19 @@ export default function LearningCenter() {
 
   const handleSelectInterests = async (selection) => {
     try {
-      // Find matching plan
-      const matchingPlans = await base44.asServiceRole.entities.LearningPlan.filter({
-        use_case: selection.useCase,
-        is_active: true
+      setLoading(true);
+      
+      // Generate a new learning plan
+      const planResponse = await base44.functions.invoke('generateLearningPlan', {
+        card_interests: selection.cardInterests,
+        use_case: selection.useCase
       });
 
-      let selectedPlan = null;
-      
-      // Find the best matching plan based on card interests
-      if (selection.cardInterests.length === 1) {
-        selectedPlan = matchingPlans.find(p =>
-          p.card_interests.includes(selection.cardInterests[0])
-        );
-      }
-
-      // If no single-interest match, use a multi-interest plan or the first available
-      if (!selectedPlan && matchingPlans.length > 0) {
-        selectedPlan = matchingPlans[0];
-      }
+      const selectedPlan = planResponse.data;
 
       if (!selectedPlan) {
-        // Create a default plan if none exists (would be pre-populated in production)
-        alert('Learning plans are being generated. Please try again in a moment.');
+        alert('Failed to generate learning plan. Please try again.');
+        setLoading(false);
         return;
       }
 
@@ -103,10 +93,13 @@ export default function LearningCenter() {
       setLearningPath(newPath);
       setPlan(selectedPlan);
       setShowInterestSelector(false);
-    } catch (e) {
+      } catch (e) {
       console.error('Failed to create learning path:', e);
-    }
-  };
+      alert('Error creating learning path. Please try again.');
+      } finally {
+      setLoading(false);
+      }
+      };
 
   const completeLesson = async () => {
     if (!learningPath) return;
