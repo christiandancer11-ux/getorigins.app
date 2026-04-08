@@ -28,8 +28,8 @@ const NAV_LINKS = [
   { to: '/bolo', icon: ShieldAlert, label: 'BOLO Alerts', desc: 'Stolen card alerts', category: 'more' },
 ];
 
-// Desktop: only show the most important items to avoid overwhelm
-const DESKTOP_NAV = NAV_LINKS.filter(l => ['core', 'discover'].includes(l.category));
+// Desktop: show all main nav categories
+const DESKTOP_NAV = NAV_LINKS;
 // Mobile bottom bar: 4 most used + a "More" menu button
 const MOBILE_NAV_TABS = [
   NAV_LINKS.find(l => l.to === '/dashboard'),
@@ -66,7 +66,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-0.5">
+          <div className="hidden lg:flex items-center gap-0.5 flex-wrap">
             {DESKTOP_NAV.map(({ to, icon: Icon, label }) => (
               <Link key={to} to={to}>
                 <Button
