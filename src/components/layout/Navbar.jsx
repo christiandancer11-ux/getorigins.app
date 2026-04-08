@@ -74,8 +74,8 @@ export default function Navbar() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isLanding && !menuOpen ? 'bg-transparent' : 'bg-background/95 backdrop-blur-xl border-b border-border/50'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setMenuOpen(false)}>
-            <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7231ac246_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.jpeg" alt="Origins" className="h-10 w-10 rounded-lg" />
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 text-xl font-display font-bold" onClick={() => setMenuOpen(false)}>
+            Origins
           </Link>
 
           {/* Desktop Nav with Dropdowns */}

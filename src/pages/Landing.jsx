@@ -125,7 +125,7 @@ export default function Landing() {
             {/* Card image */}
             <div className="shrink-0 w-40 sm:w-48">
               <img
-                src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/e422a6473_generated_image.png"
+                src="https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?w=400&h=600&fit=crop"
                 alt="Disney Lorcana card example"
                 className="w-full drop-shadow-2xl"
                 style={{ filter: 'drop-shadow(0 8px 24px rgba(94,200,255,0.25))' }}
@@ -462,7 +462,6 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <img src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/7231ac246_BF64DB45-9D7E-4450-BC8E-767F5F7DD0E0.jpeg" alt="Origins" className="h-7 w-7 rounded-md" />
               <span className="font-display text-sm font-semibold text-foreground">Origins</span>
             </div>
             <div className="flex items-center gap-4">
