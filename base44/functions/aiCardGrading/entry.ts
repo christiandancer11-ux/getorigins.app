@@ -156,7 +156,7 @@ Respond in JSON with:
       prompt,
       file_urls: step === 'final' ? [] : imageUrls,
       response_json_schema: { type: 'object' },
-      model: 'gemini_3_flash', // Use fast model
+      model: 'gpt_5', // Vision-capable model required for image analysis
     });
 
     // Cache result (except final step)
