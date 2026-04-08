@@ -135,8 +135,36 @@ Deno.serve(async (req) => {
 
     const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece', 'lorcana'].includes(sport);
 
+    // Include both raw and graded card data in trending analysis
+    const cardSchema_trending = {
+      type: 'object',
+      properties: {
+        cards: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              rank: { type: 'number' },
+              player_or_name: { type: 'string' },
+              card_name: { type: 'string' },
+              year: { type: 'string' },
+              set_name: { type: 'string' },
+              variant: { type: 'string' },
+              estimated_value_avg_raw: { type: 'number' },
+              estimated_value_avg_graded: { type: 'number' },
+              estimated_value_avg: { type: 'number' },
+              heat_score: { type: 'number' },
+              why_hot: { type: 'string' },
+              trend: { type: 'string' },
+            }
+          }
+        },
+        category_summary: { type: 'string' },
+      }
+    };
+
     const tcgContext = isTCG ? `
-=== TCG COMPETITIVE META & TOURNAMENT INTELLIGENCE ===
+    === TCG COMPETITIVE META & TOURNAMENT INTELLIGENCE ===
 For this TCG category, you MUST factor in the following when determining card rankings and values:
 
 1. CURRENT TOURNAMENT FORMAT & LEGALITY
@@ -176,31 +204,50 @@ For this TCG category, you MUST factor in the following when determining card ra
     const buildPrompt = (startRank, endRank) =>
       `You are a trading card market expert specializing in both sports cards and TCG competitive play. List ranks #${startRank} to #${endRank} for the category "${label}", focused on: ${modeInstruction}.
 
-Context from Origins community trades:
-${internalSummary}
-${tcgContext}
-=== STRICT MARKET DATA QUALITY RULES ===
-When sourcing eBay, TCGPlayer, CardMarket, or external market prices for estimated_value_avg:
-1. CONFIRMED SALES ONLY: Only use listings that are verified as SOLD. Exclude unsold, expired, relisted, or unaccepted-offer listings.
-2. OUTLIER FILTERING: If a single sale is more than 100% above the established market average for that card:
-   - Exclude it from value calculations UNLESS there are 2+ confirmed sales within 20-30% of each other AND all occurred more than 12 hours ago (before ${trendingCutoffISO})
-   - A lone outlier sale within the last 12 hours must be excluded — it may be a manipulation attempt
-   - Use 130point.com or TCGPlayer.com Market Price as cross-reference to validate values. TCGPlayer Market Price = weighted average of ACTUAL verified sales — treat it as the authoritative benchmark for all TCG cards.
-3. BASE VALUES ON THE MEDIAN of qualifying confirmed sales, not on single high outliers.
-4. For TCG cards: factor in whether the card is currently tournament-legal and seeing competitive play — this directly impacts demand.
+    Context from Origins community trades:
+    ${internalSummary}
+    ${tcgContext}
+    === STRICT MARKET DATA QUALITY RULES — RAW vs GRADED SEPARATION ===
+    CRITICAL: Trending popularity and value must be calculated SEPARATELY for raw (ungraded) and graded cards.
 
-Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number — use TCGPlayer Market Price as primary source for TCG cards), heat_score (1-100), why_hot (one sentence explaining why it ranks here — for TCG cards mention tournament staple status, meta relevance, and TCGPlayer Market Price), trend (up/down/stable).`;
+    1. RAW (UNGRADED) CARDS:
+    - Search ONLY for ungraded/raw card sales on eBay, TCGPlayer (raw condition), and market sources
+    - EXCLUDE all slabbed (PSA, BGS, SGC, CGC, HGA) sales
+    - For TCG: use PriceCharting.com ungraded price + TCGPlayer NM raw price as primary sources
+    - For Sports: use eBay raw comps + 130point.com confirmed sales (raw only)
+    - Calculate estimated_value_avg_raw as the MEDIAN of all qualifying raw sales (last 14 days)
+
+    2. GRADED CARDS (PSA, BGS, SGC, CGC, HGA):
+    - Search ONLY for graded sales with specific grades
+    - EXCLUDE raw/ungraded sales entirely
+    - For graded cards, report by GRADE AND COMPANY: e.g., PSA 9, BGS 10, etc.
+    - Only compare same grade + same company when calculating graded value averages
+    - Calculate estimated_value_avg_graded separately for each grade/company combo
+    - Do NOT blend graded and raw values — they have completely different market dynamics
+
+    3. CONFIRMED SALES ONLY: Only use listings that are verified as SOLD. Exclude unsold, expired, relisted, or unaccepted-offer listings.
+
+    4. OUTLIER FILTERING: If a single sale is more than 100% above the established market average for that card:
+    - Exclude it from value calculations UNLESS there are 2+ confirmed sales within 20-30% of each other AND all occurred more than 12 hours ago (before ${trendingCutoffISO})
+    - A lone outlier sale within the last 12 hours must be excluded — it may be a manipulation attempt
+    - Use 130point.com or TCGPlayer.com Market Price as cross-reference to validate values. TCGPlayer Market Price = weighted average of ACTUAL verified sales — treat it as the authoritative benchmark for all TCG cards.
+
+    5. BASE VALUES ON THE MEDIAN of qualifying confirmed sales, not on single high outliers.
+
+    6. For TCG cards: factor in whether the card is currently tournament-legal and seeing competitive play — this directly impacts demand.
+
+    Return exactly ${endRank - startRank + 1} cards ranked by the specified criteria. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg_raw (number or null for raw ungraded comps), estimated_value_avg_graded (number or null for graded comps — include the grade in variant if graded), estimated_value_avg (number — use the more reliable/active market for this specific card), heat_score (1-100), why_hot (one sentence explaining why it ranks here — clarify if this is based on raw or graded demand), trend (up/down/stable).`;
 
     // Fetch all cards in one optimized request to reduce LLM overhead
     const promptAllCards = buildPrompt(1, cardCount);
-    
+
     // Use flash model without internet search for speed (trades freshness for <10s response time)
     const startTime = Date.now();
     const batchResults = [
       await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: promptAllCards,
         add_context_from_internet: false,
-        response_json_schema: cardSchema,
+        response_json_schema: cardSchema_trending,
         model: 'gemini_3_flash',
       })
     ];

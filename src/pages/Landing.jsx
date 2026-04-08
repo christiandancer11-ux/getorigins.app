@@ -18,6 +18,7 @@ import GradingSupport from '@/components/landing/GradingSupport';
 import DataTransparency from '@/components/landing/DataTransparency';
 import CommunityProof from '@/components/landing/CommunityProof';
 import BrandLogos from '@/components/landing/BrandLogos';
+import MajorPullAlerts from '@/components/landing/MajorPullAlerts';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -317,6 +318,13 @@ export default function Landing() {
       </section>
 
       <CommunityProof />
+
+      {/* ── MAJOR PULL ALERTS ── */}
+      <section className="py-16 px-6 border-t border-border/30">
+        <div className="max-w-4xl mx-auto">
+          <MajorPullAlerts />
+        </div>
+      </section>
 
       {/* ── PRICING ── */}
       <section className="py-20 px-6 bg-secondary/15 border-t border-border/30">
