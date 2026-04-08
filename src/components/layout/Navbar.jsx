@@ -40,6 +40,7 @@ const DESKTOP_CATEGORIES = [
   { key: 'discover', label: 'Discover', icon: Flame },
   { key: 'tools', label: 'Tools', icon: Calculator },
   { key: 'account', label: 'Account', icon: User },
+  { key: 'more', label: 'More', icon: MoreHorizontal },
 ];
 
 // Mobile bottom bar: 4 most used + a "More" menu button
