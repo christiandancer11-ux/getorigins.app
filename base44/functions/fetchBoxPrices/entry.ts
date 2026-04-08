@@ -18,7 +18,7 @@ const CATEGORY_MAP = {
 
 // In-memory cache: key -> { data, expires }
 const boxCache = new Map();
-const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours (extended for performance)
+const CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 hour
 
 Deno.serve(async (req) => {
   try {
@@ -57,27 +57,25 @@ Deno.serve(async (req) => {
     const isTCG = ['pokemon', 'magic_the_gathering', 'yugioh', 'one_piece'].includes(CATEGORY_MAP[category].sport);
     const tcgPlayerGame = { pokemon: 'pokemon', magic_the_gathering: 'magic', yugioh: 'yugioh', one_piece: 'one-piece-card-game' }[CATEGORY_MAP[category].sport] || '';
 
-    const prompt = `You are a trading card hobby market expert with access to live retailer websites. Today is ${todayStr}.
+    const prompt = `You are a trading card hobby market expert. Today is ${todayStr}.
 
-Find the top 8 most notable NEW or RECENTLY RELEASED sealed card box products for the "${label}" category. Focus on products released in the last 6 months or upcoming within 60 days.
+Find the top 6 CURRENTLY AVAILABLE sealed card box products for the "${label}" category that were released in the last 12 months and are IN STOCK RIGHT NOW at major retailers.
 
-Browse these retailer websites and find DIRECT product page URLs for each item:
-${isTCG ? '- TCGPlayer (tcgplayer.com)\n' : ''}- Dave & Adam's Card World (dacardworld.com)
-- Blowout Cards (blowoutcards.com)
-- Steel City Collectibles (steelcitycollectibles.com)
-- eBay (ebay.com — find the specific sealed listing)
-- Amazon (amazon.com — specific ASIN product page)
-- Target (target.com — specific product page)
-- Walmart (walmart.com — specific product page)
+STRICT RULES — violating any of these will make the data useless:
+1. NO pre-sale, upcoming, or not-yet-released products. Only products available for purchase TODAY.
+2. Every seller URL must be a REAL, working direct product page URL that goes straight to the product — not a search page, not a homepage, not a category page.
+3. If you do not know the exact direct product URL for a seller, OMIT that seller entirely. Never fabricate or guess a URL.
+4. Only list a price if you are confident the product is in stock at that price.
+5. Prefer hobby boxes and booster boxes. Include blaster boxes only if relevant.
 
-IMPORTANT URL RULES:
-- Use real, direct product page URLs you find on those sites (e.g. https://www.dacardworld.com/sports-cards/2025-topps-series-1-baseball-hobby-box)
-- For eBay, link to a specific Buy It Now sealed listing (e.g. https://www.ebay.com/itm/...)
-- For Amazon, link to the specific ASIN page (e.g. https://www.amazon.com/dp/ASIN)
-- If you cannot find a direct product page for a seller, omit that seller entirely — do NOT fabricate URLs
-- Only include sellers that actually have the item in stock at the price you list
+For each product, search these retailers and provide their exact product page URL:
+${isTCG ? '- TCGPlayer: use format https://www.tcgplayer.com/search/${tcgPlayerGame}/sealed-products?productLineName=SETNAME\n' : ''}- Dave & Adam's: find the real URL (e.g. https://www.dacardworld.com/sports-cards/SLUG)
+- Blowout Cards: find the real URL (e.g. https://www.blowoutcards.com/CATEGORY/SLUG.html)
+- Steel City Collectibles: find the real URL (e.g. https://www.steelcitycollectibles.com/SLUG)
+- eBay: use a real sealed product search URL like https://www.ebay.com/sch/i.html?_nkw=2025+PRODUCTNAME+sealed+hobby+box&LH_BIN=1&LH_ItemCondition=1000
+- Amazon: only include if you know the specific ASIN (https://www.amazon.com/dp/ASIN)
 
-Return JSON (keep all strings concise to avoid parse errors):
+Return JSON with only products that are confirmed in-stock today:
 {
   "products": [
     {
@@ -85,14 +83,13 @@ Return JSON (keep all strings concise to avoid parse errors):
       "set_name": "string",
       "product_type": "hobby_box|blaster_box|jumbo_box|booster_box|elite_box|set_box|tin|bundle|other",
       "release_date": "YYYY-MM-DD or Available Now",
-      "is_upcoming": false,
       "msrp": 99.99,
       "cheapest_price": 79.99,
       "cheapest_seller": "string",
-      "cheapest_seller_url": "string",
+      "cheapest_seller_url": "string (real direct product page, not search or homepage)",
       "cheapest_free_shipping": true,
       "sellers": [
-        { "name": "string", "price": 79.99, "free_shipping": true, "url": "string" }
+        { "name": "string", "price": 79.99, "free_shipping": true, "url": "string (real direct URL only)" }
       ],
       "cards_per_box": "string",
       "notable_hits": "string",

@@ -34,14 +34,11 @@ function ProductCard({ product }) {
               <Badge variant="outline" className="text-xs border-primary/30 text-primary/80 shrink-0">
                 {PRODUCT_TYPE_LABELS[product.product_type] || 'Box'}
               </Badge>
-              {product.is_upcoming && (
-                <Badge className="text-xs bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0">Pre-Sale</Badge>
-              )}
             </div>
             <p className="text-sm font-semibold text-foreground leading-tight">{product.product_name}</p>
             {product.release_date && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                {product.is_upcoming ? '🗓 Releases' : '📅 Released'}: {product.release_date}
+                📅 Released: {product.release_date}
               </p>
             )}
           </div>
@@ -185,12 +182,9 @@ export default function BoxPriceTracker({ category }) {
     return () => controller.abort();
   }, [category]);
 
-  // Sort: upcoming/presale first, then by release date descending (newest first)
+  // Sort by release date descending (newest first)
   const sortedProducts = data?.products
     ? [...data.products].sort((a, b) => {
-        if (a.is_upcoming && !b.is_upcoming) return -1;
-        if (!a.is_upcoming && b.is_upcoming) return 1;
-        // Both same type — sort by release date descending
         const dateA = a.release_date && a.release_date !== 'Available Now' ? new Date(a.release_date) : new Date(0);
         const dateB = b.release_date && b.release_date !== 'Available Now' ? new Date(b.release_date) : new Date(0);
         return dateB - dateA;
@@ -207,7 +201,7 @@ export default function BoxPriceTracker({ category }) {
           </div>
           <div>
             <h2 className="text-base font-display font-bold text-foreground">New Releases</h2>
-            <p className="text-xs text-muted-foreground">Newest first · MSRP &amp; best online price</p>
+            <p className="text-xs text-muted-foreground">In-stock only · best online price</p>
           </div>
         </div>
         {!loading && data && (
