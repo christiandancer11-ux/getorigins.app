@@ -6,6 +6,14 @@ import ReactMarkdown from 'react-markdown';
 import { ChevronLeft, CheckCircle2, ExternalLink, Lightbulb } from 'lucide-react';
 
 export default function LessonViewer({ lesson, onComplete, onBack, onChangePlan }) {
+  if (!lesson || !lesson.title) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <p className="text-muted-foreground">Lesson data unavailable. Please try again.</p>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -29,9 +37,11 @@ export default function LessonViewer({ lesson, onComplete, onBack, onChangePlan 
       </div>
 
       {/* Main Content */}
-      <Card className="p-8 border-border/50 prose prose-sm prose-invert max-w-none">
-        <ReactMarkdown>{lesson.content}</ReactMarkdown>
-      </Card>
+      {lesson.content && (
+        <Card className="p-8 border-border/50 prose prose-sm prose-invert max-w-none">
+          <ReactMarkdown>{lesson.content}</ReactMarkdown>
+        </Card>
+      )}
 
       {/* Key Takeaways */}
       {lesson.key_takeaways && lesson.key_takeaways.length > 0 && (

@@ -273,7 +273,7 @@ export default function LearningCenter() {
               />
             ) : (
               <div className="space-y-4">
-                {plan.lessons.map((lesson, idx) => {
+                {plan.lessons.filter(l => l && l.title).map((lesson, idx) => {
                   const isCompleted = idx < learningPath.lessons_completed;
                   const isCurrent = idx === learningPath.current_lesson_index;
 
