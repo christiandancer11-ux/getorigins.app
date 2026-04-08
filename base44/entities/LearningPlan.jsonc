@@ -52,6 +52,34 @@
             "type": "string",
             "description": "Lesson overview"
           },
+          "slides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "icon": {
+                  "type": "string",
+                  "description": "Emoji icon for the slide"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Slide title"
+                },
+                "content": {
+                  "type": "string",
+                  "description": "Slide content text"
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Key points for this slide"
+                }
+              }
+            },
+            "description": "Array of slide objects for this lesson"
+          },
           "content": {
             "type": "string",
             "description": "Full lesson content (markdown)"
