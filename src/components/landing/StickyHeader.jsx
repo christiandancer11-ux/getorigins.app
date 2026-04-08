@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import FeaturesDropdown from '../layout/FeaturesDropdown';
 
 export default function StickyHeader() {
   const [isVisible, setIsVisible] = useState(false);
@@ -30,11 +31,14 @@ export default function StickyHeader() {
           <p className="text-sm font-semibold text-foreground">Origins Pro Bundle</p>
           <p className="text-xs text-muted-foreground">3 months free for Founders</p>
         </div>
-        <Link to="/pricing">
-          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-            Claim Founder Status <ArrowRight className="w-3 h-3" />
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <FeaturesDropdown />
+          <Link to="/pricing">
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+              Claim Founder Status <ArrowRight className="w-3 h-3" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </motion.div>
   );
