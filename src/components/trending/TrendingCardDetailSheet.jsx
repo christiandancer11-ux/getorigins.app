@@ -85,24 +85,37 @@ export default function TrendingCardDetailSheet({ card, onClose, viewMode }) {
           {/* Stats row */}
           <div className="flex gap-3 px-5 py-4 border-b border-border/20">
             <div className="flex-1 rounded-xl bg-secondary/40 px-3 py-2 text-center">
-              <p className="text-xs text-muted-foreground mb-0.5">Est. Value</p>
-              <div className="flex items-center justify-center gap-1">
-                {trendIcon(card.trend)}
-                <span className="text-base font-bold text-foreground">${card.estimated_value_avg?.toLocaleString() || '—'}</span>
-              </div>
+              {(() => {
+                const isGraded = card.variant && /psa|bgs|sgc|cgc|hga/i.test(card.variant);
+                const price = isGraded
+                  ? (card.estimated_value_avg_graded || card.estimated_value_avg)
+                  : (card.estimated_value_avg_raw || card.estimated_value_avg);
+                return (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-0.5">
+                      {isGraded ? '📦 Graded Market Price' : '📋 Raw Market Price'}
+                    </p>
+                    <div className="flex items-center justify-center gap-1">
+                      {trendIcon(card.trend)}
+                      <span className="text-base font-bold text-foreground">${price?.toLocaleString() || '—'}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">Current sale price</p>
+                  </>
+                );
+              })()}
             </div>
+            {card.estimated_value_avg_raw && card.estimated_value_avg_graded && (
+              <div className="flex-1 rounded-xl bg-secondary/40 px-3 py-2 text-center">
+                <p className="text-xs text-muted-foreground mb-0.5">Raw vs Graded</p>
+                <p className="text-xs font-semibold text-foreground">Raw: ${card.estimated_value_avg_raw?.toLocaleString()}</p>
+                <p className="text-xs font-semibold text-amber-400">Graded: ${card.estimated_value_avg_graded?.toLocaleString()}</p>
+              </div>
+            )}
             <div className="flex-1 rounded-xl bg-secondary/40 px-3 py-2 text-center">
               <p className="text-xs text-muted-foreground mb-0.5">Heat Score</p>
               <div className="flex items-center justify-center gap-1">
                 {card.heat_score >= 85 && <Flame className="w-4 h-4 text-red-400" />}
                 <span className={`text-base font-bold ${heatColor(card.heat_score)}`}>{card.heat_score}°</span>
-              </div>
-            </div>
-            <div className="flex-1 rounded-xl bg-secondary/40 px-3 py-2 text-center">
-              <p className="text-xs text-muted-foreground mb-0.5">Trend</p>
-              <div className="flex items-center justify-center gap-1 mt-0.5">
-                {trendIcon(card.trend)}
-                <span className="text-sm font-semibold capitalize text-foreground">{card.trend || '—'}</span>
               </div>
             </div>
           </div>

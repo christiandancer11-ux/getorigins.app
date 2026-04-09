@@ -43,7 +43,12 @@ export default function TrendingCardRow({ card, highlight, onClick, onSetAlert, 
           {card.heat_score >= 90 && <Flame className="w-3.5 h-3.5 text-red-400 shrink-0" />}
         </div>
         <p className="text-xs text-muted-foreground truncate">
-          {[card.year, card.set_name, card.variant].filter(Boolean).join(' · ')}
+          {[card.year, card.set_name].filter(Boolean).join(' · ')}
+          {card.variant && (
+            <span className={`ml-1 font-semibold ${
+              /psa|bgs|sgc|cgc|hga/i.test(card.variant) ? 'text-amber-400' : 'text-blue-400'
+            }`}>· {card.variant}</span>
+          )}
         </p>
         {card.why_hot && (
           <p className="text-xs text-muted-foreground/70 truncate mt-0.5 italic">"{card.why_hot}"</p>
@@ -71,14 +76,18 @@ export default function TrendingCardRow({ card, highlight, onClick, onSetAlert, 
         <div className="flex items-center gap-1 justify-end">
           {trendIcon(card.trend)}
           <span className="text-sm font-bold text-foreground">
-            ${card.estimated_value_avg?.toLocaleString() || '—'}
+            ${(() => {
+              const isGraded = card.variant && /psa|bgs|sgc|cgc|hga/i.test(card.variant);
+              const price = isGraded
+                ? (card.estimated_value_avg_graded || card.estimated_value_avg)
+                : (card.estimated_value_avg_raw || card.estimated_value_avg);
+              return price?.toLocaleString() || '—';
+            })()}
           </span>
         </div>
-        {(card.estimated_value_low || card.estimated_value_high) && (
-          <p className="text-xs text-muted-foreground">
-            ${card.estimated_value_low || 0}–${card.estimated_value_high || 0}
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground mt-0.5">
+          {/psa|bgs|sgc|cgc|hga/i.test(card.variant || '') ? '📦 Graded price' : '📋 Raw price'}
+        </p>
         <div className={`text-xs font-semibold mt-0.5 flex items-center justify-end gap-0.5 ${buzzColor(card.heat_score)}`}>
           {buzzLabel(card.heat_score)}
         </div>
