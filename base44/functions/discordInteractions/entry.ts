@@ -94,9 +94,50 @@ async function buildResponse(interaction, base44) {
     const holdPick = picks.find(p => p.pick_type === 'hold');
     const sellPick = picks.find(p => p.pick_type === 'sell');
     const fields = [];
-    if (buyPick) fields.push({ name: `📈 BUY — ${buyPick.card_name}`, value: `${buyPick.set_name || ''} | $${buyPick.estimated_price} → Target: $${buyPick.price_target}\n${buyPick.reasoning}`, inline: false });
-    if (holdPick) fields.push({ name: `⏸️ HOLD — ${holdPick.card_name}`, value: `${holdPick.set_name || ''} | $${holdPick.estimated_price}\n${holdPick.reasoning}`, inline: false });
-    if (sellPick) fields.push({ name: `📉 SELL — ${sellPick.card_name}`, value: `${sellPick.set_name || ''} | $${sellPick.estimated_price}\n${sellPick.reasoning}`, inline: false });
+    if (buyPick) {
+      const upside = buyPick.price_target && buyPick.estimated_price
+        ? Math.round(((buyPick.price_target - buyPick.estimated_price) / buyPick.estimated_price) * 100)
+        : null;
+      fields.push({
+        name: `📈 BUY — ${buyPick.card_name}`,
+        value: [
+          buyPick.set_name || '',
+          `💵 **Current Market Price:** $${Number(buyPick.estimated_price).toLocaleString()}`,
+          buyPick.price_target ? `🎯 **30–90 Day Target:** $${Number(buyPick.price_target).toLocaleString()}${upside !== null ? ` (+${upside}%)` : ''}` : null,
+          buyPick.confidence ? `Confidence: ${buyPick.confidence}` : null,
+          buyPick.reasoning
+        ].filter(Boolean).join('\n'),
+        inline: false
+      });
+    }
+    if (holdPick) {
+      fields.push({
+        name: `⏸️ HOLD — ${holdPick.card_name}`,
+        value: [
+          holdPick.set_name || '',
+          `💵 **Current Market Price:** $${Number(holdPick.estimated_price).toLocaleString()}`,
+          holdPick.confidence ? `Confidence: ${holdPick.confidence}` : null,
+          holdPick.reasoning
+        ].filter(Boolean).join('\n'),
+        inline: false
+      });
+    }
+    if (sellPick) {
+      const downside = sellPick.price_target && sellPick.estimated_price
+        ? Math.round(((sellPick.price_target - sellPick.estimated_price) / sellPick.estimated_price) * 100)
+        : null;
+      fields.push({
+        name: `📉 SELL — ${sellPick.card_name}`,
+        value: [
+          sellPick.set_name || '',
+          `💵 **Current Market Price:** $${Number(sellPick.estimated_price).toLocaleString()}`,
+          sellPick.price_target ? `🎯 **30–90 Day Target:** $${Number(sellPick.price_target).toLocaleString()}${downside !== null ? ` (${downside}%)` : ''}` : null,
+          sellPick.confidence ? `Confidence: ${sellPick.confidence}` : null,
+          sellPick.reasoning
+        ].filter(Boolean).join('\n'),
+        inline: false
+      });
+    }
     return {
       type: 4,
       data: {

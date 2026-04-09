@@ -38,15 +38,21 @@ function PickCard({ pick }) {
         {pick.variant && <p className="text-xs text-muted-foreground">{pick.variant}</p>}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         {pick.sport && <SportBadge sport={pick.sport} />}
         {pick.estimated_price > 0 && (
-          <span className="text-xs font-medium text-foreground">${pick.estimated_price.toLocaleString()}</span>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground leading-none mb-0.5">Current Market Price</span>
+            <span className="text-sm font-bold text-foreground">${pick.estimated_price.toLocaleString()}</span>
+          </div>
         )}
-        {upside !== null && pick.pick_type !== 'hold' && (
-          <span className={`text-xs font-bold ${pick.pick_type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
-            {pick.pick_type === 'buy' ? '▲' : '▼'} {Math.abs(upside)}% target
-          </span>
+        {pick.price_target > 0 && pick.pick_type !== 'hold' && (
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground leading-none mb-0.5">30–90 Day Target</span>
+            <span className={`text-sm font-bold ${pick.pick_type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
+              ${pick.price_target.toLocaleString()} {upside !== null && `(${pick.pick_type === 'buy' ? '+' : ''}${upside}%)`}
+            </span>
+          </div>
         )}
       </div>
 
