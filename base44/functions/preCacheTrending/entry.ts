@@ -54,6 +54,8 @@ const cardSchema = {
           set_name: { type: 'string' },
           variant: { type: 'string' },
           estimated_value_avg: { type: 'number' },
+          estimated_value_avg_raw: { type: 'number' },
+          estimated_value_avg_graded: { type: 'number' },
           heat_score: { type: 'number' },
           why_hot: { type: 'string' },
           trend: { type: 'string' },
@@ -83,26 +85,35 @@ async function warmCategory(base44, category) {
 
   const trendingCutoffISO = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
 
-  const prompt = `You are a trading card market expert. List the top 15 hottest and most in-demand ${label} right now based on collector buzz, sell-through rate, and market activity.
+  const prompt = `You are a trading card market expert with live internet access. List the top 15 hottest ${label} RIGHT NOW based on real eBay sold data, collector buzz, and sell-through rate.
 
 Context from Origins community trades:
 ${internalSummary}
 
-RULES: Only use confirmed SOLD listings. Exclude outlier sales within 12 hours before ${trendingCutoffISO}. Base values on the median of qualifying confirmed sales.
+CRITICAL RULES:
+1. Only use CONFIRMED SOLD listings from eBay, 130point.com, or TCGPlayer (TCG only). No unsold or relisted items.
+2. For each card, SEPARATELY provide the RAW (ungraded) average price AND the top graded (PSA 10 or best available grade) average price. Never blend raw and graded sales into one average.
+3. Set estimated_value_avg to the graded price if the variant is a graded slab, or raw price if ungraded.
+4. estimated_value_avg_raw = average of raw/ungraded confirmed sales only.
+5. estimated_value_avg_graded = average of PSA 10 (or equivalent top grade) confirmed sales only.
+6. variant field must clearly state condition: e.g. "PSA 10", "Raw/Ungraded", "BGS 9.5".
+7. heat_score 1-100 based on recent volume, price momentum, and collector buzz.
+8. why_hot: one concise sentence referencing a real market reason.
+9. trend: up/down/stable based on recent price direction.
 
-Return exactly 15 cards. For each include: rank, player_or_name, card_name, year, set_name, variant, estimated_value_avg (number), heat_score (1-100), why_hot (one sentence), trend (up/down/stable).`;
+Return exactly 15 cards with all fields populated. Also return category_summary (2 sentences about the ${label} market right now).`;
 
-  // Wrap LLM call with a 50-second timeout so automations never hard-fail due to slow LLM
+  // Wrap LLM call with an 85-second timeout
   let llmResult = null;
   const llmTimeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('LLM timeout after 50s')), 50000)
+    setTimeout(() => reject(new Error('LLM timeout after 85s')), 85000)
   );
   llmResult = await Promise.race([
     base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
-      add_context_from_internet: false,
-      response_json_schema: cardSchema,
+      add_context_from_internet: true,
       model: 'gemini_3_flash',
+      response_json_schema: cardSchema,
     }),
     llmTimeout,
   ]);
