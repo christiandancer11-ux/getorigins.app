@@ -130,6 +130,9 @@ async function buildResponse(interaction, base44) {
     );
     const cards = match?.cards?.slice(0, 3) || [];
 
+    const gradedKeywords = ['psa', 'bgs', 'sgc', 'cgc', 'hga', 'beckett'];
+    const isGraded = (variant) => variant && gradedKeywords.some(k => variant.toLowerCase().includes(k));
+
     return {
       type: 4,
       data: {
@@ -137,16 +140,25 @@ async function buildResponse(interaction, base44) {
           title: `\uD83D\uDD25 Top Trending ${label} Cards`,
           color: 0xff6600,
           fields: cards.length > 0
-            ? cards.map((c, i) => ({
-                name: `${i + 1}. ${c.name || c.card_name || 'Unknown'}`,
-                value: [
-                  c.set_name ? `Set: ${c.set_name}` : null,
-                  c.heat_score ? `\uD83D\uDD25 Heat Score: ${c.heat_score}` : null,
-                  c.estimated_value_avg ? `\uD83D\uDCB5 ~$${c.estimated_value_avg}` : null,
-                  c.why_hot || c.trend || null
-                ].filter(Boolean).join(' | ') || 'Trending',
-                inline: false
-              }))
+            ? cards.map((c, i) => {
+                const variant = c.variant || '';
+                const graded = isGraded(variant);
+                const conditionLabel = graded ? `\uD83D\uDCE6 Graded (${variant})` : '\uD83D\uDCCB Raw (Ungraded)';
+                const price = graded
+                  ? (c.estimated_value_avg_graded || c.estimated_value_avg)
+                  : (c.estimated_value_avg_raw || c.estimated_value_avg);
+                const priceStr = price ? `$${price.toLocaleString()}` : 'N/A';
+                return {
+                  name: `${i + 1}. ${c.player_or_name || c.card_name || 'Unknown'} — ${c.year || ''} ${c.set_name || ''}`.trim(),
+                  value: [
+                    conditionLabel,
+                    `\uD83D\uDCB5 ${priceStr} (${graded ? 'graded' : 'raw'} comp)`,
+                    c.heat_score ? `\uD83D\uDD25 Heat: ${c.heat_score}/100` : null,
+                    c.why_hot || null
+                  ].filter(Boolean).join('\n'),
+                  inline: false
+                };
+              })
             : [{ name: 'No data yet', value: `No trending ${label} cards cached. Check back soon!`, inline: false }],
           footer: { text: '\u2728 Free daily market insights from Origins \u2022 getorigins.app' }
         }]
