@@ -74,17 +74,77 @@ Deno.serve(async (req) => {
     // Handle command interactions
     if (interaction.type === 2) {
       const commandName = interaction.data.name;
-      console.log(`Received command: ${commandName}`);
+      const base44 = createClientFromRequest(req);
 
-      // Respond with a deferred message while you process
-      return new Response(JSON.stringify({
+      if (commandName === 'help') {
+        return Response.json({
+          type: 4,
+          data: {
+            embeds: [{
+              title: '🃏 Origins Bot Commands',
+              description: 'Your daily trading card market intelligence, powered by Origins.',
+              color: 0xd4a017,
+              fields: [
+                { name: '/market', value: 'Get today\'s top Buy, Hold & Sell picks with price targets', inline: false },
+                { name: '/trending', value: 'View the hottest cards in the market right now', inline: false },
+                { name: '/help', value: 'Show this help message', inline: false }
+              ],
+              footer: { text: '✨ Free daily market insights from Origins • originscard.com' }
+            }]
+          }
+        });
+      }
+
+      if (commandName === 'market') {
+        const picks = await base44.asServiceRole.entities.MarketPick.list();
+        const buyPick = picks.find(p => p.pick_type === 'buy');
+        const holdPick = picks.find(p => p.pick_type === 'hold');
+        const sellPick = picks.find(p => p.pick_type === 'sell');
+
+        const fields = [];
+        if (buyPick) fields.push({ name: `📈 BUY — ${buyPick.card_name}`, value: `${buyPick.set_name || ''} | $${buyPick.estimated_price} → Target: $${buyPick.price_target}\n${buyPick.reasoning}`, inline: false });
+        if (holdPick) fields.push({ name: `⏸️ HOLD — ${holdPick.card_name}`, value: `${holdPick.set_name || ''} | $${holdPick.estimated_price}\n${holdPick.reasoning}`, inline: false });
+        if (sellPick) fields.push({ name: `📉 SELL — ${sellPick.card_name}`, value: `${sellPick.set_name || ''} | $${sellPick.estimated_price}\n${sellPick.reasoning}`, inline: false });
+
+        return Response.json({
+          type: 4,
+          data: {
+            embeds: [{
+              title: '📊 Today\'s Market Picks',
+              color: 0xd4a017,
+              fields: fields.length > 0 ? fields : [{ name: 'No picks yet', value: 'Check back soon!', inline: false }],
+              footer: { text: '✨ Free daily market insights from Origins' }
+            }]
+          }
+        });
+      }
+
+      if (commandName === 'trending') {
+        const trending = await base44.asServiceRole.entities.TrendingCache.list();
+        const cards = trending.length > 0 ? trending[0].cards?.slice(0, 5) || [] : [];
+
+        return Response.json({
+          type: 4,
+          data: {
+            embeds: [{
+              title: '🔥 Trending Cards Right Now',
+              color: 0xff6600,
+              fields: cards.length > 0
+                ? cards.map((c, i) => ({
+                    name: `${i + 1}. ${c.name || c.card_name}`,
+                    value: c.heat_score ? `Heat Score: ${c.heat_score}` : 'Trending',
+                    inline: false
+                  }))
+                : [{ name: 'No trending data', value: 'Check back soon!', inline: false }],
+              footer: { text: '✨ Free daily market insights from Origins' }
+            }]
+          }
+        });
+      }
+
+      return Response.json({
         type: 4,
-        data: {
-          content: `Command '${commandName}' received! Processing...`
-        }
-      }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
+        data: { content: `Unknown command: ${commandName}` }
       });
     }
 
