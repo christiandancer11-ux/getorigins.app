@@ -15,6 +15,25 @@ export default function TradeLiveFeed({ card }) {
     </div>
   );
 }
+import { base44 } from '@/api/base44Client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Radio, DollarSign, MapPin, CreditCard, ShieldCheck, AlertTriangle } from 'lucide-react';
+import SportBadge from '../shared/SportBadge';
+import TradeInteractions from './TradeInteractions';
+
+const CONDITION_LABELS = {
+  raw: 'Raw', psa_10: 'PSA 10', psa_9: 'PSA 9', psa_8: 'PSA 8', psa_7: 'PSA 7',
+  psa_6: 'PSA 6', psa_5: 'PSA 5', psa_4: 'PSA 4', psa_3: 'PSA 3', psa_2: 'PSA 2', psa_1: 'PSA 1',
+  bgs_10: 'BGS 10', bgs_9_5: 'BGS 9.5', bgs_9: 'BGS 9', sgc_10: 'SGC 10', other_graded: 'Graded',
+};
+
+const TRADE_TYPE_LABELS = {
+  cash: '💵 Cash',
+  card_for_card: '🔄 Card-for-Card',
+  cash_plus_card: '💵+🔄 Cash + Card',
+};
+
+function timeAgo(dateStr) {
   const seconds = Math.floor((Date.now() - new Date(dateStr)) / 1000);
   if (seconds < 60) return `${seconds}s ago`;
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;

@@ -14,6 +14,50 @@ export default function Pricing() {
     </div>
   );
 }
+
+const BUNDLES = [
+  {
+    name: 'Free',
+    price: '$0',
+    description: 'Get started, no card required.',
+    color: 'text-muted-foreground',
+    priceId: null,
+    features: [
+      'Register cards & generate QR codes',
+      'AI card identification from photos',
+      'Up to 5 story messages/videos per day',
+      'Leaderboard & analytics',
+      'BOLO stolen card alerts'
+    ],
+  },
+  {
+    name: 'Origins Pro Bundle',
+    price: '$14.99',
+    sub: '/mo',
+    description: 'Everything you need to collect smarter.',
+    color: 'text-amber-400',
+    highlight: true,
+    priceId: 'price_1Qvi4aAjk3EjqAEi8SJB4Y2P', // Monthly recurring
+    badge: 'Most Popular',
+    features: [
+      'Unlimited story messages & videos per day',
+      'Market Value & AI Card Scanner',
+      'Card Show Trades — real comp logs',
+      'Trending — Top 100 hottest cards',
+      'Live eBay, 130point & Origins data',
+      'Pro Card Flipper — PSA/BGS/SGC/CGC pop report analysis',
+      'BGS Black Label candidate finder'
+    ],
+  },
+];
+
+const PERKS = [
+  { icon: Gift, title: '7-Day Free Trial', desc: 'Try Origins Pro Bundle free when you subscribe — no commitment.' },
+  { icon: Tag, title: 'Referral Program', desc: 'Share your code. You and your friend both get 7 free days of Origins Pro Bundle.' },
+  { icon: Sparkles, title: 'Creator Codes', desc: 'Partner creators unlock 50% off Origins Pro Bundle for their first 3 months.' },
+];
+
+export default function Pricing() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useAuth();

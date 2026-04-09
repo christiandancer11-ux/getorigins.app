@@ -1,6 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus, Zap, Lock, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Zap, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function MarketPicksWidget() {

@@ -116,7 +116,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-2">
             {/* Register button — visible on md+ */}
-            <Link to="/" className="hidden md:block">
+            <Link to="/register" className="hidden md:block">
               <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="w-4 h-4 mr-1.5" />
                 Register Card
@@ -189,7 +189,7 @@ export default function Navbar() {
               </nav>
 
               <div className="space-y-3 px-4 pb-6 shrink-0">
-                <Link to="/" onClick={() => setMenuOpen(false)}>
+                <Link to="/register" onClick={() => setMenuOpen(false)}>
                   <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">
                     <Plus className="w-4 h-4 mr-2" />
                     Register a Card

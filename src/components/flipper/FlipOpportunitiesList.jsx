@@ -22,6 +22,23 @@ export default function FlipOpportunitiesList() {
     </div>
   );
 }
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, Loader2, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Clock, Zap } from 'lucide-react';
+
+const RISK_COLORS = {
+  low: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+  medium: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+  high: 'text-red-400 bg-red-400/10 border-red-400/20',
+};
+
+const HORIZON_LABEL = { short: 'Days–Weeks', medium: '1–3 Months', long: '3–6+ Months' };
+
+const SPORT_EMOJI = {
+  baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒',
+  soccer: '⚽', pokemon: '🎴', magic_the_gathering: '🧙', yugioh: '⚡', other: '🃏',
+};
+
+function FlipCard({ card, index }) {
   const [expanded, setExpanded] = useState(false);
   const gainPct = card.potential_gain_pct ? Math.round(card.potential_gain_pct) : null;
 

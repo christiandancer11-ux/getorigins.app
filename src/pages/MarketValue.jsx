@@ -14,6 +14,32 @@ export default function MarketValue() {
     </div>
   );
 }
+import SetAlertModal from '../components/alerts/SetAlertModal';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { motion, AnimatePresence } from 'framer-motion';
+import MarketSummaryCards from '../components/market/MarketSummaryCards';
+import SoldListingsTable from '../components/market/SoldListingsTable';
+import CardShowComps from '../components/market/CardShowComps';
+import CardScanner from '../components/market/CardScanner';
+import UpgradeModal from '../components/shared/UpgradeModal';
+import { useSubscription } from '../hooks/useSubscription';
+
+const TABS = [
+  { id: 'search', label: 'Search', icon: Search },
+  { id: 'scan', label: 'Scan & Value', icon: Camera },
+];
+
+export default function MarketValue() {
+  const [activeTab, setActiveTab] = useState('search');
+  const [searchInput, setSearchInput] = useState('');
+  const [activeSearch, setActiveSearch] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const { isPro, loading: subLoading } = useSubscription();
 
   const { data: allTrades = [] } = useQuery({
     queryKey: ['card-trades'],

@@ -81,6 +81,9 @@ export default function RegisterCard() {
       if (setSide === 'front') setUploadingFront(false);
       else setUploadingBack(false);
     }
+    if (setSide === 'front') { setFrontUrl(file_url); setUploadingFront(false); }
+    else { setBackUrl(file_url); setUploadingBack(false); }
+    return file_url;
   };
 
   const handleConditionSubmit = (condition) => {
@@ -110,6 +113,14 @@ export default function RegisterCard() {
 
     setStage(STAGE.GRADING_CHOICE);
   };
+      return;
+    }
+
+    setAiResult(res.data);
+
+    // If graded and grading company found images, ask user
+    if (res.data.is_graded && res.data.grading_images?.found) {
+      setStage(STAGE.GRADING_CHOICE);
     } else {
       await saveCard(res.data, front, back);
     }

@@ -167,7 +167,7 @@ export default function Dashboard() {
                 <Store className="w-3.5 h-3.5" />List to Store
               </Button>
             )}
-            <Link to="/" className="flex-1 sm:flex-none">
+            <Link to="/register" className="flex-1 sm:flex-none">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full gap-1.5 text-xs sm:text-sm" size="sm">
                 <Plus className="w-3.5 h-3.5" />Add Card
               </Button>
@@ -241,7 +241,7 @@ export default function Dashboard() {
               <>
                 {ownedCards.length === 0 ? (
                   <EmptyState icon={Layers} title="No Cards Yet" description="Register your first card to generate a QR code and start building its story.">
-                    <Link to="/">
+                    <Link to="/register">
                       <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                         <Plus className="w-4 h-4 mr-2" />Register Your First Card
                       </Button>

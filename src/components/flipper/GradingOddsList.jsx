@@ -22,6 +22,25 @@ export default function GradingOddsList() {
     </div>
   );
 }
+import { motion, AnimatePresence } from 'framer-motion';
+import { Award, Loader2, RefreshCw, AlertCircle, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
+
+const SPORT_EMOJI = {
+  baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒',
+  soccer: '⚽', pokemon: '🎴', magic_the_gathering: '🧙', yugioh: '⚡', other: '🃏',
+};
+
+const SPORT_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'baseball', label: '⚾ Baseball' },
+  { id: 'basketball', label: '🏀 Basketball' },
+  { id: 'football', label: '🏈 Football' },
+  { id: 'hockey', label: '🏒 Hockey' },
+  { id: 'soccer', label: '⚽ Soccer' },
+  { id: 'pokemon', label: '🎴 Pokémon' },
+  { id: 'magic_the_gathering', label: '🧙 MTG' },
+  { id: 'yugioh', label: '⚡ Yu-Gi-Oh' },
+];
 
 const COMPANY_COLORS = {
   PSA: 'text-blue-400 bg-blue-400/10 border-blue-400/20',

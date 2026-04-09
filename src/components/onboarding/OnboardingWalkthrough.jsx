@@ -24,7 +24,7 @@ const STEPS = [
     emoji: '📈',
     title: 'Track value & market signals',
     description: 'Get AI Buy/Hold/Sell signals on every card. Upgrade to Pro for live eBay comps, trending cards, price alerts, and more.',
-    cta: { label: 'Register your first card', to: '/' },
+    cta: { label: 'Register your first card', to: '/register' },
   },
 ];
 

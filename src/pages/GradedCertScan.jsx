@@ -191,7 +191,7 @@ export default function GradedCertScan() {
                   <QrCode className="w-4 h-4 text-primary" />Register as New Card
                 </h3>
                 <p className="text-sm text-muted-foreground">AI will identify the card from your photos and auto-link to this {displayName} cert.</p>
-                <Button onClick={() => navigate(`/?cert=${cert}&grader=${displayName}`)} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+                <Button onClick={() => navigate(`/register?cert=${cert}&grader=${displayName}`)} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
                   Register This Card <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
