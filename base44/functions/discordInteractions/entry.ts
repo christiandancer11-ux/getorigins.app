@@ -1,44 +1,46 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { Buffer } from 'node:buffer';
 
 const DISCORD_PUBLIC_KEY = Deno.env.get("DISCORD_PUBLIC_KEY");
 
-async function verifyDiscordRequest(request) {
-  const signature = request.headers.get("x-signature-ed25519");
-  const timestamp = request.headers.get("x-signature-timestamp");
+function hexToUint8Array(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+async function verifyDiscordRequest(signature, timestamp, rawBody) {
   if (!signature || !timestamp) return false;
-
-  const body = await request.text();
-  const message = timestamp + body;
-
   try {
-    const encoder = new TextEncoder();
     const keyData = await crypto.subtle.importKey(
       "raw",
-      Uint8Array.from(Buffer.from(DISCORD_PUBLIC_KEY, "hex")),
+      hexToUint8Array(DISCORD_PUBLIC_KEY),
       "Ed25519",
       false,
       ["verify"]
     );
-    const isValid = await crypto.subtle.verify(
+    return await crypto.subtle.verify(
       "Ed25519",
       keyData,
-      Uint8Array.from(Buffer.from(signature, "hex")),
-      encoder.encode(message)
+      hexToUint8Array(signature),
+      new TextEncoder().encode(timestamp + rawBody)
     );
-    return { isValid, body };
-  } catch (error) {
-    console.error("Signature verification error:", error);
+  } catch (e) {
+    console.error("Verification error:", e);
     return false;
   }
 }
 
 async function followUp(applicationId, token, data) {
-  await fetch(`https://discord.com/api/v10/webhooks/${applicationId}/${token}/messages/@original`, {
+  const res = await fetch(`https://discord.com/api/v10/webhooks/${applicationId}/${token}/messages/@original`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
+  if (!res.ok) {
+    console.error("followUp failed:", await res.text());
+  }
 }
 
 async function handleCommand(interaction, base44) {
@@ -57,22 +59,21 @@ async function handleCommand(interaction, base44) {
     }
     const channelOption = interaction.data.options?.find(o => o.name === 'channel');
     const targetChannelId = channelOption?.value || channelId;
-    const targetChannelName = `<#${targetChannelId}>`;
 
     const existing = await base44.asServiceRole.entities.DiscordGuildConfig.filter({ guild_id: guildId });
     if (existing.length > 0) {
       await base44.asServiceRole.entities.DiscordGuildConfig.update(existing[0].id, {
         allowed_channel_id: targetChannelId,
-        allowed_channel_name: targetChannelName
+        allowed_channel_name: `<#${targetChannelId}>`
       });
     } else {
       await base44.asServiceRole.entities.DiscordGuildConfig.create({
         guild_id: guildId,
         allowed_channel_id: targetChannelId,
-        allowed_channel_name: targetChannelName
+        allowed_channel_name: `<#${targetChannelId}>`
       });
     }
-    await followUp(applicationId, token, { content: `✅ Origins bot commands are now restricted to ${targetChannelName}.` });
+    await followUp(applicationId, token, { content: `✅ Origins bot commands are now restricted to <#${targetChannelId}>.` });
     return;
   }
 
@@ -85,27 +86,32 @@ async function handleCommand(interaction, base44) {
     }
     const existing = await base44.asServiceRole.entities.DiscordGuildConfig.filter({ guild_id: guildId });
     if (existing.length > 0) {
-      await base44.asServiceRole.entities.DiscordGuildConfig.update(existing[0].id, {
-        allowed_channel_id: '',
-        allowed_channel_name: ''
-      });
+      await base44.asServiceRole.entities.DiscordGuildConfig.update(existing[0].id, { allowed_channel_id: '', allowed_channel_name: '' });
     }
     await followUp(applicationId, token, { content: '✅ Channel restriction removed. Bot commands now work in all channels.' });
     return;
   }
 
-  // For all other commands — check channel restriction in parallel with data fetch
+  // Channel restriction check + data fetch in parallel
   const configPromise = guildId
     ? base44.asServiceRole.entities.DiscordGuildConfig.filter({ guild_id: guildId })
     : Promise.resolve([]);
 
-  if (commandName === 'help') {
-    const [configs] = await Promise.all([configPromise]);
+  async function checkChannel(configs) {
     const config = configs[0];
     if (config?.allowed_channel_id && config.allowed_channel_id !== channelId) {
-      await followUp(applicationId, token, { content: `⚠️ Origins commands are only allowed in <#${config.allowed_channel_id}>.` });
-      return;
+      await followUp(applicationId, token, {
+        content: `⚠️ Origins commands are only allowed in <#${config.allowed_channel_id}>.`,
+        flags: 64
+      });
+      return false;
     }
+    return true;
+  }
+
+  if (commandName === 'help') {
+    const configs = await configPromise;
+    if (!await checkChannel(configs)) return;
     await followUp(applicationId, token, {
       embeds: [{
         title: '🃏 Origins Bot Commands',
@@ -125,15 +131,8 @@ async function handleCommand(interaction, base44) {
   }
 
   if (commandName === 'market') {
-    const [configs, picks] = await Promise.all([
-      configPromise,
-      base44.asServiceRole.entities.MarketPick.list()
-    ]);
-    const config = configs[0];
-    if (config?.allowed_channel_id && config.allowed_channel_id !== channelId) {
-      await followUp(applicationId, token, { content: `⚠️ Origins commands are only allowed in <#${config.allowed_channel_id}>.` });
-      return;
-    }
+    const [configs, picks] = await Promise.all([configPromise, base44.asServiceRole.entities.MarketPick.list()]);
+    if (!await checkChannel(configs)) return;
 
     const buyPick = picks.find(p => p.pick_type === 'buy');
     const holdPick = picks.find(p => p.pick_type === 'hold');
@@ -155,15 +154,8 @@ async function handleCommand(interaction, base44) {
   }
 
   if (commandName === 'trending') {
-    const [configs, trending] = await Promise.all([
-      configPromise,
-      base44.asServiceRole.entities.TrendingCache.list()
-    ]);
-    const config = configs[0];
-    if (config?.allowed_channel_id && config.allowed_channel_id !== channelId) {
-      await followUp(applicationId, token, { content: `⚠️ Origins commands are only allowed in <#${config.allowed_channel_id}>.` });
-      return;
-    }
+    const [configs, trending] = await Promise.all([configPromise, base44.asServiceRole.entities.TrendingCache.list()]);
+    if (!await checkChannel(configs)) return;
 
     const cards = trending.length > 0 ? trending[0].cards?.slice(0, 5) || [] : [];
     await followUp(applicationId, token, {
@@ -171,11 +163,7 @@ async function handleCommand(interaction, base44) {
         title: '🔥 Trending Cards Right Now',
         color: 0xff6600,
         fields: cards.length > 0
-          ? cards.map((c, i) => ({
-              name: `${i + 1}. ${c.name || c.card_name}`,
-              value: c.heat_score ? `Heat Score: ${c.heat_score}` : 'Trending',
-              inline: false
-            }))
+          ? cards.map((c, i) => ({ name: `${i + 1}. ${c.name || c.card_name}`, value: c.heat_score ? `Heat Score: ${c.heat_score}` : 'Trending', inline: false }))
           : [{ name: 'No trending data', value: 'Check back soon!', inline: false }],
         footer: { text: '✨ Free daily market insights from Origins' }
       }]
@@ -189,31 +177,34 @@ async function handleCommand(interaction, base44) {
 Deno.serve(async (req) => {
   try {
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+      return new Response("Method not allowed", { status: 405 });
     }
 
-    const verified = await verifyDiscordRequest(req.clone());
-    if (!verified || !verified.isValid) {
-      return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 401 });
+    const signature = req.headers.get("x-signature-ed25519");
+    const timestamp = req.headers.get("x-signature-timestamp");
+    const rawBody = await req.text();
+
+    const isValid = await verifyDiscordRequest(signature, timestamp, rawBody);
+    if (!isValid) {
+      console.warn("Invalid Discord signature");
+      return new Response("Invalid signature", { status: 401 });
     }
 
-    const interaction = JSON.parse(verified.body);
+    const interaction = JSON.parse(rawBody);
 
-    // PING
+    // PING — must respond synchronously
     if (interaction.type === 1) {
       return Response.json({ type: 1 });
     }
 
-    // Slash commands — respond with deferred immediately, process in background
+    // Slash commands — defer immediately, process in background
     if (interaction.type === 2) {
       const base44 = createClientFromRequest(req);
-      // Fire and forget — runs after response is sent
-      handleCommand(interaction, base44).catch(e => console.error("Command error:", e));
-      // Return deferred response immediately (satisfies Discord's 3s timeout)
-      return Response.json({ type: 5 });
+      handleCommand(interaction, base44).catch(e => console.error("Command handler error:", e));
+      return Response.json({ type: 5 }); // Deferred channel message
     }
 
-    return new Response(JSON.stringify({ error: "Unknown interaction type" }), { status: 400 });
+    return new Response("Unknown interaction type", { status: 400 });
   } catch (error) {
     console.error("Discord interaction error:", error);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
