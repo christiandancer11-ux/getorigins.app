@@ -1,24 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import nacl from 'npm:tweetnacl@1.0.3';
+import { verifyKey } from 'npm:discord-interactions@3.4.0';
 
 const DISCORD_PUBLIC_KEY = Deno.env.get("DISCORD_PUBLIC_KEY");
 
-function hexToUint8Array(hex) {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
-  }
-  return bytes;
-}
-
-function verifyDiscordRequest(signature, timestamp, rawBody) {
+async function verifyDiscordRequest(signature, timestamp, rawBody) {
   if (!signature || !timestamp) return false;
   try {
-    return nacl.sign.detached.verify(
-      new TextEncoder().encode(timestamp + rawBody),
-      hexToUint8Array(signature),
-      hexToUint8Array(DISCORD_PUBLIC_KEY)
-    );
+    return await verifyKey(rawBody, signature, timestamp, DISCORD_PUBLIC_KEY);
   } catch (e) {
     console.error("Verification error:", e);
     return false;
@@ -153,7 +141,7 @@ Deno.serve(async (req) => {
     const timestamp = req.headers.get("x-signature-timestamp");
     const rawBody = await req.text();
 
-    const isValid = verifyDiscordRequest(signature, timestamp, rawBody);
+    const isValid = await verifyDiscordRequest(signature, timestamp, rawBody);
     if (!isValid) {
       console.warn("Invalid Discord signature");
       return new Response("Invalid signature", { status: 401 });
