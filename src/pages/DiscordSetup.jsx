@@ -105,9 +105,24 @@ export default function DiscordSetup() {
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">Discord Daily Updates</h1>
           <p className="text-muted-foreground mb-8">Get top Buy/Hold/Sell picks and trending cards delivered to your Discord server daily.</p>
 
+          {/* Add Bot to Server */}
+          <Card className="p-6 mb-8 bg-indigo-500/10 border-indigo-500/30">
+            <h2 className="font-semibold text-foreground mb-2">🤖 Add Origins Bot to Your Server</h2>
+            <p className="text-sm text-muted-foreground mb-4">Add the bot to use slash commands like <code className="bg-secondary px-1 rounded">/market</code> and <code className="bg-secondary px-1 rounded">/trending</code> directly in Discord.</p>
+            <a
+              href="https://discord.com/oauth2/authorize?client_id=1491553491498307624&permissions=114688&integration_type=0&scope=bot+applications.commands"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full">
+                Add Origins Bot to Discord
+              </Button>
+            </a>
+          </Card>
+
           {/* Setup Instructions */}
           <Card className="p-6 mb-8 bg-secondary/30 border-border/50">
-            <h2 className="font-semibold text-foreground mb-4">How to set up:</h2>
+            <h2 className="font-semibold text-foreground mb-4">How to set up webhooks:</h2>
             <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
               <li>In Discord, go to your server → Server Settings → Integrations</li>
               <li>Create a new Webhook and copy its URL</li>
