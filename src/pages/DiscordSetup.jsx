@@ -110,7 +110,7 @@ export default function DiscordSetup() {
             <h2 className="font-semibold text-foreground mb-2">🤖 Add Origins Bot to Your Server</h2>
             <p className="text-sm text-muted-foreground mb-4">Add the bot to use slash commands like <code className="bg-secondary px-1 rounded">/market</code> and <code className="bg-secondary px-1 rounded">/trending</code> directly in Discord.</p>
             <a
-              href="https://discord.com/oauth2/authorize?client_id=1491553491498307624&permissions=114688&integration_type=0&scope=bot+applications.commands"
+              href="https://discord.com/oauth2/authorize?client_id=1491553491498307624&permissions=2684480512&integration_type=0&scope=bot+applications.commands"
               target="_blank"
               rel="noopener noreferrer"
             >
