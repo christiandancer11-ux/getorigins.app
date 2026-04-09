@@ -264,12 +264,18 @@ export default function CardScanner() {
           {mkt?.estimated_value != null && (
             <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 p-5 text-center">
               <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1 flex items-center justify-center gap-1.5">
-                <Star className="w-3.5 h-3.5" />Estimated Value
+                <Star className="w-3.5 h-3.5" />Estimated Market Value
               </p>
               <p className="text-4xl font-display font-bold text-foreground">${mkt.estimated_value.toLocaleString()}</p>
               {mkt.value_range_low != null && mkt.value_range_high != null && (
                 <p className="text-sm text-muted-foreground mt-1">Range: ${mkt.value_range_low} – ${mkt.value_range_high}</p>
               )}
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/40 border border-border/40">
+                {isGraded
+                  ? <><Award className="w-3 h-3 text-amber-400" /><span className="text-xs text-amber-400 font-semibold">{id.grading_company} {id.grade} — Graded sales only</span></>
+                  : <><span className="text-xs text-muted-foreground">📋 Raw/Ungraded sales only — graded comps excluded</span></>
+                }
+              </div>
             </div>
           )}
 

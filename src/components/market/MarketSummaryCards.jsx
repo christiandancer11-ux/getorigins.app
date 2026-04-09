@@ -14,7 +14,7 @@ function StatBubble({ label, value, sub, icon: Icon, accentClass }) {
   );
 }
 
-export default function MarketSummaryCards({ result, showTradesCount }) {
+export default function MarketSummaryCards({ result, showTradesCount, conditionLabel }) {
   const ebayAvg24h = result.ebay_avg_24h != null ? `$${result.ebay_avg_24h.toFixed(0)}` : null;
   const ebayAvg = result.ebay_avg != null ? `$${result.ebay_avg.toFixed(0)}` : null;
   const ptAvg = result.point130_avg != null ? `$${result.point130_avg.toFixed(0)}` : null;
@@ -29,6 +29,14 @@ export default function MarketSummaryCards({ result, showTradesCount }) {
 
   return (
     <div className="space-y-3">
+      {/* Condition context banner */}
+      {conditionLabel && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/60 border border-border/40">
+          <span className="text-xs text-muted-foreground">Showing prices for:</span>
+          <span className="text-xs font-semibold text-foreground">{conditionLabel}</span>
+          <span className="text-[10px] text-muted-foreground ml-auto">All averages are filtered to this condition only</span>
+        </div>
+      )}
       {/* Main market data — eBay, 130point, Card Show */}
       <div className={`grid grid-cols-2 gap-3 ${hasTCG ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
         <StatBubble

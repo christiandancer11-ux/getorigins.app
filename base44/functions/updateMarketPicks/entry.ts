@@ -36,6 +36,15 @@ Rules:
 - Estimated prices should reflect real current market values
 - Price targets are 30-90 day projections
 
+=== CRITICAL: RAW vs GRADED PRICE SEPARATION — MANDATORY ===
+Each pick's variant field MUST clearly state whether the card is RAW or GRADED (e.g. "PSA 10", "BGS 9.5", "Raw/Ungraded", "NM Raw").
+The estimated_price MUST only use sales data matching the condition stated in variant:
+- If variant says "Raw" or "Ungraded" → estimated_price MUST ONLY be sourced from raw/ungraded sold listings. EXCLUDE all graded (PSA, BGS, SGC, CGC, HGA) sales — graded cards sell for significantly more and will skew the raw price upward.
+- If variant says "PSA 10" → estimated_price MUST ONLY use PSA 10 confirmed sold listings. EXCLUDE raw sales, PSA 9s, or any other grade. Different grades have very different market values.
+- Never blend raw and graded sales in any average. This is the most common source of inaccurate card valuations.
+- For TCG picks: default to NM raw TCGPlayer Market Price unless the pick is specifically a graded TCG card.
+- Source eBay comps from completed/sold listings only. Use 130point.com to replace any eBay "offer accepted" (strikethrough) prices with the actual accepted price.
+
 Return a JSON object:
 {
   "buy": {

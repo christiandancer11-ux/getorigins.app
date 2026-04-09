@@ -200,7 +200,17 @@ export default function MarketValue() {
                         <Bell className="w-3.5 h-3.5" />Set Alert
                       </button>
                     </div>
-                    <MarketSummaryCards result={result} showTradesCount={showTrades.length} />
+                    <MarketSummaryCards
+                      result={result}
+                      showTradesCount={showTrades.length}
+                      conditionLabel={(() => {
+                        const q = activeSearch || '';
+                        const gradedMatch = q.match(/\b(PSA|BGS|SGC|CGC|HGA|CSG)\s*([\d.]+)/i);
+                        if (gradedMatch) return `${gradedMatch[1].toUpperCase()} ${gradedMatch[2]} (Graded)`;
+                        if (/\braw\b|\bungraded\b/i.test(q)) return 'Raw / Ungraded';
+                        return null;
+                      })()}
+                    />
                     {result.market_summary && (
                       <div className="rounded-2xl bg-card border border-border/50 p-5">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
