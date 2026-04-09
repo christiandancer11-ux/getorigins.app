@@ -147,14 +147,18 @@ async function buildResponse(interaction, base44) {
                 const price = graded
                   ? (c.estimated_value_avg_graded || c.estimated_value_avg)
                   : (c.estimated_value_avg_raw || c.estimated_value_avg);
-                const priceStr = price ? `$${price.toLocaleString()}` : 'N/A';
+                const priceStr = price ? `$${Number(price).toLocaleString()}` : 'N/A';
+                const rawAndGraded = c.estimated_value_avg_raw && c.estimated_value_avg_graded
+                  ? `\n\uD83D\uDCCB Raw: $${Number(c.estimated_value_avg_raw).toLocaleString()} | \uD83D\uDCE6 Graded: $${Number(c.estimated_value_avg_graded).toLocaleString()}`
+                  : '';
                 return {
-                  name: `${i + 1}. ${c.player_or_name || c.card_name || 'Unknown'} — ${c.year || ''} ${c.set_name || ''}`.trim(),
+                  name: `${i + 1}. ${c.player_or_name || c.card_name || 'Unknown'} \u2014 ${c.year || ''} ${c.set_name || ''}`.trim(),
                   value: [
                     conditionLabel,
-                    `\uD83D\uDCB5 ${priceStr} (${graded ? 'graded' : 'raw'} comp)`,
+                    `\uD83D\uDCB5 Current Market Price: **${priceStr}** (${graded ? 'graded comp' : 'raw comp'})`,
+                    rawAndGraded || null,
                     c.heat_score ? `\uD83D\uDD25 Heat: ${c.heat_score}/100` : null,
-                    c.why_hot || null
+                    c.why_hot ? `_${c.why_hot}_` : null
                   ].filter(Boolean).join('\n'),
                   inline: false
                 };
