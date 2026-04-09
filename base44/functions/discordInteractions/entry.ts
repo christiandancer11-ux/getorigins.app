@@ -77,7 +77,7 @@ async function buildResponse(interaction, base44) {
           color: 0xd4a017,
           fields: [
             { name: '/market', value: "Get today's top Buy, Hold & Sell picks with price targets", inline: false },
-            { name: '/trending', value: 'View the hottest cards in the market right now', inline: false },
+            { name: '/trending [category]', value: 'View top 3 trending cards for a sport or TCG (football, baseball, basketball, soccer, hockey, golf, ufc, wwe, f1, pokemon, one_piece, mtg, yugioh, lorcana)', inline: false },
             { name: '/help', value: 'Show this help message', inline: false },
             { name: '/setchannel [channel]', value: 'Admins only: restrict bot to a specific channel', inline: false },
             { name: '/clearchannel', value: 'Admins only: remove channel restriction', inline: false }
@@ -111,18 +111,44 @@ async function buildResponse(interaction, base44) {
   }
 
   if (commandName === 'trending') {
-    const trending = await base44.asServiceRole.entities.TrendingCache.list();
-    const cards = trending.length > 0 ? trending[0].cards?.slice(0, 5) || [] : [];
+    const categoryOption = interaction.data.options?.find(o => o.name === 'category');
+    const category = categoryOption?.value || 'football';
+
+    const categoryLabels = {
+      football: 'Football', baseball: 'Baseball', basketball: 'Basketball',
+      soccer: 'Soccer', hockey: 'Hockey', golf: 'Golf', ufc: 'UFC', wwe: 'WWE',
+      f1: 'F1', pokemon: 'Pok\u00e9mon', one_piece: 'One Piece',
+      magic_the_gathering: 'Magic: The Gathering', yugioh: 'Yu-Gi-Oh!', lorcana: 'Lorcana'
+    };
+    const label = categoryLabels[category] || category;
+
+    // Find cache entry matching this category
+    const allCache = await base44.asServiceRole.entities.TrendingCache.list();
+    const match = allCache.find(c =>
+      c.category === category ||
+      (c.cache_key && c.cache_key.toLowerCase().startsWith(category.toLowerCase()))
+    );
+    const cards = match?.cards?.slice(0, 3) || [];
+
     return {
       type: 4,
       data: {
         embeds: [{
-          title: '🔥 Trending Cards Right Now',
+          title: `\uD83D\uDD25 Top Trending ${label} Cards`,
           color: 0xff6600,
           fields: cards.length > 0
-            ? cards.map((c, i) => ({ name: `${i + 1}. ${c.name || c.card_name}`, value: c.heat_score ? `Heat Score: ${c.heat_score}` : 'Trending', inline: false }))
-            : [{ name: 'No trending data', value: 'Check back soon!', inline: false }],
-          footer: { text: '✨ Free daily market insights from Origins • originscard.com' }
+            ? cards.map((c, i) => ({
+                name: `${i + 1}. ${c.name || c.card_name || 'Unknown'}`,
+                value: [
+                  c.set_name ? `Set: ${c.set_name}` : null,
+                  c.heat_score ? `\uD83D\uDD25 Heat Score: ${c.heat_score}` : null,
+                  c.estimated_value_avg ? `\uD83D\uDCB5 ~$${c.estimated_value_avg}` : null,
+                  c.why_hot || c.trend || null
+                ].filter(Boolean).join(' | ') || 'Trending',
+                inline: false
+              }))
+            : [{ name: 'No data yet', value: `No trending ${label} cards cached. Check back soon!`, inline: false }],
+          footer: { text: '\u2728 Free daily market insights from Origins \u2022 getorigins.app' }
         }]
       }
     };

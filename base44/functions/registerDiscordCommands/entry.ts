@@ -9,7 +9,31 @@ const commands = [
   },
   {
     name: 'trending',
-    description: 'View the hottest trading cards in the market right now'
+    description: 'View the top 3 hottest cards for a specific sport or TCG category',
+    options: [
+      {
+        type: 3, // STRING type
+        name: 'category',
+        description: 'Which sport or TCG type to view trending cards for',
+        required: true,
+        choices: [
+          { name: 'Football', value: 'football' },
+          { name: 'Baseball', value: 'baseball' },
+          { name: 'Basketball', value: 'basketball' },
+          { name: 'Soccer', value: 'soccer' },
+          { name: 'Hockey', value: 'hockey' },
+          { name: 'Golf', value: 'golf' },
+          { name: 'UFC', value: 'ufc' },
+          { name: 'WWE', value: 'wwe' },
+          { name: 'F1', value: 'f1' },
+          { name: 'Pokémon', value: 'pokemon' },
+          { name: 'One Piece', value: 'one_piece' },
+          { name: 'Magic: The Gathering', value: 'magic_the_gathering' },
+          { name: 'Yu-Gi-Oh!', value: 'yugioh' },
+          { name: 'Lorcana', value: 'lorcana' }
+        ]
+      }
+    ]
   },
   {
     name: 'help',
