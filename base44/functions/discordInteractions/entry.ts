@@ -75,6 +75,72 @@ Deno.serve(async (req) => {
     if (interaction.type === 2) {
       const commandName = interaction.data.name;
       const base44 = createClientFromRequest(req);
+      const guildId = interaction.guild_id;
+      const channelId = interaction.channel_id;
+
+      // /setchannel — admin only, sets the allowed channel for this guild
+      if (commandName === 'setchannel') {
+        const memberPermissions = BigInt(interaction.member?.permissions || '0');
+        const ADMINISTRATOR = BigInt(0x8);
+        if (!(memberPermissions & ADMINISTRATOR)) {
+          return Response.json({ type: 4, data: { content: '❌ Only server administrators can use this command.', flags: 64 } });
+        }
+
+        const channelOption = interaction.data.options?.find(o => o.name === 'channel');
+        const targetChannelId = channelOption?.value || channelId;
+        const targetChannelName = channelOption ? `<#${targetChannelId}>` : 'this channel';
+
+        // Upsert guild config
+        const existing = await base44.asServiceRole.entities.DiscordGuildConfig.filter({ guild_id: guildId });
+        if (existing.length > 0) {
+          await base44.asServiceRole.entities.DiscordGuildConfig.update(existing[0].id, {
+            allowed_channel_id: targetChannelId,
+            allowed_channel_name: targetChannelName
+          });
+        } else {
+          await base44.asServiceRole.entities.DiscordGuildConfig.create({
+            guild_id: guildId,
+            allowed_channel_id: targetChannelId,
+            allowed_channel_name: targetChannelName
+          });
+        }
+
+        return Response.json({ type: 4, data: { content: `✅ Origins bot commands are now restricted to ${targetChannelName}. Other channels will be ignored.` } });
+      }
+
+      // /clearchannel — admin only, removes channel restriction
+      if (commandName === 'clearchannel') {
+        const memberPermissions = BigInt(interaction.member?.permissions || '0');
+        const ADMINISTRATOR = BigInt(0x8);
+        if (!(memberPermissions & ADMINISTRATOR)) {
+          return Response.json({ type: 4, data: { content: '❌ Only server administrators can use this command.', flags: 64 } });
+        }
+
+        const existing = await base44.asServiceRole.entities.DiscordGuildConfig.filter({ guild_id: guildId });
+        if (existing.length > 0) {
+          await base44.asServiceRole.entities.DiscordGuildConfig.update(existing[0].id, {
+            allowed_channel_id: '',
+            allowed_channel_name: ''
+          });
+        }
+
+        return Response.json({ type: 4, data: { content: '✅ Channel restriction removed. Origins bot commands now work in all channels.' } });
+      }
+
+      // For all other commands — check if there's a channel restriction
+      if (guildId) {
+        const configs = await base44.asServiceRole.entities.DiscordGuildConfig.filter({ guild_id: guildId });
+        const config = configs[0];
+        if (config?.allowed_channel_id && config.allowed_channel_id !== channelId) {
+          return Response.json({
+            type: 4,
+            data: {
+              content: `⚠️ Origins bot commands are only allowed in <#${config.allowed_channel_id}>. Please use that channel.`,
+              flags: 64 // ephemeral — only visible to the user who ran the command
+            }
+          });
+        }
+      }
 
       if (commandName === 'help') {
         return Response.json({
@@ -87,7 +153,9 @@ Deno.serve(async (req) => {
               fields: [
                 { name: '/market', value: 'Get today\'s top Buy, Hold & Sell picks with price targets', inline: false },
                 { name: '/trending', value: 'View the hottest cards in the market right now', inline: false },
-                { name: '/help', value: 'Show this help message', inline: false }
+                { name: '/help', value: 'Show this help message', inline: false },
+                { name: '/setchannel [channel]', value: 'Admins only: restrict bot to a specific channel', inline: false },
+                { name: '/clearchannel', value: 'Admins only: remove channel restriction', inline: false }
               ],
               footer: { text: '✨ Free daily market insights from Origins • originscard.com' }
             }]

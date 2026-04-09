@@ -14,6 +14,22 @@ const commands = [
   {
     name: 'help',
     description: 'Learn about Origins bot features and available commands'
+  },
+  {
+    name: 'setchannel',
+    description: 'Admin only: restrict Origins bot commands to a specific channel',
+    options: [
+      {
+        type: 7, // CHANNEL type
+        name: 'channel',
+        description: 'The channel to restrict bot commands to (defaults to current channel if not specified)',
+        required: false
+      }
+    ]
+  },
+  {
+    name: 'clearchannel',
+    description: 'Admin only: remove channel restriction so bot works everywhere'
   }
 ];
 
