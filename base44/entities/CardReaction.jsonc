@@ -1,0 +1,39 @@
+{
+  "name": "CardReaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who reacted"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID of the card or profile being reacted to"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "card",
+        "profile"
+      ],
+      "description": "Whether reaction is on a card or a collector profile"
+    },
+    "emoji": {
+      "type": "string",
+      "enum": [
+        "\ud83d\udd25",
+        "\ud83d\udc8e",
+        "\u2b50",
+        "\ud83e\udd29",
+        "\ud83d\udc4f"
+      ],
+      "description": "The emoji reaction"
+    }
+  },
+  "required": [
+    "user_email",
+    "target_id",
+    "target_type",
+    "emoji"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "CodeRedemption",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "The code that was redeemed"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who redeemed the code"
+    },
+    "promo_code_id": {
+      "type": "string",
+      "description": "Reference to the PromoCode entity"
+    },
+    "code_type": {
+      "type": "string",
+      "description": "Type of code that was redeemed"
+    },
+    "benefit_applied": {
+      "type": "string",
+      "description": "Description of what benefit was applied"
+    }
+  },
+  "required": [
+    "code",
+    "user_email"
+  ]
+}

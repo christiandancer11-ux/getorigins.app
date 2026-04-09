@@ -1,0 +1,21 @@
+{
+  "name": "DiscordGuildConfig",
+  "type": "object",
+  "properties": {
+    "guild_id": {
+      "type": "string",
+      "description": "Discord server (guild) ID"
+    },
+    "allowed_channel_id": {
+      "type": "string",
+      "description": "Channel ID where bot commands are allowed. If empty, bot works in all channels."
+    },
+    "allowed_channel_name": {
+      "type": "string",
+      "description": "Channel name for display purposes"
+    }
+  },
+  "required": [
+    "guild_id"
+  ]
+}

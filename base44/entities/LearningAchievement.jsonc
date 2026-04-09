@@ -1,0 +1,67 @@
+{
+  "name": "LearningAchievement",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who unlocked this achievement"
+    },
+    "achievement_type": {
+      "type": "string",
+      "enum": [
+        "plan_completed",
+        "first_scan",
+        "first_watchlist",
+        "first_price_alert",
+        "first_trade_logged"
+      ],
+      "description": "Type of achievement"
+    },
+    "badge_icon": {
+      "type": "string",
+      "description": "Emoji or icon representing the badge"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "pro_days",
+        "feature_unlock",
+        "badge"
+      ],
+      "description": "Type of reward (days of Pro access, feature unlock, or badge)"
+    },
+    "reward_value": {
+      "type": "number",
+      "description": "Number of days (if pro_days) or feature unlock days"
+    },
+    "reward_feature": {
+      "type": "string",
+      "description": "Which feature is unlocked (market_value, trending, card_show, flipper, ai_grading, etc.)"
+    },
+    "claimed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the reward has been claimed"
+    },
+    "unlocked_at": {
+      "type": "string",
+      "description": "ISO timestamp when achievement was unlocked"
+    },
+    "claimed_at": {
+      "type": "string",
+      "description": "ISO timestamp when reward was claimed"
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "When the reward expires (for temporary feature unlocks)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the achievement"
+    }
+  },
+  "required": [
+    "user_email",
+    "achievement_type"
+  ]
+}

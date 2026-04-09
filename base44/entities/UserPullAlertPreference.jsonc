@@ -1,0 +1,57 @@
+{
+  "name": "UserPullAlertPreference",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the user wants to receive Major Pull Alerts"
+    },
+    "notify_sports": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify about major sports card pulls"
+    },
+    "notify_tcg": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notify about major TCG pulls"
+    },
+    "min_value": {
+      "type": "number",
+      "default": 100,
+      "description": "Minimum estimated value of pull to trigger notification (in dollars)"
+    },
+    "sports_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Which sports to monitor (baseball, basketball, football, hockey, etc.)"
+    },
+    "tcg_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Which TCG types to monitor (pokemon, magic_the_gathering, yugioh, one_piece, lorcana)"
+    },
+    "notify_email": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send email notifications"
+    },
+    "notify_in_app": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show in-app notifications"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

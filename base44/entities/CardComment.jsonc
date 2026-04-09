@@ -1,0 +1,27 @@
+{
+  "name": "CardComment",
+  "type": "object",
+  "properties": {
+    "card_id": {
+      "type": "string",
+      "description": "Reference to the Card entity"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who commented"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of commenter"
+    },
+    "text": {
+      "type": "string",
+      "description": "Comment text"
+    }
+  },
+  "required": [
+    "card_id",
+    "user_email",
+    "text"
+  ]
+}

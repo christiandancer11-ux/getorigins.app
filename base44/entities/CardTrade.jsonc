@@ -1,0 +1,128 @@
+{
+  "name": "CardTrade",
+  "type": "object",
+  "properties": {
+    "card_name": {
+      "type": "string",
+      "description": "Player name or card title"
+    },
+    "set_name": {
+      "type": "string",
+      "description": "Card set or collection"
+    },
+    "year": {
+      "type": "string",
+      "description": "Year of the card"
+    },
+    "card_number": {
+      "type": "string",
+      "description": "Card number in set"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "baseball",
+        "basketball",
+        "football",
+        "hockey",
+        "soccer",
+        "golf",
+        "ufc",
+        "wwe",
+        "f1",
+        "pokemon",
+        "magic_the_gathering",
+        "yugioh",
+        "other"
+      ],
+      "description": "Sport or TCG type"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "raw",
+        "psa_1",
+        "psa_2",
+        "psa_3",
+        "psa_4",
+        "psa_5",
+        "psa_6",
+        "psa_7",
+        "psa_8",
+        "psa_9",
+        "psa_10",
+        "bgs_9",
+        "bgs_9_5",
+        "bgs_10",
+        "sgc_10",
+        "other_graded"
+      ],
+      "description": "Card condition or grade"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Photo of the traded card (AI-verified clear)"
+    },
+    "trade_type": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "card_for_card",
+        "cash_plus_card"
+      ],
+      "description": "Type of trade"
+    },
+    "cash_paid": {
+      "type": "number",
+      "description": "Cash amount paid (dollars)"
+    },
+    "trade_card_description": {
+      "type": "string",
+      "description": "Description of card(s) given in trade"
+    },
+    "trade_card_value": {
+      "type": "number",
+      "description": "Estimated value of card(s) given in trade"
+    },
+    "total_value": {
+      "type": "number",
+      "description": "Total deal value (cash + trade card value)"
+    },
+    "event_name": {
+      "type": "string",
+      "description": "Card show or event name/location"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the trade"
+    },
+    "ebay_comp_low": {
+      "type": "number",
+      "description": "Lowest recent eBay sold price found"
+    },
+    "ebay_comp_high": {
+      "type": "number",
+      "description": "Highest recent eBay sold price found"
+    },
+    "ebay_comp_avg": {
+      "type": "number",
+      "description": "Average recent eBay sold price"
+    },
+    "market_data_raw": {
+      "type": "string",
+      "description": "Raw market comp summary from research"
+    },
+    "verified": {
+      "type": "boolean",
+      "description": "True if trade value is at or above 70% of market average (qualifies for Origins Market Value)"
+    },
+    "market_pct": {
+      "type": "number",
+      "description": "Trade value as a percentage of market average"
+    }
+  },
+  "required": [
+    "card_name",
+    "trade_type"
+  ]
+}

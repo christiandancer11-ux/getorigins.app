@@ -1,0 +1,32 @@
+{
+  "name": "UserLocation",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Latitude"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude"
+    },
+    "location_label": {
+      "type": "string",
+      "description": "Human-readable location (city, state)"
+    },
+    "bolo_notifications_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether user wants BOLO alert emails"
+    }
+  },
+  "required": [
+    "user_email",
+    "lat",
+    "lng"
+  ]
+}

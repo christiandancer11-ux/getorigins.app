@@ -1,0 +1,35 @@
+{
+  "name": "DiscordWebhook",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who set up this webhook"
+    },
+    "webhook_url": {
+      "type": "string",
+      "description": "Discord webhook URL for posting messages"
+    },
+    "server_name": {
+      "type": "string",
+      "description": "Name of the Discord server (optional, for user reference)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this webhook is active"
+    },
+    "last_posted": {
+      "type": "string",
+      "description": "ISO timestamp of last successful post"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "When this webhook was registered"
+    }
+  },
+  "required": [
+    "user_email",
+    "webhook_url"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "VideoMessage",
+  "type": "object",
+  "properties": {
+    "card_id": {
+      "type": "string",
+      "description": "Reference to the Card entity"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Name of the card owner leaving the message"
+    },
+    "message": {
+      "type": "string",
+      "description": "Text message from the owner"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "URL of the uploaded video"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "Optional thumbnail image"
+    }
+  },
+  "required": [
+    "card_id",
+    "owner_name"
+  ]
+}

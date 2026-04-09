@@ -1,0 +1,81 @@
+{
+  "name": "MarketPick",
+  "type": "object",
+  "properties": {
+    "pick_type": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "hold",
+        "sell"
+      ],
+      "description": "Whether this is the top Buy, Hold, or Sell pick"
+    },
+    "card_name": {
+      "type": "string",
+      "description": "Name of the card (player/character)"
+    },
+    "set_name": {
+      "type": "string",
+      "description": "Card set or collection"
+    },
+    "year": {
+      "type": "string",
+      "description": "Year of the card"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "baseball",
+        "basketball",
+        "football",
+        "hockey",
+        "soccer",
+        "golf",
+        "ufc",
+        "wwe",
+        "f1",
+        "pokemon",
+        "magic_the_gathering",
+        "yugioh",
+        "other"
+      ],
+      "description": "Sport or TCG type"
+    },
+    "variant": {
+      "type": "string",
+      "description": "Specific variant e.g. PSA 10 Silver Prizm RC"
+    },
+    "estimated_price": {
+      "type": "number",
+      "description": "Current estimated market price in dollars"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "AI reasoning for this pick (2-3 sentences)"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "description": "Confidence level of the pick"
+    },
+    "price_target": {
+      "type": "number",
+      "description": "AI price target within 30-90 days"
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "ISO timestamp when this pick was generated"
+    }
+  },
+  "required": [
+    "pick_type",
+    "card_name",
+    "sport",
+    "reasoning"
+  ]
+}

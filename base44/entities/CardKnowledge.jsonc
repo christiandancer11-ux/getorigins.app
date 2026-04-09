@@ -1,0 +1,156 @@
+{
+  "name": "CardKnowledge",
+  "type": "object",
+  "properties": {
+    "card_name": {
+      "type": "string",
+      "description": "Player/character name"
+    },
+    "set_name": {
+      "type": "string",
+      "description": "Set or collection name"
+    },
+    "year": {
+      "type": "string",
+      "description": "Production year"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "baseball",
+        "basketball",
+        "football",
+        "hockey",
+        "soccer",
+        "golf",
+        "ufc",
+        "wwe",
+        "f1",
+        "pokemon",
+        "magic_the_gathering",
+        "yugioh",
+        "one_piece",
+        "lorcana",
+        "digimon",
+        "flesh_and_blood",
+        "other"
+      ],
+      "description": "Sport or TCG type"
+    },
+    "card_number": {
+      "type": "string",
+      "description": "Card number in set"
+    },
+    "parallels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "e.g. Refractor, Prizm, Chrome, Gold, Silver"
+          },
+          "serial_number": {
+            "type": "string",
+            "description": "e.g. /50, /25, /10, /1"
+          },
+          "print_run": {
+            "type": "string",
+            "description": "Total copies printed"
+          },
+          "market_premium": {
+            "type": "number",
+            "description": "Typical price multiplier vs base (e.g. 1.5 = 50% premium)"
+          },
+          "rarity_notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Color variants, refractors, special editions"
+    },
+    "short_prints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "designation": {
+            "type": "string",
+            "description": "SP, SSP, SuperShort, etc."
+          },
+          "print_run": {
+            "type": "string",
+            "description": "How rare"
+          },
+          "description": {
+            "type": "string"
+          },
+          "market_premium": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Short prints and super short prints"
+    },
+    "case_hits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "e.g. Autograph, Patch Auto, 1-of-1"
+          },
+          "rarity": {
+            "type": "string",
+            "description": "1 per case, 1 per box, rare, etc."
+          },
+          "market_estimate": {
+            "type": "number",
+            "description": "Typical sell price"
+          }
+        }
+      },
+      "description": "Chase cards, autographs, patches, 1-of-1s"
+    },
+    "key_visual_markers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "How to visually identify this card (e.g. 'blue borders on refractor', 'holographic stamp on base', '1st Edition stamp')"
+    },
+    "production_notes": {
+      "type": "string",
+      "description": "Print run, production dates, rarities, known errors, etc."
+    },
+    "rookie_card": {
+      "type": "boolean",
+      "description": "Is this a rookie card year for this player/character?"
+    },
+    "rookie_variations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Special rookie variants (Rated Rookie, RC Logo, Rookie Patch, etc.)"
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "ISO timestamp of last knowledge update"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where this data came from (e.g. PSA, TCGPlayer, set wiki, community research)"
+    },
+    "reference_url": {
+      "type": "string",
+      "description": "Link to authoritative source"
+    }
+  },
+  "required": [
+    "card_name",
+    "set_name",
+    "sport"
+  ]
+}

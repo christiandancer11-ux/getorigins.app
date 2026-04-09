@@ -1,0 +1,27 @@
+{
+  "name": "TradeReaction",
+  "type": "object",
+  "properties": {
+    "trade_id": {
+      "type": "string",
+      "description": "Reference to the CardTrade entity"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who reacted"
+    },
+    "reaction": {
+      "type": "string",
+      "enum": [
+        "like",
+        "dislike"
+      ],
+      "description": "The reaction type"
+    }
+  },
+  "required": [
+    "trade_id",
+    "user_email",
+    "reaction"
+  ]
+}

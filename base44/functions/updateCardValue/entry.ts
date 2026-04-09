@@ -1,0 +1,105 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+// In-memory rate limit store
+const rateLimitStore = new Map();
+function checkRateLimit(key, maxRequests, windowMs) {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now - entry.windowStart > windowMs) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return { allowed: true };
+  }
+  if (entry.count >= maxRequests) {
+    const retryAfterSec = Math.ceil((windowMs - (now - entry.windowStart)) / 1000);
+    return { allowed: false, retryAfterSec };
+  }
+  entry.count += 1;
+  return { allowed: true };
+}
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Rate limit: 10 value refreshes per user per hour
+    const rl = checkRateLimit(`updateCardValue:${user.email}`, 10, 60 * 60 * 1000);
+    if (!rl.allowed) {
+      return Response.json({ error: `Too many value refreshes. Please wait ${rl.retryAfterSec} seconds.` }, { status: 429 });
+    }
+
+    const { card_id } = await req.json();
+    if (!card_id) return Response.json({ error: 'card_id is required' }, { status: 400 });
+    if (typeof card_id !== 'string' || card_id.length > 100) return Response.json({ error: 'Invalid card_id.' }, { status: 400 });
+
+    // Fetch the card
+    const cards = await base44.entities.Card.filter({ id: card_id });
+    const card = cards[0];
+    if (!card) return Response.json({ error: 'Card not found' }, { status: 404 });
+
+    // Only the card owner can refresh value
+    if (card.created_by !== user.email && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Build a rich search query
+    const gradePart = card.grading_company && card.grade
+      ? `${card.grading_company} ${card.grade}`
+      : '';
+    const query = [card.year, card.name, card.set_name, card.card_number ? `#${card.card_number}` : '', gradePart]
+      .filter(Boolean).join(' ').trim();
+
+    const isPSA = card.grading_company?.toUpperCase() === 'PSA';
+
+    const prompt = `You are a sports card & TCG pricing assistant. Find the current fair market value for this card:
+
+"${query}"
+
+Search eBay recently sold listings (last 30 days) and 130point.com for this specific card.
+
+Rules:
+- Only include CONFIRMED SOLD listings (not active listings)
+- If graded, match the specific grade (${gradePart || 'raw/ungraded'})
+- Return the best single estimated_value in USD based ONLY on eBay and 130point.com sold comps (do NOT use PSA Price Guide or PSA SMR in this value)
+- Base it on the median/average of recent sales, not outliers
+${isPSA ? `- Also return psa_smr_value: the PSA SMR / Price Guide value for ${card.grade} if available (separate reference only, not factored into estimated_value)` : '- Do NOT look up PSA Price Guide — this card is not a PSA slab'}
+
+Return JSON: { "estimated_value": <number or null>${isPSA ? ', "psa_smr_value": <number or null>' : ''}, "confidence": "high|medium|low", "source_summary": "<1-2 sentence explanation of what data was found>" }`;
+
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      add_context_from_internet: true,
+      model: 'gemini_3_flash',
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          estimated_value: { type: 'number' },
+          psa_smr_value: { type: 'number' },
+          confidence: { type: 'string' },
+          source_summary: { type: 'string' },
+        },
+      },
+    });
+
+    console.log('updateCardValue result for:', query, JSON.stringify(result));
+
+    if (result?.estimated_value != null) {
+      await base44.entities.Card.update(card_id, {
+        estimated_value: result.estimated_value,
+      });
+    }
+
+    return Response.json({
+      success: true,
+      estimated_value: result?.estimated_value ?? null,
+      psa_smr_value: result?.psa_smr_value ?? null,
+      confidence: result?.confidence ?? null,
+      source_summary: result?.source_summary ?? null,
+      query_used: query,
+    });
+  } catch (error) {
+    console.error('updateCardValue error:', error.message);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});

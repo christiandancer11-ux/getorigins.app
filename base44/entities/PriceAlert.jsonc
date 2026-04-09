@@ -1,0 +1,94 @@
+{
+  "name": "PriceAlert",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who set the alert"
+    },
+    "card_name": {
+      "type": "string",
+      "description": "Card name to monitor (e.g. player name)"
+    },
+    "set_name": {
+      "type": "string",
+      "description": "Card set or collection"
+    },
+    "year": {
+      "type": "string",
+      "description": "Year of the card"
+    },
+    "variant": {
+      "type": "string",
+      "description": "Variant or parallel (e.g. PSA 10, Holo)"
+    },
+    "sport": {
+      "type": "string",
+      "enum": [
+        "baseball",
+        "basketball",
+        "football",
+        "hockey",
+        "soccer",
+        "golf",
+        "ufc",
+        "wwe",
+        "f1",
+        "pokemon",
+        "magic_the_gathering",
+        "yugioh",
+        "other"
+      ],
+      "description": "Sport or TCG type"
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "buy_below",
+        "sell_above"
+      ],
+      "description": "buy_below = alert when price drops to or below target; sell_above = alert when price rises to or above target"
+    },
+    "target_price": {
+      "type": "number",
+      "description": "Target price threshold in dollars"
+    },
+    "current_price": {
+      "type": "number",
+      "description": "Last known market price"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "triggered",
+        "paused"
+      ],
+      "default": "active",
+      "description": "Alert status"
+    },
+    "last_checked": {
+      "type": "string",
+      "description": "ISO timestamp of last price check"
+    },
+    "triggered_at": {
+      "type": "string",
+      "description": "ISO timestamp when alert was triggered"
+    },
+    "notify_email": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send email notification when triggered"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional user notes"
+    }
+  },
+  "required": [
+    "user_email",
+    "card_name",
+    "alert_type",
+    "target_price"
+  ]
+}

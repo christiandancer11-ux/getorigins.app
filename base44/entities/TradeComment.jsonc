@@ -1,0 +1,36 @@
+{
+  "name": "TradeComment",
+  "type": "object",
+  "properties": {
+    "trade_id": {
+      "type": "string",
+      "description": "Reference to the CardTrade entity"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who commented"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of commenter"
+    },
+    "text": {
+      "type": "string",
+      "description": "Approved comment text"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected"
+      ],
+      "default": "approved",
+      "description": "AI moderation status"
+    }
+  },
+  "required": [
+    "trade_id",
+    "user_email",
+    "text"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "CardWatchlist",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who added this card to their watchlist"
+    },
+    "player_or_name": {
+      "type": "string",
+      "description": "Player name or card name"
+    },
+    "card_name": {
+      "type": "string",
+      "description": "Full card name"
+    },
+    "year": {
+      "type": "string",
+      "description": "Year of the card"
+    },
+    "set_name": {
+      "type": "string",
+      "description": "Card set or collection"
+    },
+    "variant": {
+      "type": "string",
+      "description": "Variant (e.g. PSA 10, Silver Prizm RC)"
+    },
+    "sport": {
+      "type": "string",
+      "description": "Sport or TCG type"
+    },
+    "estimated_value_avg": {
+      "type": "number",
+      "description": "Market value when added to watchlist"
+    },
+    "heat_score": {
+      "type": "number",
+      "description": "Heat score when added"
+    },
+    "trend": {
+      "type": "string",
+      "description": "Trend direction when added (up/down/stable)"
+    },
+    "why_hot": {
+      "type": "string",
+      "description": "Reason the card is hot"
+    }
+  },
+  "required": [
+    "user_email",
+    "player_or_name"
+  ]
+}

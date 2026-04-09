@@ -1,0 +1,90 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short bio or description"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "Profile picture URL"
+    },
+    "youtube": {
+      "type": "string",
+      "description": "YouTube channel URL or handle"
+    },
+    "twitch": {
+      "type": "string",
+      "description": "Twitch username"
+    },
+    "x_twitter": {
+      "type": "string",
+      "description": "X / Twitter handle"
+    },
+    "tiktok": {
+      "type": "string",
+      "description": "TikTok username"
+    },
+    "instagram": {
+      "type": "string",
+      "description": "Instagram username"
+    },
+    "ebay_store": {
+      "type": "string",
+      "description": "eBay store URL or username"
+    },
+    "fanatics_live": {
+      "type": "string",
+      "description": "Fanatics Live seller URL or username"
+    },
+    "whatnot": {
+      "type": "string",
+      "description": "Whatnot Live seller URL or username"
+    },
+    "trade_fraud_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of out-of-range trade submissions that were denied by AI review"
+    },
+    "trade_banned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user is temporarily banned from logging trades/sales"
+    },
+    "trade_ban_reason": {
+      "type": "string",
+      "description": "Reason for the trade ban, set by admin or system"
+    },
+    "dealer_tag": {
+      "type": "string",
+      "enum": [
+        "none",
+        "card_show_dealer",
+        "card_shop_owner"
+      ],
+      "default": "none",
+      "description": "Certified dealer/shop tag \u2014 required to submit BOLO alerts"
+    }
+  },
+  "required": [
+    "bio",
+    "avatar_url",
+    "youtube",
+    "twitch",
+    "x_twitter",
+    "tiktok",
+    "instagram",
+    "ebay_store",
+    "fanatics_live",
+    "whatnot"
+  ]
+}

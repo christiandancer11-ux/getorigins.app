@@ -1,0 +1,83 @@
+{
+  "name": "MajorPullAlert",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string",
+      "description": "Name of the product (e.g., 2025 Bowman, Scarlet & Violet, etc.)"
+    },
+    "product_category": {
+      "type": "string",
+      "enum": [
+        "sports_cards",
+        "tcg"
+      ],
+      "description": "Whether this is a sports card or TCG product"
+    },
+    "sport": {
+      "type": "string",
+      "description": "Sport type if applicable (baseball, basketball, football, etc.)"
+    },
+    "tcg_type": {
+      "type": "string",
+      "description": "TCG type if applicable (pokemon, magic_the_gathering, yugioh, etc.)"
+    },
+    "card_name": {
+      "type": "string",
+      "description": "Name of the chase card that was pulled"
+    },
+    "card_type": {
+      "type": "string",
+      "description": "Type of card (1/1, autograph, patch, etc. for sports; high-value rare for TCG)"
+    },
+    "estimated_value": {
+      "type": "number",
+      "description": "Estimated value of the pulled card in dollars"
+    },
+    "social_platforms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Which platforms reported this pull (whatnot, twitch, tiktok, instagram, X, fanatics_live)"
+    },
+    "engagement_score": {
+      "type": "number",
+      "description": "Combined engagement score (comments + likes + reposts) to verify authenticity"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Direct link to the social media post"
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the pull has been verified as authentic by AI analysis"
+    },
+    "impact_on_market": {
+      "type": "string",
+      "description": "AI analysis of how this pull may impact product pricing and collector demand"
+    },
+    "alerts_sent": {
+      "type": "number",
+      "default": 0,
+      "description": "How many users have been notified about this pull"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "duplicate"
+      ],
+      "default": "active",
+      "description": "Current status of the alert"
+    }
+  },
+  "required": [
+    "product_name",
+    "product_category",
+    "card_name",
+    "card_type"
+  ]
+}
