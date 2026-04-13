@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { X, ShoppingBag, ExternalLink, CheckCircle2, ChevronRight, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -262,3 +262,4 @@ export default function ListToStoreModal({ cards, onClose, user }) {
     </div>
   );
 }
+

@@ -2,14 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { QrCode, ShoppingBag, ArrowRightLeft, RotateCcw, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 export default function SoldTradedGrid({ cards, onRestored }) {
   const [restoring, setRestoring] = React.useState(null);
 
   const handleRestore = async (card) => {
     setRestoring(card.id);
-    await base44.entities.Card.update(card.id, {
+    await legacyApi.entities.Card.update(card.id, {
       status: 'owned',
       sold_traded_date: null,
       sold_traded_value: null,
@@ -73,3 +73,4 @@ export default function SoldTradedGrid({ cards, onRestored }) {
     </div>
   );
 }
+

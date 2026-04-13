@@ -12,7 +12,7 @@ import EmptyState from '../components/shared/EmptyState';
 import ShareCardModal from '../components/card-detail/ShareCardModal';
 import EditCardModal from '../components/card-detail/EditCardModal';
 import { useAuth } from '@/lib/AuthContext';
-import { getCardById, getCardStories, deleteCard } from '@/lib/db';
+import { getCardById, getCardStories, deleteCard, getCardPriceSummary, createScanEvent, createOwnershipRequest, getOwnershipRequestsForCard } from '@/lib/db';
 
 export default function CardDetail() {
   const { id } = useParams();
@@ -24,7 +24,26 @@ export default function CardDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [refreshingValue, setRefreshingValue] = useState(false);
-  const [valueResult, setValueResult] = useState(null);
+  const [scanLogged, setScanLogged] = useState(false);
+  const [ownershipRequests, setOwnershipRequests] = useState([]);
+  const { data: analytics, isFetching: analyticsLoading, refetch: refetchAnalytics } = useQuery({
+    queryKey: ['card-trade-analytics', id],
+    queryFn: async () => {
+      if (!card?.id) return null;
+      const { data } = await getCardPriceSummary({
+        card_name: card.name,
+        set_name: card.set_name,
+        year: card.year,
+        card_number: card.card_number,
+      });
+      return data;
+    },
+    enabled: !!card?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+  const [requestMessage, setRequestMessage] = useState('');
+  const [requestStatus, setRequestStatus] = useState(null);
+  const [requestError, setRequestError] = useState(null);
   const qc = useQueryClient();
   const { user } = useAuth();
 
@@ -48,6 +67,29 @@ export default function CardDetail() {
     },
   });
 
+  useEffect(() => {
+    if (!card?.id || scanLogged) return;
+    const logEvent = async () => {
+      await createScanEvent({ card_id: card.id, scanner_id: user?.id || null });
+      setScanLogged(true);
+    };
+    logEvent();
+  }, [card?.id, scanLogged, user?.id]);
+
+  useEffect(() => {
+    const loadRequests = async () => {
+      if (!card?.id || !currentUser || card.user_id !== currentUser.id) {
+        setOwnershipRequests([]);
+        return;
+      }
+
+      const { data } = await getOwnershipRequestsForCard(card.id);
+      setOwnershipRequests(data || []);
+    };
+
+    loadRequests();
+  }, [card?.id, currentUser]);
+
   if (cardLoading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -66,13 +108,12 @@ export default function CardDetail() {
     );
   }
 
-  const qrDownloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(window.location.origin + '/scan/' + card.unique_code)}&format=png`;
+  const qrDownloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(window.location.origin + '/cards/' + card.id)}&format=png`;
 
   const handleRefreshValue = async () => {
-    // TODO: Implement value refresh with Supabase
     setRefreshingValue(true);
-    setValueResult({ source_summary: 'Value refresh temporarily unavailable' });
-    setTimeout(() => setRefreshingValue(false), 1000);
+    await refetchAnalytics();
+    setRefreshingValue(false);
   };
 
   const handleDeleteCard = async () => {
@@ -88,6 +129,39 @@ export default function CardDetail() {
       console.error('Failed to delete card:', error);
       alert('Failed to delete card. Please try again.');
     }
+  };
+
+  const handleSubmitOwnershipRequest = async () => {
+    if (!currentUser) {
+      setRequestError('Please sign in to request ownership of this card.');
+      return;
+    }
+
+    if (!requestMessage.trim()) {
+      setRequestError('Please include a short message with your request.');
+      return;
+    }
+
+    setRequestError(null);
+    setRequestStatus('sending');
+
+    const { data, error } = await createOwnershipRequest({
+      card_id: card.id,
+      requester_id: currentUser.id,
+      owner_id: card.user_id,
+      message: requestMessage.trim(),
+    });
+
+    if (error) {
+      setRequestError('Could not send ownership request. Please try again.');
+      setRequestStatus(null);
+      console.error(error);
+      return;
+    }
+
+    setRequestStatus('sent');
+    setRequestMessage('');
+    setOwnershipRequests((prev) => [data, ...prev]);
   };
 
   return (
@@ -137,20 +211,36 @@ export default function CardDetail() {
                 <p className="text-lg font-bold text-foreground">
                   {card.estimated_value != null ? `$${card.estimated_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
                 </p>
-                {valueResult?.source_summary && (
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{valueResult.source_summary}</p>
+                {analytics?.market_summary && (
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{analytics.market_summary}</p>
+                )}
+                {analytics?.average_price != null && (
+                  <p className="text-xs text-muted-foreground mt-0.5">Average: ${analytics.average_price.toFixed(2)}</p>
+                )}
+                {analytics?.median_price != null && (
+                  <p className="text-xs text-muted-foreground mt-0.5">Median: ${analytics.median_price.toFixed(2)}</p>
+                )}
+                {analytics?.trend_7d_pct != null && analytics?.trend_30d_pct != null && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Trend: {analytics.trend_7d_pct >= 0 ? '+' : ''}{analytics.trend_7d_pct.toFixed(1)}% (7d), {analytics.trend_30d_pct >= 0 ? '+' : ''}{analytics.trend_30d_pct.toFixed(1)}% (30d)
+                  </p>
+                )}
+                {analytics?.estimated_next_low != null && analytics?.estimated_next_high != null && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Next sale estimate: ${analytics.estimated_next_low.toFixed(0)} - ${analytics.estimated_next_high.toFixed(0)}
+                  </p>
                 )}
               </div>
-              {currentUser && card.created_by === currentUser.email && (
+              {currentUser && card.user_id === currentUser.id && (
                 <Button
                   onClick={handleRefreshValue}
-                  disabled={refreshingValue}
+                  disabled={refreshingValue || analyticsLoading}
                   variant="outline"
                   size="sm"
                   className="border-border/50 shrink-0"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshingValue ? 'animate-spin' : ''}`} />
-                  {refreshingValue ? 'Looking up...' : 'Refresh'}
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${(refreshingValue || analyticsLoading) ? 'animate-spin' : ''}`} />
+                  {(refreshingValue || analyticsLoading) ? 'Refreshing...' : 'Refresh'}
                 </Button>
               )}
             </div>
@@ -160,7 +250,7 @@ export default function CardDetail() {
                 <QrCode className="w-4 h-4 mr-2" />
                 {showQR ? 'Hide QR Code' : 'View QR Code'}
               </Button>
-              <a href={qrDownloadUrl} download={`origins-${card.unique_code}.png`} target="_blank" rel="noopener noreferrer">
+              <a href={qrDownloadUrl} download={`origins-${card.id}.png`} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" className="border-border/50 hover:border-primary/30">
                   <Download className="w-4 h-4 mr-2" />
                   Download QR
@@ -170,7 +260,7 @@ export default function CardDetail() {
                 <Share2 className="w-4 h-4 mr-2" />
                 Share Story
               </Button>
-              {currentUser && card.created_by === currentUser.email && (
+              {currentUser && card.user_id === currentUser.id && (
                 <>
                   <Button onClick={() => setShowEdit(true)} variant="outline" className="border-border/50 hover:border-primary/30">
                     <Pencil className="w-4 h-4 mr-2" />
@@ -182,11 +272,48 @@ export default function CardDetail() {
                   </Button>
                 </>
               )}
+              {(!currentUser || card.user_id !== currentUser.id) && (
+                <div className="w-full">
+                  <div className="rounded-2xl border border-border/50 bg-secondary/30 p-4 mt-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-2">Request Ownership</h3>
+                    <p className="text-xs text-muted-foreground mb-3">Ask the current owner to transfer this card to you.</p>
+                    <textarea
+                      value={requestMessage}
+                      onChange={(e) => setRequestMessage(e.target.value)}
+                      placeholder="Add a short note to the owner"
+                      rows={3}
+                      className="w-full rounded-xl border border-border/50 bg-background/80 p-3 text-sm text-foreground"
+                    />
+                    {requestError && <p className="text-xs text-destructive mt-2">{requestError}</p>}
+                    {requestStatus === 'sent' && <p className="text-xs text-green-400 mt-2">Ownership request sent. The owner can review it on the card page.</p>}
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <Button
+                        type="button"
+                        onClick={handleSubmitOwnershipRequest}
+                        disabled={!currentUser || requestStatus === 'sending'}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                        {requestStatus === 'sending' ? 'Sending...' : 'Request Ownership'}
+                      </Button>
+                      {!currentUser && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate('/auth')}
+                          className="border-border/50"
+                        >
+                          Sign in to Request
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {showQR && (
               <div className="mt-6 p-6 rounded-2xl bg-secondary/50 border border-border/50 inline-block">
-                <QRCodeDisplay code={card.unique_code} size={180} />
+                <QRCodeDisplay code={card.id} size={180} />
                 <p className="text-xs text-muted-foreground mt-3 text-center max-w-[180px]">
                   Print this and stick it on the back of your card
                 </p>
@@ -194,6 +321,30 @@ export default function CardDetail() {
             )}
           </div>
         </div>
+
+        {ownershipRequests.length > 0 && currentUser && card.user_id === currentUser.id && (
+          <div className="mb-10 rounded-3xl border border-amber-400/20 bg-amber-100/10 p-6">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 className="font-display text-xl font-bold text-foreground">Pending Ownership Requests</h2>
+                <p className="text-sm text-muted-foreground">Review requests submitted by collectors who want to claim this card.</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {ownershipRequests.map((request) => (
+                <div key={request.id} className="rounded-2xl border border-amber-400/20 bg-background/80 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">Request from {request.requester_id ? request.requester_id : 'a collector'}</p>
+                      {request.message && <p className="text-xs text-muted-foreground mt-1">{request.message}</p>}
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">{new Date(request.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Messages Timeline */}
         <div className="border-t border-border/50 pt-10">

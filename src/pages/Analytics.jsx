@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { Eye, Users, MessageCircle, Share2, BarChart2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -11,17 +11,17 @@ import EmptyState from '../components/shared/EmptyState';
 export default function Analytics() {
   const { data: cards = [], isLoading: cardsLoading } = useQuery({
     queryKey: ['my-cards'],
-    queryFn: () => base44.entities.Card.list('-created_date'),
+    queryFn: () => legacyApi.entities.Card.list('-created_date'),
   });
 
   const { data: messages = [] } = useQuery({
     queryKey: ['all-messages'],
-    queryFn: () => base44.entities.VideoMessage.list(),
+    queryFn: () => legacyApi.entities.VideoMessage.list(),
   });
 
   const { data: scanEvents = [] } = useQuery({
     queryKey: ['all-scan-events'],
-    queryFn: () => base44.entities.ScanEvent.list('-created_date', 1000),
+    queryFn: () => legacyApi.entities.ScanEvent.list('-created_date', 1000),
   });
 
   const myScanEvents = useMemo(() => {
@@ -114,3 +114,4 @@ export default function Analytics() {
     </div>
   );
 }
+

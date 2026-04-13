@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Zap, AlertCircle } from 'lucide-react';
 
 const SPORTS = ['baseball', 'basketball', 'football', 'hockey', 'soccer', 'golf', 'ufc', 'wwe', 'f1'];
@@ -19,14 +19,14 @@ export default function PullAlertPreferences({ user }) {
   useEffect(() => {
     const loadPreferences = async () => {
       try {
-        const existing = await base44.asServiceRole.entities.UserPullAlertPreference.filter({
+        const existing = await legacyApi.asServiceRole.entities.UserPullAlertPreference.filter({
           user_email: user.email
         });
         if (existing.length > 0) {
           setPrefs(existing[0]);
         } else {
           // Create default preferences
-          const newPrefs = await base44.asServiceRole.entities.UserPullAlertPreference.create({
+          const newPrefs = await legacyApi.asServiceRole.entities.UserPullAlertPreference.create({
             user_email: user.email,
             enabled: true,
             notify_sports: true,
@@ -53,7 +53,7 @@ export default function PullAlertPreferences({ user }) {
     if (!prefs) return;
     setSaving(true);
     try {
-      await base44.asServiceRole.entities.UserPullAlertPreference.update(prefs.id, prefs);
+      await legacyApi.asServiceRole.entities.UserPullAlertPreference.update(prefs.id, prefs);
     } catch (e) {
       console.error('Failed to save preferences:', e);
     } finally {
@@ -220,3 +220,4 @@ export default function PullAlertPreferences({ user }) {
     </Card>
   );
 }
+

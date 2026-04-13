@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { ShieldCheck, Handshake, DollarSign, Trophy, TrendingUp, MapPin, CreditCard, Star, Sparkles } from 'lucide-react';
@@ -7,6 +6,8 @@ import { motion } from 'framer-motion';
 import SportBadge from '@/components/shared/SportBadge';
 import FollowButton from '@/components/social/FollowButton';
 import CardReactions from '@/components/social/CardReactions';
+import { useAuth } from '@/lib/AuthContext';
+import { getUserByEmail, getTradesByCreatorEmail, getCardsByCreatorEmail } from '@/lib/db';
 
 const CONDITION_LABELS = {
   raw: 'Raw', psa_10: 'PSA 10', psa_9: 'PSA 9', psa_8: 'PSA 8',
@@ -29,35 +30,34 @@ function timeAgo(dateStr) {
 export default function CollectorProfile() {
   const { email } = useParams();
   const decodedEmail = decodeURIComponent(email);
-  const [currentUserEmail, setCurrentUserEmail] = React.useState(null);
+  const { user: authUser } = useAuth();
+  const currentUserEmail = authUser?.email || null;
 
-  React.useEffect(() => {
-    base44.auth.me().then(u => { if (u) setCurrentUserEmail(u.email); }).catch(() => {});
-  }, []);
-
-  const { data: users = [] } = useQuery({
+  const { data: user = null, isLoading: loadingUser } = useQuery({
     queryKey: ['collector-user', decodedEmail],
-    queryFn: () => base44.entities.User.filter({ email: decodedEmail }),
-  });
-  const user = users[0];
-
-  const { data: myFollows = [] } = useQuery({
-    queryKey: ['my-follows', currentUserEmail],
-    queryFn: () => base44.entities.UserFollow.filter({ follower_email: currentUserEmail }),
-    enabled: !!currentUserEmail,
+    queryFn: async () => {
+      const res = await getUserByEmail(decodedEmail);
+      return res.data ?? null;
+    },
   });
 
-  const isFollowing = myFollows.some(f => f.following_email === decodedEmail);
   const isOwnProfile = currentUserEmail === decodedEmail;
+  const isFollowing = false;
 
   const { data: allTrades = [], isLoading: loadingTrades } = useQuery({
     queryKey: ['collector-trades', decodedEmail],
-    queryFn: () => base44.entities.CardTrade.filter({ created_by: decodedEmail }, '-created_date', 100),
+    queryFn: async () => {
+      const res = await getTradesByCreatorEmail(decodedEmail, 100);
+      return res.data ?? [];
+    },
   });
 
   const { data: allCards = [], isLoading: loadingCards } = useQuery({
     queryKey: ['collector-cards', decodedEmail],
-    queryFn: () => base44.entities.Card.filter({ created_by: decodedEmail }, '-created_date', 100),
+    queryFn: async () => {
+      const res = await getCardsByCreatorEmail(decodedEmail, 100);
+      return res.data ?? [];
+    },
   });
 
   const topSports = useMemo(() => {
@@ -282,3 +282,4 @@ export default function CollectorProfile() {
     </div>
   );
 }
+

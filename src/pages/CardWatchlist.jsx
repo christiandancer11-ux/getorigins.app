@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bookmark, Loader2, Trash2, TrendingUp, TrendingDown, Minus, Flame, Lock, Zap } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { useSubscription } from '@/hooks/useSubscription';
 import UpgradeModal from '@/components/shared/UpgradeModal';
@@ -27,10 +27,10 @@ export default function CardWatchlist() {
   const [removing, setRemoving] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    legacyApi.auth.me().then(u => {
       setUser(u);
       if (u) {
-        base44.entities.CardWatchlist.filter({ user_email: u.email }, '-created_date', 100)
+        legacyApi.entities.CardWatchlist.filter({ user_email: u.email }, '-created_date', 100)
           .then(results => setWatchlist(results))
           .catch(() => {})
           .finally(() => setLoading(false));
@@ -43,7 +43,7 @@ export default function CardWatchlist() {
   const handleRemove = async (item) => {
     setRemoving(item.id);
     try {
-      await base44.entities.CardWatchlist.delete(item.id);
+      await legacyApi.entities.CardWatchlist.delete(item.id);
       setWatchlist(prev => prev.filter(w => w.id !== item.id));
     } catch (e) {
       console.error('Remove error:', e);
@@ -171,3 +171,4 @@ export default function CardWatchlist() {
     </div>
   );
 }
+

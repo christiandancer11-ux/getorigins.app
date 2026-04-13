@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
@@ -15,7 +15,7 @@ export default function LoadTestResults() {
     setLoading(true);
     setError(null);
     try {
-      const response = await base44.functions.invoke('loadTestSimulation', {
+      const response = await legacyApi.functions.invoke('loadTestSimulation', {
         num_concurrent_users: testScenario === 'mixed' ? 500 : testScenario === 'trendingFetch' ? 2000 : 1000,
         num_requests_per_user: testScenario === 'mixed' ? 20 : testScenario === 'trendingFetch' ? 5 : 10,
         scenario: testScenario,
@@ -198,3 +198,4 @@ export default function LoadTestResults() {
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -113,7 +113,7 @@ export default function SocialFeed() {
   ];
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    legacyApi.auth.me().then(u => {
       if (u) {
         setCurrentUserEmail(u.email);
         setCurrentUserName(u.full_name || u.email.split('@')[0]);
@@ -124,7 +124,7 @@ export default function SocialFeed() {
   // Get current user's follows
   const { data: myFollows = [] } = useQuery({
     queryKey: ['my-follows-feed', currentUserEmail],
-    queryFn: () => base44.entities.UserFollow.filter({ follower_email: currentUserEmail }),
+    queryFn: () => legacyApi.entities.UserFollow.filter({ follower_email: currentUserEmail }),
     enabled: !!currentUserEmail,
   });
 
@@ -133,8 +133,8 @@ export default function SocialFeed() {
   const { data: allCards = [], isLoading } = useQuery({
     queryKey: ['social-feed', filter],
     queryFn: () => filter === 'all'
-      ? base44.entities.Card.list('-created_date', 100)
-      : base44.entities.Card.filter({ sport: filter }, '-created_date', 100),
+      ? legacyApi.entities.Card.list('-created_date', 100)
+      : legacyApi.entities.Card.filter({ sport: filter }, '-created_date', 100),
     refetchInterval: 30000,
   });
 
@@ -145,7 +145,7 @@ export default function SocialFeed() {
 
   // Real-time subscription
   useEffect(() => {
-    const unsub = base44.entities.Card.subscribe((event) => {
+    const unsub = legacyApi.entities.Card.subscribe((event) => {
       if (event.type === 'create') {
         queryClient.invalidateQueries({ queryKey: ['social-feed'] });
       }
@@ -208,7 +208,7 @@ export default function SocialFeed() {
           <div className="text-center py-16">
             <Lock className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
             <p className="text-muted-foreground mb-3">This feed is for signed-in users only.</p>
-            <Button onClick={() => base44.auth.redirectToLogin()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button onClick={() => legacyApi.auth.redirectToLogin()} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Sign In
             </Button>
           </div>
@@ -237,3 +237,4 @@ export default function SocialFeed() {
     </div>
   );
 }
+

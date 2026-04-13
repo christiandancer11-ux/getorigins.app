@@ -1,11 +1,11 @@
 import React from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { generateQRCodeImageUrl } from '@/lib/qr';
 
 export default function QRCodeDisplay({ code, size = 200 }) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(origin + '/scan/' + code)}&bgcolor=0d1117&color=e5a825&format=svg`;
-  const pngUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(origin + '/scan/' + code)}&bgcolor=0d1117&color=e5a825&format=png`;
+  const qrUrl = generateQRCodeImageUrl(code, size, 'svg');
+  const pngUrl = generateQRCodeImageUrl(code, 600, 'png');
 
   const handleDownload = async () => {
     const res = await fetch(pngUrl);

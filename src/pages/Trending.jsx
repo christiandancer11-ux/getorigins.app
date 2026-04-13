@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Loader2, RefreshCw, Lock, Zap, TrendingUp, DollarSign, Search, ShoppingCart, BarChart2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useSubscription } from '@/hooks/useSubscription';
 import UpgradeModal from '@/components/shared/UpgradeModal';
 import TrendingCategoryPicker, { CATEGORIES } from '@/components/trending/TrendingCategoryPicker';
@@ -36,7 +36,7 @@ export default function Trending() {
   const [userEmail, setUserEmail] = useState(null);
 
   React.useEffect(() => {
-    base44.auth.me().then(u => setUserEmail(u?.email || null)).catch(() => {});
+    legacyApi.auth.me().then(u => setUserEmail(u?.email || null)).catch(() => {});
   }, []);
 
   const cacheKey = `${selectedCategory}__${selectedViewMode}`;
@@ -49,7 +49,7 @@ export default function Trending() {
     if (trendingData[key]) return;
     setLoadingCategory(key);
     try {
-      const res = await base44.functions.invoke('fetchTrending', { category: categoryId, viewMode, limit: 15 });
+      const res = await legacyApi.functions.invoke('fetchTrending', { category: categoryId, viewMode, limit: 15 });
       if (res.data && !res.data.error) {
         setTrendingData(prev => ({ ...prev, [key]: res.data }));
       }
@@ -77,7 +77,7 @@ export default function Trending() {
     setVisibleCount(prev => ({ ...prev, [cacheKey]: 100 }));
     setLoadingCategory(cacheKey);
     try {
-      const res = await base44.functions.invoke('fetchTrending', { category: selectedCategory, viewMode: selectedViewMode, limit: 100 });
+      const res = await legacyApi.functions.invoke('fetchTrending', { category: selectedCategory, viewMode: selectedViewMode, limit: 100 });
       if (res.data && !res.data.error) {
         setTrendingData(prev => ({ ...prev, [cacheKey]: res.data }));
       }
@@ -311,3 +311,4 @@ export default function Trending() {
     </div>
   );
 }
+

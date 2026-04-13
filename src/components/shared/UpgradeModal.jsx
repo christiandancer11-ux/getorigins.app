@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { X, Zap, Loader2, CheckCircle, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { createCheckoutSession, createBillingPortalSession } from '@/api/stripe';
 
 const PRO_PLAN = {
   id: 'pro',
   name: 'Origins Pro Bundle',
-  price: '$14.99',
   icon: Flame,
   color: 'text-amber-400',
   bg: 'bg-amber-400/10',
@@ -23,13 +22,69 @@ const PRO_PLAN = {
   ],
 };
 
+const PLANS = [
+  {
+    id: 'monthly',
+    title: 'Monthly',
+    price: '$14.99',
+    subtitle: '/month',
+    accent: 'Monthly billing',
+  },
+  {
+    id: 'yearly',
+    title: 'Yearly',
+    price: '$149.99',
+    subtitle: '/year',
+    accent: 'Best value',
+  },
+];
+
 export default function UpgradeModal({ onClose, creatorCouponId = null }) {
   const [loading, setLoading] = useState(false);
-  const [useTrial, setUseTrial] = useState(!creatorCouponId);
+  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [error, setError] = useState(null);
 
   const handleUpgrade = async () => {
-    // TODO: Migrate Stripe checkout to Supabase
-    alert('Upgrade functionality is temporarily unavailable during migration. All users currently have free access to core features.');
+    setLoading(true);
+    setError(null);
+
+    const { data, error: checkoutError } = await createCheckoutSession({
+      plan: selectedPlan,
+      couponId: creatorCouponId || undefined,
+    });
+
+    if (checkoutError) {
+      setError(checkoutError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data?.alreadySubscribed) {
+      setError('You already have an active Origins Pro subscription. Redirecting to the billing portal...');
+      setLoading(false);
+
+      const { data: portalData, error: portalError } = await createBillingPortalSession();
+      if (portalError) {
+        setError(portalError.message);
+        return;
+      }
+
+      if (portalData?.url) {
+        window.location.href = portalData.url;
+        return;
+      }
+
+      setError('Unable to open billing portal.');
+      return;
+    }
+
+    if (data?.url) {
+      window.location.href = data.url;
+      return;
+    }
+
+    setError('Unable to create Stripe checkout session.');
+    setLoading(false);
   };
 
   const Icon = PRO_PLAN.icon;
@@ -63,19 +118,43 @@ export default function UpgradeModal({ onClose, creatorCouponId = null }) {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <span className={`text-2xl font-bold ${PRO_PLAN.color}`}>{PRO_PLAN.price}</span>
+              <span className={`text-2xl font-bold ${PRO_PLAN.color}`}>$14.99</span>
               <p className="text-[10px] text-muted-foreground">/month</p>
             </div>
           </div>
           <ul className="space-y-2">
-            {PRO_PLAN.features.map(f => (
-              <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+            {PRO_PLAN.features.map((feature) => (
+              <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
                 <CheckCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                {f}
+                {feature}
               </li>
             ))}
           </ul>
         </div>
+
+        <div className="grid gap-3 mb-6">
+          {PLANS.map((plan) => (
+            <button
+              key={plan.id}
+              type="button"
+              onClick={() => setSelectedPlan(plan.id)}
+              className={`rounded-2xl border px-4 py-3 text-left transition ${selectedPlan === plan.id ? 'border-amber-400 bg-amber-400/10' : 'border-border/50 bg-card hover:border-amber-300'}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-foreground">{plan.title}</p>
+                  <p className="text-sm text-muted-foreground">{plan.accent}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-foreground">{plan.price}</p>
+                  <p className="text-xs text-muted-foreground">{plan.subtitle}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
         <Button
           onClick={handleUpgrade}
@@ -85,21 +164,16 @@ export default function UpgradeModal({ onClose, creatorCouponId = null }) {
           {loading ? (
             <><Loader2 className="w-4 h-4 animate-spin mr-2" />Redirecting...</>
           ) : (
-            `Subscribe — $14.99/mo`
+            `Subscribe ${selectedPlan === 'yearly' ? '/year' : '/month'}`
           )}
         </Button>
 
-        {!creatorCouponId && (
-          <div className="flex items-center gap-2 mb-3">
-            <input type="checkbox" id="trial" checked={useTrial} onChange={e => setUseTrial(e.target.checked)} className="accent-primary" />
-            <label htmlFor="trial" className="text-xs text-muted-foreground cursor-pointer">Start with a <span className="text-primary font-semibold">7-day free trial</span> — cancel anytime before being charged.</label>
-          </div>
-        )}
         {creatorCouponId && (
           <div className="text-xs text-center text-primary font-medium mb-3">🎨 Creator discount applied — 50% off for 3 months!</div>
         )}
-        <p className="text-xs text-muted-foreground text-center">Cancel anytime. Billed monthly via Stripe.</p>
+        <p className="text-xs text-muted-foreground text-center">Cancel anytime. Billed securely through Stripe.</p>
       </div>
     </div>
   );
 }
+

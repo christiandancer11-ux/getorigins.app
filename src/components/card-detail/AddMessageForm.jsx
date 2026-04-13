@@ -21,28 +21,8 @@ export default function AddMessageForm({ cardId, onClose }) {
     if (file) setVideoFile(file);
   };
 
-  const moderateContent = async (text, videoUrl) => {
-    const prompt = `You are a content moderator enforcing YouTube Community Guidelines. Review the following content and determine if it should be APPROVED or REJECTED.
-
-REJECT content that contains: weapons, violence, gore, nudity, sexual content, hate speech, vulgarity, profanity, harassment, dangerous activities, or anything that would violate YouTube's standard community guidelines.
-
-Text message: "${text || '(none)'}"
-Has video: ${videoUrl ? 'yes' : 'no'}
-
-Return JSON: { "approved": true/false, "reason": "short explanation if rejected" }`;
-
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      ...(videoUrl ? { file_urls: [videoUrl] } : {}),
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          approved: { type: 'boolean' },
-          reason: { type: 'string' },
-        },
-      },
-    });
-    return result;
+  const moderateContent = async () => {
+    return { approved: true, reason: 'Moderation is temporarily disabled during migration.' };
   };
 
   const handleSubmit = async (e) => {
@@ -53,21 +33,7 @@ Return JSON: { "approved": true/false, "reason": "short explanation if rejected"
 
     let videoUrl = null;
 
-    // TODO: Video upload to Supabase storage
-    // if (videoFile) {
-    //   setUploading(true);
-    //   const { file_url } = await base44.integrations.Core.UploadFile({ file: videoFile });
-    //   videoUrl = file_url;
-    //   setUploading(false);
-    // }
-
-    // TODO: AI moderation
-    // const modResult = await moderateContent(message, videoUrl);
-    // if (!modResult.approved) {
-    //   setModerationError(modResult.reason || 'Content was flagged and cannot be posted.');
-    //   setSubmitting(false);
-    //   return;
-    // }
+    // TODO: Video upload and moderation are temporarily disabled during migration.
 
     await createCardStory({
       card_id: cardId,

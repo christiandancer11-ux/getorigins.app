@@ -1,36 +1,44 @@
-import { useQuery } from '@tanstack/react-query';
-// import { base44 } from '@/api/base44Client';
-
-// Plan structure:
-// free  = up to 5 story messages/videos per day (no subscription needed)
-// pro   = Origins Pro Bundle — unlimited stories + market, card show, trending ($9.99/mo)
-
-// TODO: Migrate to Supabase subscription check
-async function fetchSubscriptionStatus() {
-  // const res = await base44.functions.invoke('checkUsageLimit', {});
-  // return res.data;
-  return { isPro: false, remaining: 5, allowed: true }; // Temporary free tier
-}
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@/lib/AuthContext'
+import { getMySubscription, normalizeSubscription, getSubscriptionDefaults } from '@/lib/db'
 
 export function useSubscription() {
+  const { user, isLoadingAuth } = useAuth()
+
   const { data, isLoading } = useQuery({
-    queryKey: ['subscription-status'],
-    queryFn: fetchSubscriptionStatus,
+    queryKey: ['subscription-status', user?.id],
+    queryFn: async () => {
+      if (!user) {
+        return getSubscriptionDefaults()
+      }
+
+      const { data: subscription, error } = await getMySubscription(user.id)
+      if (error) {
+        return getSubscriptionDefaults()
+      }
+
+      return normalizeSubscription(subscription)
+    },
+    enabled: !isLoadingAuth,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: 1,
-  });
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  })
 
-  const isPro = !isLoading && data?.isPro === true;
+  const loading = isLoading || isLoadingAuth
 
   return {
-    plan: isLoading ? null : (isPro ? 'pro' : 'free'),
-    loading: isLoading,
-    isPro,
-    // Legacy aliases so existing pages don't break
-    isExpert: isPro,
-    hasStories: true, // everyone can post stories (free tier allows 5/day)
-    remaining: data?.remaining ?? null,
-    allowed: data?.allowed ?? true,
-  };
+    plan: data?.plan ?? 'free',
+    status: data?.status ?? 'inactive',
+    isPro: data?.isPro === true,
+    isExpert: data?.isExpert === true,
+    isSubscribed: data?.isSubscribed === true,
+    loading,
+    allowed: data?.allowed === true,
+    remaining: data?.remaining ?? 0,
+    canUsePremiumFeatures: data?.canUsePremiumFeatures === true,
+    current_period_end: data?.current_period_end ?? null,
+  }
 }

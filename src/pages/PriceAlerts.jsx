@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Bell, Plus, Trash2, Pause, Play, CheckCircle2, Clock, AlertCircle, Lock, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SetAlertModal from '@/components/alerts/SetAlertModal';
@@ -76,19 +76,19 @@ export default function PriceAlerts() {
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ['price-alerts'],
-    queryFn: () => base44.entities.PriceAlert.filter({}, '-created_date'),
+    queryFn: () => legacyApi.entities.PriceAlert.filter({}, '-created_date'),
   });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['price-alerts'] });
 
   const handleDelete = async (id) => {
-    await base44.entities.PriceAlert.delete(id);
+    await legacyApi.entities.PriceAlert.delete(id);
     refresh();
   };
 
   const handleTogglePause = async (alert) => {
     const newStatus = alert.status === 'paused' ? 'active' : 'paused';
-    await base44.entities.PriceAlert.update(alert.id, { status: newStatus });
+    await legacyApi.entities.PriceAlert.update(alert.id, { status: newStatus });
     refresh();
   };
 
@@ -201,3 +201,4 @@ export default function PriceAlerts() {
     </div>
   );
 }
+

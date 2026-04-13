@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Tag, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 export default function RedeemCodeModal({ onClose, onSuccess }) {
   const [code, setCode] = useState('');
@@ -15,7 +15,7 @@ export default function RedeemCodeModal({ onClose, onSuccess }) {
     setLoading(true);
     setError('');
     setResult(null);
-    const res = await base44.functions.invoke('redeemCode', { code: code.trim() });
+    const res = await legacyApi.functions.invoke('redeemCode', { code: code.trim() });
     if (res.data?.error) {
       setError(res.data.error);
     } else if (res.data?.success) {
@@ -81,3 +81,4 @@ export default function RedeemCodeModal({ onClose, onSuccess }) {
     </div>
   );
 }
+

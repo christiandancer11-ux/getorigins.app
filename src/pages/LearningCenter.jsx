@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
 import InterestSelector from '@/components/learning/InterestSelector';
 import LessonSlideshow from '@/components/learning/LessonSlideshow';
@@ -21,7 +21,7 @@ export default function LearningCenter() {
   useEffect(() => {
     const loadLearningPath = async () => {
       try {
-        const paths = await base44.entities.LearningPath.filter({
+        const paths = await legacyApi.entities.LearningPath.filter({
           user_email: user.email
         });
 
@@ -30,7 +30,7 @@ export default function LearningCenter() {
           setLearningPath(path);
 
           // Load the associated plan
-          const plans = await base44.entities.LearningPlan.filter({
+          const plans = await legacyApi.entities.LearningPlan.filter({
             id: path.plan_id
           });
           if (plans.length > 0) {
@@ -38,7 +38,7 @@ export default function LearningCenter() {
           }
 
           // Load achievements
-          const userAchievements = await base44.entities.LearningAchievement.filter({
+          const userAchievements = await legacyApi.entities.LearningAchievement.filter({
             user_email: user.email
           });
           setAchievements(userAchievements);
@@ -62,7 +62,7 @@ export default function LearningCenter() {
       setLoading(true);
 
       // Fetch master plan based on category
-      const plans = await base44.entities.LearningPlan.filter({
+      const plans = await legacyApi.entities.LearningPlan.filter({
         category: selection.category,
         is_active: true
       });
@@ -76,7 +76,7 @@ export default function LearningCenter() {
       const selectedPlan = plans[0];
 
       // Create learning path
-      const newPath = await base44.entities.LearningPath.create({
+      const newPath = await legacyApi.entities.LearningPath.create({
         user_email: user.email,
         category: selection.category,
         use_case: selection.useCase,
@@ -110,7 +110,7 @@ export default function LearningCenter() {
     const completionPct = (completedCount / plan.total_lessons) * 100;
 
     // Update path
-    const updated = await base44.entities.LearningPath.update(learningPath.id, {
+    const updated = await legacyApi.entities.LearningPath.update(learningPath.id, {
       current_lesson_index: newIndex,
       lessons_completed: completedCount,
       completion_percentage: completionPct,
@@ -139,7 +139,7 @@ export default function LearningCenter() {
       badge_icon: badgeIcon
     };
 
-    const achievement = await base44.entities.LearningAchievement.create(achievementData);
+    const achievement = await legacyApi.entities.LearningAchievement.create(achievementData);
     setAchievements([...achievements, achievement]);
   };
 
@@ -149,7 +149,7 @@ export default function LearningCenter() {
       if (!confirmed) return;
       
       try {
-        await base44.entities.LearningPath.delete(learningPath.id);
+        await legacyApi.entities.LearningPath.delete(learningPath.id);
         setLearningPath(null);
         setPlan(null);
         setSelectedLesson(null);
@@ -320,3 +320,4 @@ export default function LearningCenter() {
     </div>
   );
 }
+

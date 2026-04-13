@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useSubscription } from '@/hooks/useSubscription';
 import UpgradeModal from '@/components/shared/UpgradeModal';
 import { Button } from '@/components/ui/button';
@@ -100,3 +100,4 @@ export default function ProCardFlipper() {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Bell, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 const SPORTS = [
   { value: 'baseball', label: 'Baseball' },
@@ -39,8 +39,8 @@ export default function SetAlertModal({ onClose, onCreated, prefill = {} }) {
     e.preventDefault();
     if (!form.card_name || !form.target_price) return;
     setSaving(true);
-    const user = await base44.auth.me();
-    await base44.entities.PriceAlert.create({
+    const user = await legacyApi.auth.me();
+    await legacyApi.entities.PriceAlert.create({
       ...form,
       target_price: parseFloat(form.target_price),
       user_email: user.email,
@@ -184,3 +184,4 @@ export default function SetAlertModal({ onClose, onCreated, prefill = {} }) {
     </div>
   );
 }
+

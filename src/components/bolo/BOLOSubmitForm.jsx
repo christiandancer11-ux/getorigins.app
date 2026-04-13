@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,7 @@ export default function BOLOSubmitForm({ user, onClose }) {
     setUploadingImages(true);
     const urls = [];
     for (const file of files) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await legacyApi.integrations.Core.UploadFile({ file });
       urls.push(file_url);
     }
     const newUrls = [...imageUrls, ...urls];
@@ -66,7 +66,7 @@ export default function BOLOSubmitForm({ user, onClose }) {
     // Auto-extract cert numbers
     if (newUrls.length > 0) {
       setExtractingCerts(true);
-      const res = await base44.functions.invoke('extractSlabCerts', { image_urls: newUrls });
+      const res = await legacyApi.functions.invoke('extractSlabCerts', { image_urls: newUrls });
       if (res.data?.cert_numbers) setCertNumbers(res.data.cert_numbers);
       setExtractingCerts(false);
     }
@@ -94,10 +94,10 @@ export default function BOLOSubmitForm({ user, onClose }) {
       status: 'active',
     };
 
-    const created = await base44.entities.BOLOAlert.create(boloData);
+    const created = await legacyApi.entities.BOLOAlert.create(boloData);
 
     // Send notifications
-    const notifRes = await base44.functions.invoke('sendBOLOAlerts', { bolo_id: created.id });
+    const notifRes = await legacyApi.functions.invoke('sendBOLOAlerts', { bolo_id: created.id });
     setNotificationsSent(notifRes.data?.notifications_sent || 0);
     queryClient.invalidateQueries({ queryKey: ['bolo-alerts'] });
     setSubmitting(false);
@@ -226,3 +226,4 @@ export default function BOLOSubmitForm({ user, onClose }) {
     </form>
   );
 }
+

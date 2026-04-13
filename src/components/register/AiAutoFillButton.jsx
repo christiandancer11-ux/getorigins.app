@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 export default function AiAutoFillButton({ imageUrl, backImageUrl, onFill }) {
   const [loading, setLoading] = useState(false);
@@ -13,7 +13,7 @@ export default function AiAutoFillButton({ imageUrl, backImageUrl, onFill }) {
     const fileUrls = [imageUrl];
     if (backImageUrl) fileUrls.push(backImageUrl);
 
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await legacyApi.integrations.Core.InvokeLLM({
       prompt: `You are a sports card and TCG expert. Analyze the provided card image(s) (front${backImageUrl ? ' and back' : ''}) and extract all details you can identify with high accuracy.
 
 Also check if this is a GRADED card (e.g. in a PSA, BGS, SGC, CGC, HGA, or other grading company slab).
@@ -65,3 +65,4 @@ Be precise. For graded cards, extract the label information carefully.`,
     </Button>
   );
 }
+

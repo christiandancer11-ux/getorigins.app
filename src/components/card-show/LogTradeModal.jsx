@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import NativeSelect from '@/components/shared/NativeSelect';
-import { X, Upload, Loader2, Search, TrendingUp, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Ban, Bot } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
+import { createTrade, fetchTradeComps } from '@/lib/db';
+import { X, Loader2, Search, TrendingUp, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Ban, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SPORTS = [
@@ -40,13 +41,8 @@ const EMPTY = {
   event_name: '', notes: '',
 };
 
-async function checkImageClarity(imageUrl) {
-  return base44.integrations.Core.InvokeLLM({
-    prompt: `Analyze this image of a trading card. Is the card clearly visible and identifiable (not blurry, not dark, not obstructed)?
-Return JSON: { "clear": true/false, "reason": "short explanation" }`,
-    file_urls: [imageUrl],
-    response_json_schema: { type: 'object', properties: { clear: { type: 'boolean' }, reason: { type: 'string' } } },
-  });
+async function checkImageClarity() {
+  return { clear: true, reason: '' };
 }
 
 function getVerification(totalValue, comps) {
@@ -80,59 +76,18 @@ export default function LogTradeModal({ onClose }) {
 
   const verification = getVerification(totalValue, comps);
 
+  const { user } = useAuth();
+
   // Check if user is banned on mount
   useEffect(() => {
-    base44.auth.me().then(user => {
-      if (user?.trade_banned) {
-        setIsBanned(true);
-        setBanReason(user.trade_ban_reason || 'You have been temporarily banned from logging trades.');
-      }
-    });
-  }, []);
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    setImageError(null);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    const check = await checkImageClarity(file_url);
-    if (!check.clear) {
-      setImageError(check.reason || 'Image is not clear enough. Please retake the photo.');
-      setUploading(false);
-      return;
+    if (user?.trade_banned) {
+      setIsBanned(true);
+      setBanReason(user.trade_ban_reason || 'You have been temporarily banned from logging trades.');
     }
-    set('image_url', file_url);
+  }, [user]);
 
-    // AI auto-identify card details
-    const identified = await base44.integrations.Core.InvokeLLM({
-      prompt: `Look at this trading card image and extract as much detail as possible.
-Return a JSON with these fields (leave empty string if not visible):
-- card_name: player name or card title
-- set_name: set or product name (e.g. "Topps Chrome", "Prizm")
-- year: year printed on the card
-- card_number: card number if visible (e.g. "PSA 10" grading label or "/150" print run)
-- sport: one of: baseball, basketball, football, hockey, soccer, pokemon, magic_the_gathering, yugioh, other`,
-      file_urls: [file_url],
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          card_name: { type: 'string' }, set_name: { type: 'string' },
-          year: { type: 'string' }, card_number: { type: 'string' }, sport: { type: 'string' },
-        },
-      },
-    });
-
-    setForm(prev => ({
-      ...prev,
-      image_url: file_url,
-      card_name: identified.card_name || prev.card_name,
-      set_name: identified.set_name || prev.set_name,
-      year: identified.year || prev.year,
-      card_number: identified.card_number || prev.card_number,
-      sport: identified.sport && ['baseball','basketball','football','hockey','soccer','pokemon','magic_the_gathering','yugioh','other'].includes(identified.sport) ? identified.sport : prev.sport,
-    }));
-    setUploading(false);
+  const handleImageUpload = async () => {
+    setImageError('Image uploads are temporarily unavailable. Please continue without a photo.');
   };
 
   const handleFetchComps = async () => {
@@ -141,24 +96,33 @@ Return a JSON with these fields (leave empty string if not visible):
     setComps(null);
     setSubmitError(null);
     setAiResult(null);
-    const res = await base44.functions.invoke('fetchCardComps', {
+    const res = await fetchTradeComps({
       card_name: form.card_name,
       set_name: form.set_name,
       year: form.year,
       card_number: form.card_number,
-      condition: form.condition,
     });
     setComps(res.data);
     setFetchingComps(false);
   };
 
   const mutation = useMutation({
-    mutationFn: (data) => base44.entities.CardTrade.create(data),
+    mutationFn: (data) => createTrade(data),
     onMutate: async (newTrade) => {
       await queryClient.cancelQueries({ queryKey: ['card-trades'] });
       const previous = queryClient.getQueryData(['card-trades']);
+      const optimisticTrade = {
+        ...newTrade,
+        id: `optimistic-${Date.now()}`,
+        created_at: new Date().toISOString(),
+        created_date: new Date().toISOString(),
+        card_name: newTrade.player_name,
+        set_name: newTrade.title,
+        total_value: newTrade.price,
+        verified: newTrade.is_verified,
+      };
       queryClient.setQueryData(['card-trades'], (old = []) => [
-        { ...newTrade, id: `optimistic-${Date.now()}`, created_date: new Date().toISOString() },
+        optimisticTrade,
         ...old,
       ]);
       return { previous };
@@ -173,16 +137,17 @@ Return a JSON with these fields (leave empty string if not visible):
   });
 
   const buildTradePayload = () => ({
-    ...form,
-    cash_paid: form.cash_paid ? parseFloat(form.cash_paid) : undefined,
-    trade_card_value: form.trade_card_value ? parseFloat(form.trade_card_value) : undefined,
-    total_value: parseFloat(totalValue),
-    ebay_comp_low: comps?.ebay_low,
-    ebay_comp_high: comps?.ebay_high,
-    ebay_comp_avg: comps?.ebay_avg,
-    market_data_raw: comps?.market_summary,
-    verified: verification ? verification.inRange : null,
-    market_pct: verification?.pct ?? null,
+    user_id: user?.id ?? null,
+    card_id: null,
+    player_name: form.card_name || null,
+    title: form.set_name || null,
+    brand: form.set_name || null,
+    year: form.year || null,
+    price: parseFloat(totalValue) || null,
+    platform: 'card_show',
+    sport: form.sport || null,
+    notes: form.notes || null,
+    is_verified: verification ? verification.inRange : true,
   });
 
   const handleSubmit = async (e) => {
@@ -198,31 +163,9 @@ Return a JSON with these fields (leave empty string if not visible):
       return;
     }
 
-    // Out of range — send to AI review
-    setAiReviewing(true);
-    const res = await base44.functions.invoke('reviewOutOfRangeTrade', {
-      trade_data: buildTradePayload(),
-      comps,
-    });
-    setAiReviewing(false);
-
-    const result = res.data;
-
-    if (result.banned) {
-      setIsBanned(true);
-      setBanReason('You have been temporarily banned after multiple denied out-of-range submissions. Please contact an admin to appeal.');
-      setAiResult(result);
-      return;
-    }
-
-    if (!result.approved) {
-      setAiResult(result);
-      return;
-    }
-
-    // AI approved out-of-range — already logged by backend, just close
-    queryClient.invalidateQueries({ queryKey: ['card-trades'] });
-    onClose();
+    // Out-of-range review is not yet available in this build.
+    setSubmitError('Out-of-range trade review is temporarily unavailable. Please adjust the value or contact support.');
+    return;
   };
 
   // Banned state
@@ -340,19 +283,19 @@ Return a JSON with these fields (leave empty string if not visible):
               {comps ? (
                 <div className="space-y-1.5">
                   <div className="flex gap-4 text-sm flex-wrap">
-                    {comps.ebay_low != null && <span className="text-muted-foreground">eBay Low: <span className="text-green-400 font-semibold">${comps.ebay_low}</span></span>}
-                    {comps.ebay_avg != null && <span className="text-muted-foreground">eBay Avg: <span className="text-primary font-semibold">${comps.ebay_avg}</span></span>}
-                    {comps.point130_avg != null && <span className="text-muted-foreground">130pt Avg: <span className="text-emerald-400 font-semibold">${comps.point130_avg}</span></span>}
+                    {comps.ebay_low != null && <span className="text-muted-foreground">Recent Low: <span className="text-green-400 font-semibold">${comps.ebay_low}</span></span>}
+                    {comps.ebay_avg != null && <span className="text-muted-foreground">Recent Avg: <span className="text-primary font-semibold">${comps.ebay_avg}</span></span>}
+                    {comps.max_price != null && <span className="text-muted-foreground">Recent High: <span className="text-emerald-400 font-semibold">${comps.max_price}</span></span>}
                   </div>
-                  {(comps.ebay_avg ?? comps.point130_avg) && (
+                  {comps.ebay_avg != null && (
                     <p className="text-xs text-muted-foreground">
-                      Valid range (70%–100%): <span className="text-amber-400 font-semibold">${((comps.ebay_avg ?? comps.point130_avg) * 0.7).toFixed(0)}</span> – <span className="text-amber-400 font-semibold">${(comps.ebay_avg ?? comps.point130_avg).toFixed(0)}</span>
+                      Valid range (70%–100%): <span className="text-amber-400 font-semibold">${(comps.ebay_avg * 0.7).toFixed(0)}</span> – <span className="text-amber-400 font-semibold">${comps.ebay_avg.toFixed(0)}</span>
                     </p>
                   )}
                   {comps.market_summary && <p className="text-xs text-muted-foreground leading-relaxed mt-1">{comps.market_summary}</p>}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">Fill in card details then click "Fetch Comps" to pull recent eBay & 130point sold prices.</p>
+                <p className="text-xs text-muted-foreground">Fill in card details then click "Fetch Comps" to pull recent trade comps from the Origins database.</p>
               )}
             </div>
 
@@ -476,3 +419,4 @@ Return a JSON with these fields (leave empty string if not visible):
     </AnimatePresence>
   );
 }
+

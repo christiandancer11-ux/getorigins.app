@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { Award, QrCode, Plus, MessageCircle, CheckCircle2, ExternalLink, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ export default function GradedCertScan() {
   const [selectedCardId, setSelectedCardId] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => {});
+    legacyApi.auth.me().then(setCurrentUser).catch(() => {});
   }, []);
 
   // Find card in Origins by cert_number + grading_company
@@ -31,7 +31,7 @@ export default function GradedCertScan() {
     queryKey: ['card-by-cert', companyKey, cert],
     queryFn: async () => {
       // Search by cert number (also check grading_company matches)
-      const cards = await base44.entities.Card.filter({ cert_number: cert });
+      const cards = await legacyApi.entities.Card.filter({ cert_number: cert });
       // Prefer one from the matching grading company, fall back to any match
       const exact = cards.find(c => c.grading_company?.toUpperCase() === companyKey.toUpperCase());
       return exact || cards[0] || null;
@@ -43,7 +43,7 @@ export default function GradedCertScan() {
   const { data: myCards = [] } = useQuery({
     queryKey: ['my-cards-uncerted', currentUser?.email],
     queryFn: async () => {
-      const all = await base44.entities.Card.filter({ created_by: currentUser.email });
+      const all = await legacyApi.entities.Card.filter({ created_by: currentUser.email });
       return all.filter(c => !c.cert_number);
     },
     enabled: !!currentUser,
@@ -51,14 +51,14 @@ export default function GradedCertScan() {
 
   const { data: messages = [] } = useQuery({
     queryKey: ['card-messages', card?.id],
-    queryFn: () => base44.entities.VideoMessage.filter({ card_id: card.id }, '-created_date'),
+    queryFn: () => legacyApi.entities.VideoMessage.filter({ card_id: card.id }, '-created_date'),
     enabled: !!card?.id,
   });
 
   const handleLink = async () => {
     if (!selectedCardId) return;
     setLinking(true);
-    await base44.entities.Card.update(selectedCardId, {
+    await legacyApi.entities.Card.update(selectedCardId, {
       cert_number: cert,
       grading_company: companyKey.toUpperCase(),
     });
@@ -170,7 +170,7 @@ export default function GradedCertScan() {
         <AnimatePresence mode="wait">
           {!currentUser && (
             <motion.div key="login" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-              <Button onClick={() => base44.auth.redirectToLogin(window.location.href)} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+              <Button onClick={() => legacyApi.auth.redirectToLogin(window.location.href)} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
                 Sign in to Register This Card <ArrowRight className="w-4 h-4" />
               </Button>
               {cfg?.registryUrl && (
@@ -252,3 +252,4 @@ export default function GradedCertScan() {
     </div>
   );
 }
+

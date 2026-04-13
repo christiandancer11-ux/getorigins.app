@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, CheckCircle2, XCircle, Loader2, ShoppingBag, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ export default function OwnershipRequests({ userEmail }) {
 
   const { data: requests = [] } = useQuery({
     queryKey: ['ownership-requests', userEmail],
-    queryFn: () => base44.entities.CardOwnershipRequest.filter({ owner_email: userEmail, status: 'pending' }, '-created_date'),
+    queryFn: () => legacyApi.entities.CardOwnershipRequest.filter({ owner_email: userEmail, status: 'pending' }, '-created_date'),
     enabled: !!userEmail,
   });
 
@@ -21,7 +21,7 @@ export default function OwnershipRequests({ userEmail }) {
     setProcessingId(request.id);
 
     // 1. Mark the current card as sold/traded and update sold info
-    await base44.entities.Card.update(request.card_id, {
+    await legacyApi.entities.Card.update(request.card_id, {
       status: 'sold',
       sold_traded_date: new Date().toISOString(),
       sold_traded_value: request.sale_price || undefined,
@@ -29,10 +29,10 @@ export default function OwnershipRequests({ userEmail }) {
     });
 
     // 2. Mark the request as confirmed
-    await base44.entities.CardOwnershipRequest.update(request.id, { status: 'confirmed' });
+    await legacyApi.entities.CardOwnershipRequest.update(request.id, { status: 'confirmed' });
 
     // 3. Notify buyer by email
-    await base44.integrations.Core.SendEmail({
+    await legacyApi.integrations.Core.SendEmail({
       to: request.buyer_email,
       subject: `Ownership confirmed: ${request.card_name}`,
       body: `Great news! The previous owner has confirmed the sale of "${request.card_name}".
@@ -45,13 +45,13 @@ If you don't have an account yet, sign up at Origins to track your collection an
     });
 
     // 4. If buyer has an Origins account, add the card to their collection
-    const buyers = await base44.entities.User.filter({ email: request.buyer_email });
+    const buyers = await legacyApi.entities.User.filter({ email: request.buyer_email });
     if (buyers.length > 0) {
       // Find the original card to copy its details
-      const cards = await base44.entities.Card.filter({ id: request.card_id });
+      const cards = await legacyApi.entities.Card.filter({ id: request.card_id });
       const originalCard = cards[0];
       if (originalCard) {
-        await base44.entities.Card.create({
+        await legacyApi.entities.Card.create({
           name: originalCard.name,
           set_name: originalCard.set_name,
           sport: originalCard.sport,
@@ -75,10 +75,10 @@ If you don't have an account yet, sign up at Origins to track your collection an
   const handleReject = async (request) => {
     setProcessingId(request.id);
 
-    await base44.entities.CardOwnershipRequest.update(request.id, { status: 'rejected' });
+    await legacyApi.entities.CardOwnershipRequest.update(request.id, { status: 'rejected' });
 
     // Notify buyer it was denied
-    await base44.integrations.Core.SendEmail({
+    await legacyApi.integrations.Core.SendEmail({
       to: request.buyer_email,
       subject: `Transfer request denied: ${request.card_name}`,
       body: `The current owner of "${request.card_name}" has indicated this sale did not happen.
@@ -168,3 +168,4 @@ The card will remain in their collection. If you believe this is an error, pleas
     </div>
   );
 }
+

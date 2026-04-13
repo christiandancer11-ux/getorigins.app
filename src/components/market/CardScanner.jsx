@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, Loader2, RotateCcw, TrendingUp, ShoppingCart, Handshake, Star, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Plus, X, Award, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +30,7 @@ export default function CardScanner() {
       payload.grading_company = condition.grading_company;
       payload.grade = condition.grade;
     }
-    const res = await base44.functions.invoke('analyzeCardImage', payload);
+    const res = await legacyApi.functions.invoke('analyzeCardImage', payload);
     if (res.data?.error) {
       setError(res.data.error);
       setStep(STEP.ERROR);
@@ -55,7 +55,7 @@ export default function CardScanner() {
     setStep(STEP.UPLOADING);
     setError(null);
     setResult(null);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await legacyApi.integrations.Core.UploadFile({ file });
     setFrontUrl(file_url);
     setStep(STEP.CONDITION);
   };
@@ -63,7 +63,7 @@ export default function CardScanner() {
   const handleBackFile = async (file) => {
     if (!file) return;
     setStep(STEP.UPLOADING_BACK);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await legacyApi.integrations.Core.UploadFile({ file });
     setBackUrl(file_url);
     await analyzeCard(frontUrl, file_url, cardCondition);
   };
@@ -376,3 +376,4 @@ export default function CardScanner() {
     </div>
   );
 }
+

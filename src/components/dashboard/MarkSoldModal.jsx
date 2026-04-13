@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, DollarSign, Loader2, ArrowRightLeft, ShoppingBag, Search, TrendingUp, ShieldCheck, AlertTriangle, XCircle, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 function getVerification(value, comps) {
   if (!comps || !value) return null;
@@ -30,7 +30,7 @@ export default function MarkSoldModal({ card, onClose, onDone }) {
     setFetchingComps(true);
     setComps(null);
     setSubmitError(null);
-    const res = await base44.functions.invoke('fetchCardComps', {
+    const res = await legacyApi.functions.invoke('fetchCardComps', {
       card_name: card.name,
       set_name: card.set_name,
       year: card.year,
@@ -63,7 +63,7 @@ export default function MarkSoldModal({ card, onClose, onDone }) {
     setSaving(true);
 
     // 1. Update the card status
-    await base44.entities.Card.update(card.id, {
+    await legacyApi.entities.Card.update(card.id, {
       status,
       sold_traded_date: new Date().toISOString(),
       sold_traded_value: numVal || undefined,
@@ -89,7 +89,7 @@ export default function MarkSoldModal({ card, onClose, onDone }) {
         verified: verification ? verification.passes : null,
         market_pct: verification?.pct ?? null,
       };
-      await base44.entities.CardTrade.create(tradeEntry);
+      await legacyApi.entities.CardTrade.create(tradeEntry);
     }
 
     setSaving(false);
@@ -244,3 +244,4 @@ export default function MarkSoldModal({ card, onClose, onDone }) {
     </div>
   );
 }
+

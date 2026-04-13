@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { Trash2, Plus, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Trash2, Plus, Check, Loader2 } from 'lucide-react';
+import { createDiscordWebhook, deleteDiscordWebhook, getDiscordWebhooks, sendDiscordMessage } from '@/api/discord';
 
 export default function DiscordSetup() {
   const { user } = useAuth();
@@ -13,24 +13,34 @@ export default function DiscordSetup() {
   const [newUrl, setNewUrl] = useState('');
   const [serverName, setServerName] = useState('');
   const [loading, setLoading] = useState(true);
-  const [testing, setTesting] = useState(null);
+  const [testingId, setTestingId] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadWebhooks();
   }, [user]);
 
   const loadWebhooks = async () => {
-    try {
-      const data = await base44.entities.DiscordWebhook.filter({
-        user_email: user.email
-      });
-      setWebhooks(data);
-    } catch (e) {
-      console.error('Failed to load webhooks:', e);
-    } finally {
+    setLoading(true);
+    setError(null);
+
+    if (!user) {
+      setWebhooks([]);
       setLoading(false);
+      return;
     }
+
+    const { data, error } = await getDiscordWebhooks();
+    if (error) {
+      console.error('Failed to load webhooks:', error);
+      setError('Could not load Discord webhooks.');
+      setWebhooks([]);
+    } else {
+      setWebhooks(data || []);
+    }
+
+    setLoading(false);
   };
 
   const addWebhook = async () => {
@@ -38,55 +48,45 @@ export default function DiscordSetup() {
 
     try {
       setAdding(true);
-      await base44.entities.DiscordWebhook.create({
-        user_email: user.email,
-        webhook_url: newUrl,
-        server_name: serverName || 'My Server',
-        is_active: true,
-        created_at: new Date().toISOString()
-      });
+      await createDiscordWebhook({ server_name: serverName || 'My Server', webhook_url: newUrl.trim() });
       setNewUrl('');
       setServerName('');
       await loadWebhooks();
     } catch (e) {
+      console.error('Failed to add webhook:', e);
       alert('Failed to add webhook. Make sure the URL is valid.');
-      console.error(e);
     } finally {
       setAdding(false);
     }
   };
 
-  const deleteWebhook = async (id) => {
+  const deleteWebhookById = async (id) => {
     if (!confirm('Remove this webhook?')) return;
+
     try {
-      await base44.entities.DiscordWebhook.delete(id);
+      await deleteDiscordWebhook(id);
       await loadWebhooks();
     } catch (e) {
-      console.error('Failed to delete:', e);
+      console.error('Failed to delete webhook:', e);
+      alert('Failed to delete webhook.');
     }
   };
 
   const testWebhook = async (webhook) => {
-    try {
-      setTesting(webhook.id);
-      const response = await fetch(webhook.webhook_url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'Origins Test',
-          content: '✅ Your Discord webhook is working! Daily card summaries will appear here.'
-        })
-      });
+    setTestingId(webhook.id);
 
-      if (response.ok) {
-        alert('✅ Test message sent!');
+    try {
+      const { error } = await sendDiscordMessage({ webhookId: webhook.id, test: true });
+      if (error) {
+        alert('❌ Webhook test failed.');
       } else {
-        alert('❌ Webhook failed. Check the URL and try again.');
+        alert('✅ Test message sent successfully!');
       }
     } catch (e) {
-      alert('❌ Error testing webhook');
+      console.error('Webhook test error:', e);
+      alert('❌ Error testing webhook.');
     } finally {
-      setTesting(null);
+      setTestingId(null);
     }
   };
 
@@ -102,32 +102,38 @@ export default function DiscordSetup() {
     <div className="min-h-screen bg-background py-12 px-6">
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Discord Daily Updates</h1>
-          <p className="text-muted-foreground mb-8">Get top Buy/Hold/Sell picks and trending cards delivered to your Discord server daily.</p>
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Discord Growth Tools</h1>
+          <p className="text-muted-foreground mb-8">Securely connect Discord webhooks to post card shares, community updates, and activity from Origins.</p>
 
-          {/* Add Bot to Server */}
-          <Card className="p-6 mb-8 bg-indigo-500/10 border-indigo-500/30">
-            <h2 className="font-semibold text-foreground mb-2">🤖 Add Origins Bot to Your Server</h2>
-            <p className="text-sm text-muted-foreground mb-4">Add the bot to use slash commands like <code className="bg-secondary px-1 rounded">/market</code> and <code className="bg-secondary px-1 rounded">/trending</code> directly in Discord.</p>
-            <a
-              href="https://discord.com/oauth2/authorize?client_id=1491553491498307624&permissions=2684480512&integration_type=0&scope=bot+applications.commands"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full">
-                Add Origins Bot to Discord
-              </Button>
-            </a>
+          <Card className="p-6 mb-8 bg-secondary/30 border-border/50">
+            <h2 className="font-semibold text-foreground mb-4">Start sharing to Discord</h2>
+            <p className="text-sm text-muted-foreground mb-4">Register a webhook once, then use the Share Story button on any card to share updates to your server.</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <a
+                href="/discord"
+                className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                Configure Webhooks
+              </a>
+              <a
+                href="https://discord.com/new"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-xl border border-border/50 bg-background px-4 py-3 text-sm font-semibold text-foreground hover:border-primary"
+              >
+                Open Discord
+              </a>
+            </div>
           </Card>
 
           {/* Setup Instructions */}
           <Card className="p-6 mb-8 bg-secondary/30 border-border/50">
-            <h2 className="font-semibold text-foreground mb-4">How to set up webhooks:</h2>
+            <h2 className="font-semibold text-foreground mb-4">How to connect</h2>
             <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-              <li>In Discord, go to your server → Server Settings → Integrations</li>
-              <li>Create a new Webhook and copy its URL</li>
-              <li>Paste the URL below and save</li>
-              <li>Daily summaries will post automatically at 8 AM CT</li>
+              <li>Open your Discord server → Server Settings → Integrations.</li>
+              <li>Create a new Webhook and copy its URL.</li>
+              <li>Paste the URL below and save it here.</li>
+              <li>Then use Share Story on a card to post to Discord.</li>
             </ol>
           </Card>
 
@@ -185,7 +191,7 @@ export default function DiscordSetup() {
                         <h4 className="font-semibold text-foreground">{webhook.server_name}</h4>
                         {webhook.is_active && <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">Active</span>}
                       </div>
-                      <p className="text-xs text-muted-foreground font-mono truncate">{webhook.webhook_url}</p>
+                      <p className="text-xs text-muted-foreground">Webhook configuration saved securely.</p>
                       {webhook.last_posted && (
                         <p className="text-xs text-muted-foreground mt-1">
                           Last posted: {new Date(webhook.last_posted).toLocaleDateString()}
@@ -195,12 +201,12 @@ export default function DiscordSetup() {
                     <div className="flex gap-2 shrink-0">
                       <Button
                         onClick={() => testWebhook(webhook)}
-                        disabled={testing === webhook.id}
+                        disabled={testingId === webhook.id}
                         variant="outline"
                         size="sm"
                         className="text-xs"
                       >
-                        {testing === webhook.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                        {testingId === webhook.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                         Test
                       </Button>
                       <Button
@@ -222,3 +228,4 @@ export default function DiscordSetup() {
     </div>
   );
 }
+

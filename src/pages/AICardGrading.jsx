@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +42,7 @@ function ImageCapture({ step, onCapture }) {
     const localUrl = URL.createObjectURL(file);
     setPreview(localUrl);
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await legacyApi.integrations.Core.UploadFile({ file });
     setUploading(false);
     onCapture({ url: file_url, localUrl });
   };
@@ -150,7 +150,7 @@ export default function AICardGrading() {
       for (const step of steps) {
         const cap = newCaptures[step.id];
         const apiStep = stepToApiStep(step.id);
-        const res = await base44.functions.invoke('aiCardGrading', {
+        const res = await legacyApi.functions.invoke('aiCardGrading', {
           imageUrls: [cap.url],
           step: apiStep,
           stepId: step.id,
@@ -162,7 +162,7 @@ export default function AICardGrading() {
 
       // Final aggregation
       const summaryText = stepResults.map(s => `[${s.stepId}]: ${JSON.stringify(s.data)}`).join('\n\n');
-      const finalRes = await base44.functions.invoke('aiCardGrading', {
+      const finalRes = await legacyApi.functions.invoke('aiCardGrading', {
         imageUrls: [summaryText],
         step: 'final',
         cardType,
@@ -306,3 +306,4 @@ export default function AICardGrading() {
     </div>
   );
 }
+

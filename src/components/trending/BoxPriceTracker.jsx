@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Loader2, ExternalLink, ChevronDown, ChevronUp, ShoppingCart, Tag, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 const PRODUCT_TYPE_LABELS = {
   hobby_box: 'Hobby Box',
@@ -165,7 +165,7 @@ export default function BoxPriceTracker({ category }) {
     setLoading(true);
     setData(null);
     try {
-      const res = await base44.functions.invoke('fetchBoxPrices', { category }, { signal });
+      const res = await legacyApi.functions.invoke('fetchBoxPrices', { category }, { signal });
       if (res.data && !res.data.error) {
         setData(res.data);
       }
@@ -235,3 +235,4 @@ export default function BoxPriceTracker({ category }) {
     </div>
   );
 }
+

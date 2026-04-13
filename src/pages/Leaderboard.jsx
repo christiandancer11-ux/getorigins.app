@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, Eye, MessageCircle, Users, Handshake, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,27 +19,27 @@ export default function Leaderboard() {
 
   const { data: cards = [], isLoading: loadingCards } = useQuery({
     queryKey: ['all-cards-lb'],
-    queryFn: () => base44.entities.Card.list(),
+    queryFn: () => legacyApi.entities.Card.list(),
   });
 
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
     queryKey: ['all-messages-lb'],
-    queryFn: () => base44.entities.VideoMessage.list(),
+    queryFn: () => legacyApi.entities.VideoMessage.list(),
   });
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['all-users-lb'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => legacyApi.entities.User.list(),
   });
 
   const { data: scanEvents = [], isLoading: loadingScanEvents } = useQuery({
     queryKey: ['all-scan-events-lb'],
-    queryFn: () => base44.entities.ScanEvent.list('-created_date', 2000),
+    queryFn: () => legacyApi.entities.ScanEvent.list('-created_date', 2000),
   });
 
   const { data: trades = [], isLoading: loadingTrades } = useQuery({
     queryKey: ['all-trades-lb'],
-    queryFn: () => base44.entities.CardTrade.list('-created_date', 1000),
+    queryFn: () => legacyApi.entities.CardTrade.list('-created_date', 1000),
   });
 
   const isLoading = loadingCards || loadingMessages || loadingUsers || loadingScanEvents || loadingTrades;
@@ -183,3 +183,4 @@ export default function Leaderboard() {
     </div>
   );
 }
+

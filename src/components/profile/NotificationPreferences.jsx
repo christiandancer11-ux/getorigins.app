@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { updateUserProfile } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Bell, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -27,9 +27,16 @@ export default function NotificationPreferences({ user }) {
   const [saving, setSaving] = useState(false);
 
   const saveMutation = useMutation({
-    mutationFn: () => base44.auth.updateMe(prefs),
+    mutationFn: async () => {
+      if (!user?.id) {
+        throw new Error('User must be signed in to update preferences');
+      }
+      return updateUserProfile(user.id, prefs);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
+    },
+    onSettled: () => {
       setSaving(false);
     },
   });
@@ -93,3 +100,4 @@ export default function NotificationPreferences({ user }) {
     </motion.div>
   );
 }
+

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { QrCode, Plus, MessageCircle, DollarSign, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import AddMessageForm from '../components/card-detail/AddMessageForm.jsx';
 import BuyFromOwnerPanel from '../components/scan/BuyFromOwnerPanel.jsx';
 
 import { detectGradingQR } from '@/lib/gradingCompanies';
+import { getCardByUniqueCode, updateCard, createScanEvent } from '@/lib/db';
 
 export default function ScanCard() {
   const { code } = useParams();
@@ -28,37 +28,30 @@ export default function ScanCard() {
   const { data: card, isLoading: cardLoading } = useQuery({
     queryKey: ['card-by-code', code],
     queryFn: async () => {
-      const cards = await base44.entities.Card.filter({ unique_code: code });
-      return cards[0] || null;
+      const res = await getCardByUniqueCode(code);
+      return res.data ?? null;
     },
   });
 
   // Increment scan count and log scan event once per page load
   useEffect(() => {
     if (card?.id) {
-      base44.entities.Card.update(card.id, { scan_count: (card.scan_count || 0) + 1 });
+      updateCard(card.id, { scan_count: (card.scan_count || 0) + 1 });
 
-      // Generate or retrieve anonymous visitor ID
       let visitorId = localStorage.getItem('origins_visitor_id');
       if (!visitorId) {
         visitorId = Math.random().toString(36).slice(2) + Date.now().toString(36);
         localStorage.setItem('origins_visitor_id', visitorId);
       }
 
-      base44.entities.ScanEvent.create({
+      createScanEvent({
         card_id: card.id,
-        card_owner_email: card.created_by,
-        hour_of_day: new Date().getHours(),
-        visitor_id: visitorId,
+        scanner_id: visitorId,
       });
     }
   }, [card?.id]);
 
-  const { data: messages = [] } = useQuery({
-    queryKey: ['card-messages', card?.id],
-    queryFn: () => base44.entities.VideoMessage.filter({ card_id: card.id }, '-created_date'),
-    enabled: !!card?.id,
-  });
+  const messages = [];
 
   if (cardLoading) {
     return (
@@ -171,3 +164,4 @@ export default function ScanCard() {
     </div>
   );
 }
+

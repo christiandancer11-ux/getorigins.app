@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,22 +33,22 @@ export default function AdminCodes() {
 
   const { data: codes = [], isLoading } = useQuery({
     queryKey: ['promo-codes'],
-    queryFn: () => base44.entities.PromoCode.list('-created_date', 100),
+    queryFn: () => legacyApi.entities.PromoCode.list('-created_date', 100),
   });
 
   const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['admin-all-users'],
-    queryFn: () => base44.entities.User.list('-created_date', 200),
+    queryFn: () => legacyApi.entities.User.list('-created_date', 200),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.PromoCode.update(id, { is_active: false }),
+    mutationFn: (id) => legacyApi.entities.PromoCode.update(id, { is_active: false }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['promo-codes'] }),
   });
 
   const handleGenerate = async () => {
     setGenerating(true);
-    const res = await base44.functions.invoke('generateAdminCode', {
+    const res = await legacyApi.functions.invoke('generateAdminCode', {
       type: genType, count: genCount, notes: genNotes, max_uses: genType === 'admin_gift' ? 1 : null,
     });
     if (res.data?.codes) {
@@ -66,7 +66,7 @@ export default function AdminCodes() {
 
   const handleTagChange = async (userId, tag) => {
     setUpdatingTag(userId);
-    await base44.entities.User.update(userId, { dealer_tag: tag });
+    await legacyApi.entities.User.update(userId, { dealer_tag: tag });
     qc.invalidateQueries({ queryKey: ['admin-all-users'] });
     setUpdatingTag('');
   };
@@ -222,3 +222,4 @@ export default function AdminCodes() {
     </div>
   );
 }
+

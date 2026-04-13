@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { updateUserProfile } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { X, Loader2, Upload } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -34,21 +34,17 @@ export default function EditProfileModal({ user, onClose }) {
     whatnot: user.whatnot || '',
   });
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(prev => ({ ...prev, avatar_url: file_url }));
-    setUploading(false);
+  const handleAvatarUrlChange = (value) => {
+    setForm(prev => ({ ...prev, avatar_url: value }));
   };
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.auth.updateMe(form);
-    queryClient.invalidateQueries({ queryKey: ['current-user'] });
+    const res = await updateUserProfile(user.id, form);
+    if (!res.error) {
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+    }
     setSaving(false);
     onClose();
   };
@@ -86,13 +82,16 @@ export default function EditProfileModal({ user, onClose }) {
                   : <div className="w-full h-full flex items-center justify-center text-2xl">👤</div>
                 }
               </div>
-              <label className="cursor-pointer">
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                <Button variant="outline" size="sm" className="border-border/50 pointer-events-none">
-                  {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                  {uploading ? 'Uploading...' : 'Upload Photo'}
-                </Button>
-              </label>
+              <div className="flex-1">
+                <Label className="text-foreground mb-1 block text-sm">Avatar URL</Label>
+                <Input
+                  value={form.avatar_url}
+                  onChange={e => handleAvatarUrlChange(e.target.value)}
+                  placeholder="https://..."
+                  className="bg-secondary border-border"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">Paste a public image URL to update your avatar.</p>
+              </div>
             </div>
 
             {/* Bio */}
@@ -138,3 +137,4 @@ export default function EditProfileModal({ user, onClose }) {
     </AnimatePresence>
   );
 }
+

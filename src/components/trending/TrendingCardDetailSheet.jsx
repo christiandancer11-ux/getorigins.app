@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Flame, TrendingUp, TrendingDown, Minus, Loader2, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 const trendIcon = (trend) => {
   if (trend === 'up')   return <TrendingUp className="w-4 h-4 text-emerald-400" />;
@@ -28,7 +28,7 @@ export default function TrendingCardDetailSheet({ card, onClose, viewMode }) {
   const fetchAnalysis = async () => {
     setLoading(true);
     setAnalysis(null);
-    const res = await base44.functions.invoke('analyzeTrendingCard', { card, viewMode });
+    const res = await legacyApi.functions.invoke('analyzeTrendingCard', { card, viewMode });
     if (res.data && !res.data.error) setAnalysis(res.data);
     setLoading(false);
   };
@@ -179,3 +179,4 @@ function Section({ title, content }) {
     </div>
   );
 }
+

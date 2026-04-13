@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { BarChart2, TrendingUp, DollarSign, Handshake, Lock, Zap, Trophy, Flame } from 'lucide-react';
+import { getRecentTrades } from '@/lib/db';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { motion } from 'framer-motion';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -45,7 +45,10 @@ export default function TradeDashboard() {
 
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['trade-dash'],
-    queryFn: () => base44.entities.CardTrade.list('-created_date', 500),
+    queryFn: async () => {
+      const res = await getRecentTrades({ limit: 500 });
+      return res.data ?? [];
+    },
     enabled: isPro,
   });
 
@@ -238,3 +241,4 @@ export default function TradeDashboard() {
     </div>
   );
 }
+

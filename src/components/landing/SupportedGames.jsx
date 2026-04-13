@@ -4,27 +4,27 @@ import { motion } from 'framer-motion';
 const GAMES = [
   {
     name: 'Pokémon',
-    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/198d6239a_generated_image.png',
+    img: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/198d6239a_generated_image.png',
   },
   {
     name: 'Magic: TG',
-    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/296169368_generated_image.png',
+    img: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/296169368_generated_image.png',
   },
   {
     name: 'Yu-Gi-Oh!',
-    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/f203740fd_generated_image.png',
+    img: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/f203740fd_generated_image.png',
   },
   {
     name: 'Lorcana',
-    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/e422a6473_generated_image.png',
+    img: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/e422a6473_generated_image.png',
   },
   {
     name: 'One Piece',
-    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/0134c7499_generated_image.png',
+    img: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/0134c7499_generated_image.png',
   },
   {
     name: 'Sports Cards',
-    img: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/1ccbf62c9_generated_image.png',
+    img: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/1ccbf62c9_generated_image.png',
   },
 ];
 

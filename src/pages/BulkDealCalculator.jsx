@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ function CorrectionModal({ card, onClose, onCorrected }) {
     setLoading(true);
     try {
       const urls = [card.frontUrl, card.backUrl].filter(Boolean);
-      const res = await base44.functions.invoke('bulkDealCalculator', {
+      const res = await legacyApi.functions.invoke('bulkDealCalculator', {
         imageUrls: urls,
         correctionHint: hint.trim(),
       });
@@ -318,13 +318,13 @@ export default function BulkDealCalculator() {
       toAnalyze.map(async (card) => {
         try {
           const uploadedUrls = [];
-          const { file_url: frontUrl } = await base44.integrations.Core.UploadFile({ file: card.frontFile });
+          const { file_url: frontUrl } = await legacyApi.integrations.Core.UploadFile({ file: card.frontFile });
           uploadedUrls.push(frontUrl);
           if (card.backFile) {
-            const { file_url: backUrl } = await base44.integrations.Core.UploadFile({ file: card.backFile });
+            const { file_url: backUrl } = await legacyApi.integrations.Core.UploadFile({ file: card.backFile });
             uploadedUrls.push(backUrl);
           }
-          const res = await base44.functions.invoke('bulkDealCalculator', { imageUrls: uploadedUrls });
+          const res = await legacyApi.functions.invoke('bulkDealCalculator', { imageUrls: uploadedUrls });
           setCards(prev => prev.map(c =>
             c.id === card.id
               ? { ...c, status: res.data?.result ? 'done' : 'error', result: res.data?.result || null }
@@ -559,3 +559,4 @@ export default function BulkDealCalculator() {
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -98,7 +98,7 @@ export default function AdminCardKnowledge() {
   useEffect(() => {
     const loadCards = async () => {
       try {
-        const result = await base44.entities.CardKnowledge.list('-updated_date', 100);
+        const result = await legacyApi.entities.CardKnowledge.list('-updated_date', 100);
         setCards(result);
       } catch (e) {
         toast.error('Failed to load card knowledge');
@@ -111,10 +111,10 @@ export default function AdminCardKnowledge() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const result = await base44.functions.invoke('syncCardKnowledge', {});
+      const result = await legacyApi.functions.invoke('syncCardKnowledge', {});
       toast.success(`Synced! Created: ${result.data.created}, Updated: ${result.data.updated}`);
       // Reload cards
-      const updated = await base44.entities.CardKnowledge.list('-updated_date', 100);
+      const updated = await legacyApi.entities.CardKnowledge.list('-updated_date', 100);
       setCards(updated);
     } catch (e) {
       toast.error('Sync failed: ' + e.message);
@@ -125,13 +125,13 @@ export default function AdminCardKnowledge() {
   const handleSaveCard = async (cardData) => {
     try {
       if (editingCard) {
-        await base44.entities.CardKnowledge.update(editingCard.id, cardData);
+        await legacyApi.entities.CardKnowledge.update(editingCard.id, cardData);
         toast.success('Card updated');
       } else {
-        await base44.entities.CardKnowledge.create(cardData);
+        await legacyApi.entities.CardKnowledge.create(cardData);
         toast.success('Card created');
       }
-      const updated = await base44.entities.CardKnowledge.list('-updated_date', 100);
+      const updated = await legacyApi.entities.CardKnowledge.list('-updated_date', 100);
       setCards(updated);
       setEditingCard(null);
     } catch (e) {
@@ -142,7 +142,7 @@ export default function AdminCardKnowledge() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this card knowledge?')) return;
     try {
-      await base44.entities.CardKnowledge.delete(id);
+      await legacyApi.entities.CardKnowledge.delete(id);
       toast.success('Card deleted');
       setCards(cards.filter(c => c.id !== id));
     } catch (e) {
@@ -237,3 +237,4 @@ export default function AdminCardKnowledge() {
     </div>
   );
 }
+

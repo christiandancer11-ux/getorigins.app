@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
+import { getMyTrades, getMyCards, getUserById } from '@/lib/db';
 import { Pencil, MessageCircle, QrCode, Trash2, LogOut, Handshake, DollarSign, ShieldCheck, CreditCard, MapPin, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SportBadge from '../components/shared/SportBadge';
@@ -29,48 +30,47 @@ export default function Profile() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const queryClient = useQueryClient();
+  const { user: authUser, signOut } = useAuth();
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
-    // Delete all user's cards, messages, trades
-    const [myCards, myTrades] = await Promise.all([
-      base44.entities.Card.list('-created_date'),
-      base44.entities.CardTrade.list('-created_date'),
-    ]);
-    await Promise.all([
-      ...myCards.map(c => base44.entities.Card.delete(c.id)),
-      ...myTrades.map(t => base44.entities.CardTrade.delete(t.id)),
-    ]);
-    queryClient.clear();
-    base44.auth.logout('/');
+    // Account deletion is temporarily disabled while migration completes.
+    setDeleting(false);
+    setShowDeleteConfirm(false);
   };
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: () => base44.auth.me(),
+    queryKey: ['current-user', authUser?.id],
+    queryFn: async () => {
+      const res = await getUserById(authUser?.id);
+      return res.data ?? null;
+    },
+    enabled: !!authUser?.id,
   });
 
   const { data: cards = [] } = useQuery({
-    queryKey: ['my-cards'],
-    queryFn: () => base44.entities.Card.list('-created_date'),
-    enabled: !!user,
+    queryKey: ['my-cards', authUser?.id],
+    queryFn: async () => {
+      const result = await getMyCards(authUser?.id);
+      return result.data ?? [];
+    },
+    enabled: !!authUser?.id,
   });
 
-  const { data: messages = [] } = useQuery({
-    queryKey: ['all-messages'],
-    queryFn: () => base44.entities.VideoMessage.list(),
-    enabled: !!user,
-  });
+  const messages = [];
 
   const { data: myTrades = [] } = useQuery({
-    queryKey: ['my-trades-profile'],
-    queryFn: () => base44.entities.CardTrade.filter({ created_by: user.email }, '-created_date', 50),
-    enabled: !!user,
+    queryKey: ['my-trades-profile', authUser?.id],
+    queryFn: async () => {
+      const result = await getMyTrades(authUser?.id);
+      return result.data ?? [];
+    },
+    enabled: !!authUser?.id,
   });
 
   const myMessageCount = messages.filter(m => cards.some(c => c.id === m.card_id)).length;
-  const tradeVolume = myTrades.reduce((s, t) => s + (t.total_value || 0), 0);
-  const verifiedTrades = myTrades.filter(t => t.verified).length;
+  const tradeVolume = myTrades.reduce((s, t) => s + (t.price || 0), 0);
+  const verifiedTrades = myTrades.filter(t => t.is_verified).length;
   const hasSocials = user && SOCIAL_CONFIG.some(s => user[s.key]);
 
   if (isLoading) {
@@ -231,7 +231,7 @@ export default function Profile() {
             variant="outline"
             size="sm"
             className="border-border/50 text-muted-foreground hover:text-foreground mb-4"
-            onClick={() => base44.auth.logout('/')}
+            onClick={() => signOut()}
           >
             <LogOut className="w-4 h-4 mr-2" />
             Log Out
@@ -243,9 +243,10 @@ export default function Profile() {
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="text-xs text-muted-foreground hover:text-destructive transition-colors underline underline-offset-2"
+              disabled
+              className="text-xs text-muted-foreground opacity-50 cursor-not-allowed underline underline-offset-2"
             >
-              Delete Account
+              Delete Account (disabled)
             </button>
           ) : (
             <div className="rounded-2xl bg-destructive/10 border border-destructive/20 p-5 text-left">
@@ -273,3 +274,4 @@ export default function Profile() {
     </div>
   );
 }
+

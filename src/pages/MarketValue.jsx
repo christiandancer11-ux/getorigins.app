@@ -1,271 +1,194 @@
 import React, { useState } from 'react';
-import { TrendingUp, Search, Loader2, BarChart2, ShoppingCart, AlertCircle, Camera, Lock, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getCardPriceSummary } from '@/lib/db';
+import { Search, TrendingUp } from 'lucide-react';
 
 export default function MarketValue() {
-  // TODO: Migrate market value search to Supabase
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Market Value</h1>
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Market value search is temporarily unavailable during migration.</p>
-      </div>
-    </div>
-  );
-}
-import SetAlertModal from '../components/alerts/SetAlertModal';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { motion, AnimatePresence } from 'framer-motion';
-import MarketSummaryCards from '../components/market/MarketSummaryCards';
-import SoldListingsTable from '../components/market/SoldListingsTable';
-import CardShowComps from '../components/market/CardShowComps';
-import CardScanner from '../components/market/CardScanner';
-import UpgradeModal from '../components/shared/UpgradeModal';
-import { useSubscription } from '../hooks/useSubscription';
-
-const TABS = [
-  { id: 'search', label: 'Search', icon: Search },
-  { id: 'scan', label: 'Scan & Value', icon: Camera },
-];
-
-export default function MarketValue() {
-  const [activeTab, setActiveTab] = useState('search');
-  const [searchInput, setSearchInput] = useState('');
-  const [activeSearch, setActiveSearch] = useState(null);
+  const [form, setForm] = useState({ card_name: '', set_name: '', year: '', card_number: '' });
+  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const [showAlertModal, setShowAlertModal] = useState(false);
-  const { isPro, loading: subLoading } = useSubscription();
 
-  const { data: allTrades = [] } = useQuery({
-    queryKey: ['card-trades'],
-    queryFn: () => base44.entities.CardTrade.list('-created_date', 500),
-    enabled: !!activeSearch,   // only fetch once a search is triggered
-    staleTime: 2 * 60 * 1000, // cache for 2 minutes
-  });
+  const setField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
-  const showTrades = useMemo(() => {
-    if (!activeSearch || !allTrades.length) return [];
-    const q = activeSearch.toLowerCase();
-    return allTrades.filter(t =>
-      [t.card_name, t.set_name, t.year, t.card_number].filter(Boolean)
-        .some(v => v.toLowerCase().includes(q))
-    );
-  }, [allTrades, activeSearch]);
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchInput.trim()) return;
-    setActiveSearch(searchInput.trim());
+  const handleSearch = async (event) => {
+    event.preventDefault();
     setLoading(true);
-    setResult(null);
+    setResults(null);
     setError(null);
-    const res = await base44.functions.invoke('fetchCardComps', { card_name: searchInput.trim() });
-    if (res.data?.error) setError(res.data.error);
-    else setResult(res.data);
+
+    const { data, error } = await getCardPriceSummary(form);
     setLoading(false);
+
+    if (error) {
+      setError('Unable to fetch market comps. Please try again.');
+      return;
+    }
+
+    setResults(data);
   };
 
-  if (subLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isPro) {
-    return (
-      <>
-        <div className="min-h-screen pt-24 pb-12 px-4 flex items-center justify-center">
-          <div className="max-w-md w-full text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
-              <Lock className="w-7 h-7 text-primary" />
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <TrendingUp className="w-6 h-6 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold">Market Value</h1>
+              <p className="text-sm text-muted-foreground">Search recent logged trades to estimate value from Supabase-backed comps.</p>
             </div>
-            <h2 className="font-display text-2xl font-bold text-foreground mb-2">Pro Feature</h2>
-            <p className="text-sm text-muted-foreground mb-6">Market Value — including live eBay comps, 130point data, and the AI Card Scanner — is part of Origins Pro.</p>
-            <Button onClick={() => setShowUpgrade(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8">
-              View Plans
-            </Button>
           </div>
         </div>
-        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} defaultPlan="pro" />}
-        {showAlertModal && (
-          <SetAlertModal
-            prefill={{ card_name: activeSearch }}
-            onClose={() => setShowAlertModal(false)}
-            onCreated={() => setShowAlertModal(false)}
-          />
-        )}
-      </>
-    );
-  }
 
-  return (
-    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto">
-
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-4">
-            <TrendingUp className="w-3.5 h-3.5" />Live Market Data
+        <form onSubmit={handleSearch} className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Card Name / Player</label>
+            <Input
+              value={form.card_name}
+              onChange={(e) => setField('card_name', e.target.value)}
+              placeholder="e.g. Mike Trout"
+              className="bg-secondary border-border"
+            />
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-2">Market Value</h1>
-          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Search by name or snap a photo — AI identifies the card and pulls live prices from eBay, 130point.com, and Origins community trades.
-          </p>
-        </motion.div>
 
-        {/* Tabs */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }} className="flex gap-2 p-1 rounded-xl bg-secondary/50 border border-border/50 mb-8 w-fit mx-auto">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              <tab.icon className="w-4 h-4" />{tab.label}
-            </button>
-          ))}
-        </motion.div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Set Name</label>
+            <Input
+              value={form.set_name}
+              onChange={(e) => setField('set_name', e.target.value)}
+              placeholder="e.g. Topps Chrome"
+              className="bg-secondary border-border"
+            />
+          </div>
 
-        <AnimatePresence mode="wait">
-          {activeTab === 'scan' ? (
-            <motion.div key="scan" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <CardScanner />
-            </motion.div>
-          ) : (
-            <motion.div key="search" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              {/* Search bar */}
-              <form onSubmit={handleSearch} className="flex gap-2 mb-8">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={searchInput}
-                    onChange={e => setSearchInput(e.target.value)}
-                    placeholder="e.g. 2011 Mike Trout RC, Charizard Base Set Holo, Black Lotus MTG, Blue-Eyes White Dragon LOB..."
-                    className="pl-9 bg-secondary border-border h-11"
-                  />
-                </div>
-                <Button type="submit" disabled={loading || !searchInput.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-5 shrink-0">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  <span className="ml-2 hidden sm:inline">{loading ? 'Searching...' : 'Search'}</span>
-                </Button>
-              </form>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Year</label>
+            <Input
+              value={form.year}
+              onChange={(e) => setField('year', e.target.value)}
+              placeholder="e.g. 2021"
+              className="bg-secondary border-border"
+            />
+          </div>
 
-              {loading && (
-                <div className="text-center py-16">
-                  <div className="inline-flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                      <TrendingUp className="w-6 h-6 text-primary animate-pulse" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground mb-1">Researching market prices...</p>
-                      <p className="text-sm text-muted-foreground">Pulling sold data from eBay & 130point.com</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Card #</label>
+            <Input
+              value={form.card_number}
+              onChange={(e) => setField('card_number', e.target.value)}
+              placeholder="e.g. /150"
+              className="bg-secondary border-border"
+            />
+          </div>
 
-              {error && (
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20 mb-6">
-                  <AlertCircle className="w-5 h-5 text-destructive mt-0.5 shrink-0" />
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
-              )}
+          <div className="sm:col-span-2 flex justify-end">
+            <Button type="submit" disabled={loading} className="flex items-center gap-2">
+              {loading ? 'Searching...' : 'Search Supabase Trades'}
+              <Search className="w-4 h-4" />
+            </Button>
+          </div>
+        </form>
 
-              <AnimatePresence mode="wait">
-                {result && !loading && (
-                  <motion.div key={activeSearch} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                    {result.insufficient_data && (
-                      <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-                        <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
-                        <p className="text-sm text-destructive leading-relaxed">
-                          <strong>Not enough data</strong> — fewer than 3 confirmed sold listings were found for this card. There is insufficient recent sales activity to determine a reliable market value. This may be a very low-population card or a card that rarely trades publicly.
-                        </p>
-                      </div>
-                    )}
-                    {!result.insufficient_data && result.low_data && (
-                      <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                        <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                        <p className="text-sm text-amber-300 leading-relaxed">
-                          <strong>Limited data</strong> — only {result.total_confirmed_sales_count} confirmed sales found. The estimated value may not fully reflect current market conditions.
-                        </p>
-                      </div>
-                    )}
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Results for</p>
-                        <h2 className="font-display text-xl font-bold text-foreground">{activeSearch}</h2>
-                        {result.search_query_used && result.search_query_used !== activeSearch && (
-                          <p className="text-xs text-muted-foreground mt-0.5">Searched as: <span className="italic">{result.search_query_used}</span></p>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => setShowAlertModal(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors shrink-0"
-                      >
-                        <Bell className="w-3.5 h-3.5" />Set Alert
-                      </button>
-                    </div>
-                    <MarketSummaryCards
-                      result={result}
-                      showTradesCount={showTrades.length}
-                      conditionLabel={(() => {
-                        const q = activeSearch || '';
-                        const gradedMatch = q.match(/\b(PSA|BGS|SGC|CGC|HGA|CSG)\s*([\d.]+)/i);
-                        if (gradedMatch) return `${gradedMatch[1].toUpperCase()} ${gradedMatch[2]} (Graded)`;
-                        if (/\braw\b|\bungraded\b/i.test(q)) return 'Raw / Ungraded';
-                        return null;
-                      })()}
-                    />
-                    {result.market_summary && (
-                      <div className="rounded-2xl bg-card border border-border/50 p-5">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                          <BarChart2 className="w-3.5 h-3.5" />Market Analysis
-                        </p>
-                        <p className="text-sm text-foreground leading-relaxed">{result.market_summary}</p>
-                      </div>
-                    )}
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <SoldListingsTable title="eBay Sold Listings" icon={ShoppingCart} sales={result.ebay_recent_sales || []} avg={result.ebay_avg} low={result.ebay_low} high={result.ebay_high} salesCount={result.ebay_sales_count} accentColor="text-blue-400" bgColor="bg-blue-400/10" borderColor="border-blue-400/20" />
-                      <SoldListingsTable title="130point.com Sales" icon={TrendingUp} sales={result.point130_recent_sales || []} avg={result.point130_avg} low={result.point130_low} high={result.point130_high} salesCount={null} accentColor="text-emerald-400" bgColor="bg-emerald-400/10" borderColor="border-emerald-400/20" />
-                      {result.tcgplayer_market_price != null || (result.tcgplayer_recent_sales && result.tcgplayer_recent_sales.length > 0) ? (
-                        <SoldListingsTable title="TCGPlayer Verified Dealers" icon={ShoppingCart} sales={result.tcgplayer_recent_sales || []} avg={result.tcgplayer_market_price} low={result.tcgplayer_low} high={result.tcgplayer_high} salesCount={null} accentColor="text-violet-400" bgColor="bg-violet-400/10" borderColor="border-violet-400/20" />
-                      ) : null}
-                    </div>
-                    <CardShowComps trades={showTrades} query={activeSearch} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {!result && !loading && !error && (
-                <div className="text-center py-16 px-4">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
-                    <TrendingUp className="w-7 h-7 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">Search for any card</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                    Enter a player name, set, year, or grade — or switch to <button onClick={() => setActiveTab('scan')} className="text-primary underline">Scan & Value</button> to photograph a card directly.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2 mt-6">
-                    {['2011 Mike Trout Topps Update RC', 'LeBron James Prizm PSA 10', 'Charizard Base Set Holo', 'Patrick Mahomes Rookie', 'Blue-Eyes White Dragon LOB 1st Edition', 'Black Lotus Alpha MTG', 'Pikachu Illustrator PSA 10', 'One Piece Luffy OP01'].map(ex => (
-                      <button key={ex} onClick={() => setSearchInput(ex)}
-                        className="text-xs px-3 py-1.5 rounded-full bg-secondary border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
-                        {ex}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
+        <div className="mt-8 space-y-4">
+          {error && (
+            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+              {error}
+            </div>
           )}
-        </AnimatePresence>
 
+          {results ? (
+            <div className="rounded-3xl border border-border/50 bg-secondary/30 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Results</p>
+                  <h2 className="text-xl font-semibold text-foreground">{results.market_summary || 'Recent trade comps'}</h2>
+                </div>
+                {results.average_price != null && (
+                  <div className="rounded-2xl bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+                    Avg: ${results.average_price.toFixed(2)}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3 text-sm text-muted-foreground">
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50">
+                  <p className="font-semibold text-foreground">Low</p>
+                  <p>{results.min_price != null ? `$${results.min_price.toFixed(2)}` : '—'}</p>
+                </div>
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50">
+                  <p className="font-semibold text-foreground">High</p>
+                  <p>{results.max_price != null ? `$${results.max_price.toFixed(2)}` : '—'}</p>
+                </div>
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50">
+                  <p className="font-semibold text-foreground">Sales</p>
+                  <p>{results.recent_sales?.length ?? 0}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3 text-sm text-muted-foreground mt-4">
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50">
+                  <p className="font-semibold text-foreground">Median</p>
+                  <p>{results.median_price != null ? `$${results.median_price.toFixed(2)}` : '—'}</p>
+                </div>
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50">
+                  <p className="font-semibold text-foreground">7d Trend</p>
+                  <p>{results.trend_7d_pct != null ? `${results.trend_7d_pct >= 0 ? '+' : ''}${results.trend_7d_pct.toFixed(1)}%` : '—'}</p>
+                </div>
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50">
+                  <p className="font-semibold text-foreground">30d Trend</p>
+                  <p>{results.trend_30d_pct != null ? `${results.trend_30d_pct >= 0 ? '+' : ''}${results.trend_30d_pct.toFixed(1)}%` : '—'}</p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50 text-sm text-muted-foreground">
+                  <p className="font-semibold text-foreground">Price Volatility</p>
+                  <p>{results.volatility_pct != null ? `${results.volatility_pct.toFixed(1)}%` : '—'}</p>
+                </div>
+                <div className="rounded-2xl bg-background/80 p-4 border border-border/50 text-sm text-muted-foreground">
+                  <p className="font-semibold text-foreground">Confidence</p>
+                  <p>{results.confidence_score != null ? `${results.confidence_score}%` : '—'}</p>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl bg-background/80 border border-border/50 p-4">
+                <p className="text-sm font-semibold text-foreground">Estimated next sale range</p>
+                <p className="mt-1 text-base text-foreground">
+                  {results.estimated_next_low != null && results.estimated_next_high != null
+                    ? `$${results.estimated_next_low.toFixed(0)} - $${results.estimated_next_high.toFixed(0)}`
+                    : 'Not enough data to estimate range'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {results.sample_size != null ? `Based on ${results.sample_size} Supabase trades` : 'Based on available trade comps'}
+                </p>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {results.recent_sales && results.recent_sales.length > 0 ? (
+                  results.recent_sales.slice(0, 8).map((trade) => (
+                    <div key={trade.id} className="rounded-2xl border border-border/50 bg-background/80 p-4">
+                      <div className="flex items-center justify-between gap-2 text-sm">
+                        <p className="font-semibold text-foreground">{trade.card_name || 'Unknown card'}</p>
+                        <p className="font-semibold text-primary">${(trade.total_value || trade.price || 0).toFixed(2)}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{trade.set_name || trade.brand || ''} • {trade.year || ''} {trade.card_number ? `• ${trade.card_number}` : ''}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-border/50 bg-background/80 p-4 text-sm text-muted-foreground">
+                    No recent trade comps found for the entered criteria.
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-border/50 bg-secondary/30 p-6 text-sm text-muted-foreground">
+              Enter card details above and click search to use Supabase trade comps as a pricing fallback.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

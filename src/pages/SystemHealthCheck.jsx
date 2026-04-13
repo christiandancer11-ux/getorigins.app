@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, AlertCircle, Clock, Loader } from 'lucide-react';
@@ -11,7 +11,7 @@ export default function SystemHealthCheck() {
   const runTests = async () => {
     setLoading(true);
     try {
-      const response = await base44.functions.invoke('systemHealthCheck', {});
+      const response = await legacyApi.functions.invoke('systemHealthCheck', {});
       setResults(response.data);
     } catch (err) {
       setResults({ error: err.message });
@@ -158,3 +158,4 @@ export default function SystemHealthCheck() {
     </div>
   );
 }
+

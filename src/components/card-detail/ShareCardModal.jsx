@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, Check, Download, ExternalLink, QrCode } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import html2canvas from 'html2canvas';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { getDiscordWebhooks, sendDiscordMessage } from '@/api/discord';
 import { updateCard } from '@/lib/db';
 
 const PLATFORMS = [
@@ -65,7 +66,7 @@ const PLATFORMS = [
 ];
 
 function PreviewCard({ card, messages, previewRef }) {
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.origin + '/scan/' + card.unique_code)}&bgcolor=0d1117&color=e5a825&format=svg`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.origin + '/cards/' + card.id)}&bgcolor=0d1117&color=e5a825&format=svg`;
 
   const sportEmojis = {
     baseball: '⚾', basketball: '🏀', football: '🏈', hockey: '🏒',
@@ -149,7 +150,7 @@ function PreviewCard({ card, messages, previewRef }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div>
           <p style={{ color: '#e5a825', fontWeight: '700', fontSize: '13px', marginBottom: '2px' }}>Scan to explore this card's journey</p>
-          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>{window.location.origin}/scan/{card.unique_code}</p>
+          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>{window.location.origin}/cards/{card.id}</p>
         </div>
         <img src={qrUrl} alt="QR" style={{ width: '60px', height: '60px', borderRadius: '8px', border: '1px solid rgba(229,168,37,0.3)' }} />
       </div>
@@ -158,8 +159,13 @@ function PreviewCard({ card, messages, previewRef }) {
 }
 
 export default function ShareCardModal({ card, messages, onClose }) {
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [discordReady, setDiscordReady] = useState(false);
+  const [discordLoading, setDiscordLoading] = useState(false);
+  const [discordSending, setDiscordSending] = useState(false);
+  const [discordFeedback, setDiscordFeedback] = useState(null);
   const previewRef = useRef(null);
 
   // Increment share count when modal opens
@@ -169,7 +175,24 @@ export default function ShareCardModal({ card, messages, onClose }) {
     }
   }, []);
 
-  const shareLink = `${window.location.origin}/scan/${card.unique_code}`;
+  useEffect(() => {
+    const loadDiscordStatus = async () => {
+      setDiscordLoading(true);
+      if (!user) {
+        setDiscordReady(false);
+        setDiscordLoading(false);
+        return;
+      }
+
+      const { data, error } = await getDiscordWebhooks();
+      setDiscordReady(!error && Array.isArray(data) && data.length > 0);
+      setDiscordLoading(false);
+    };
+
+    loadDiscordStatus();
+  }, [user]);
+
+  const shareLink = `${window.location.origin}/cards/${card.id}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(shareLink);
@@ -182,10 +205,47 @@ export default function ShareCardModal({ card, messages, onClose }) {
     setDownloading(true);
     const canvas = await html2canvas(previewRef.current, { backgroundColor: null, scale: 2, useCORS: true, allowTaint: true });
     const link = document.createElement('a');
-    link.download = `origins-${card.unique_code}.png`;
+    link.download = `origins-${card.id}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     setDownloading(false);
+  };
+
+  const handleShareDiscord = async () => {
+    if (!user) {
+      setDiscordFeedback('Sign in to share to Discord.');
+      return;
+    }
+
+    setDiscordSending(true);
+    setDiscordFeedback(null);
+    try {
+      const { data, error } = await sendDiscordMessage({
+        card: {
+          id: card.id,
+          name: card.name,
+          set_name: card.set_name,
+          year: card.year,
+          card_number: card.card_number,
+          sport: card.sport,
+          description: card.description,
+          estimated_value: card.estimated_value,
+        },
+        shareUrl,
+      });
+
+      if (error) {
+        console.error('Discord share failed', error);
+        setDiscordFeedback('Failed to share to Discord.');
+      } else {
+        setDiscordFeedback(`Shared to ${data?.successCount || 0} Discord webhook(s).`);
+      }
+    } catch (err) {
+      console.error('Discord share error', err);
+      setDiscordFeedback('Failed to share to Discord.');
+    } finally {
+      setDiscordSending(false);
+    }
   };
 
   return (
@@ -249,6 +309,42 @@ export default function ShareCardModal({ card, messages, onClose }) {
               </div>
             </div>
 
+            {/* Discord Share */}
+            <div className="space-y-3">
+              <div className="flex flex-col gap-3 rounded-2xl border border-border/50 bg-secondary/40 p-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Share to Discord</p>
+                  <p className="text-sm text-muted-foreground">Post this card to your registered Discord webhooks. Configure webhooks on the Discord page if you haven't yet.</p>
+                </div>
+                {discordFeedback && (
+                  <div className="rounded-xl border border-border/50 bg-background/80 p-3 text-sm text-foreground">
+                    {discordFeedback}
+                  </div>
+                )}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button
+                    onClick={handleShareDiscord}
+                    disabled={discordSending || discordLoading || !discordReady}
+                    className="w-full bg-indigo-600 text-white hover:bg-indigo-700"
+                  >
+                    {discordSending ? 'Sharing...' : 'Share to Discord'}
+                  </Button>
+                  <a
+                    href="/discord"
+                    className="inline-flex items-center justify-center rounded-xl border border-border/50 bg-background px-4 py-2 text-sm font-semibold text-foreground hover:border-primary"
+                  >
+                    Configure Webhooks
+                  </a>
+                </div>
+                {!user && (
+                  <p className="text-xs text-muted-foreground">Sign in to enable Discord sharing.</p>
+                )}
+                {user && !discordLoading && !discordReady && (
+                  <p className="text-xs text-muted-foreground">No active Discord webhooks found. Add one in Discord settings.</p>
+                )}
+              </div>
+            </div>
+
             {/* Platform Buttons */}
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Share to Platform</p>
@@ -289,3 +385,4 @@ export default function ShareCardModal({ card, messages, onClose }) {
     </AnimatePresence>
   );
 }
+

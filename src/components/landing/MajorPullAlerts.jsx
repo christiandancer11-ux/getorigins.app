@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Bell, TrendingDown } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 
 export default function MajorPullAlerts() {
   const [pulls, setPulls] = useState([]);
@@ -10,7 +10,7 @@ export default function MajorPullAlerts() {
   useEffect(() => {
     const fetchLatestPulls = async () => {
       try {
-        const recentPulls = await base44.entities.MajorPullAlert.filter({
+        const recentPulls = await legacyApi.entities.MajorPullAlert.filter({
           status: 'active',
           verified: true
         }, '-created_date', 5);
@@ -82,3 +82,4 @@ export default function MajorPullAlerts() {
     </motion.div>
   );
 }
+

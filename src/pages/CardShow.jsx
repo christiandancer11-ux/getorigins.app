@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
 import { Handshake, Plus, TrendingUp, DollarSign, RefreshCw, Lock, Ban, Radio, LayoutList } from 'lucide-react';
@@ -12,6 +11,8 @@ import TradeLiveFeed from '../components/card-show/TradeLiveFeed';
 import EmptyState from '../components/shared/EmptyState';
 import UpgradeModal from '../components/shared/UpgradeModal';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAuth } from '@/lib/AuthContext';
+import { getRecentTrades } from '@/lib/db';
 
 export default function CardShow() {
   const [showLog, setShowLog] = useState(false);
@@ -20,20 +21,20 @@ export default function CardShow() {
   const [sport, setSport] = useState('all');
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [userBanned, setUserBanned] = useState(false);
-  const [currentUserEmail, setCurrentUserEmail] = useState('');
   const { isPro, loading: subLoading } = useSubscription();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      if (u?.trade_banned) setUserBanned(true);
-      if (u?.email) setCurrentUserEmail(u.email);
-    });
-  }, []);
+    setUserBanned(!!user?.trade_banned);
+  }, [user]);
 
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['card-trades'],
-    queryFn: () => base44.entities.CardTrade.list('-created_date', 200),
+    queryFn: async () => {
+      const res = await getRecentTrades({ limit: 200 });
+      return res.data ?? [];
+    },
   });
 
   const { containerRef, PullIndicator } = usePullToRefresh(async () => {
@@ -162,7 +163,7 @@ export default function CardShow() {
         </div>
 
         {activeTab === 'live' ? (
-          <TradeLiveFeed currentUserEmail={currentUserEmail} />
+          <TradeLiveFeed currentUserEmail={user?.email || ''} />
         ) : (
           <>
             {/* Filters */}
@@ -215,3 +216,4 @@ export default function CardShow() {
     </div>
   );
 }
+

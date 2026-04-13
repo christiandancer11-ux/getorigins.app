@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ShieldAlert, Plus, Bell, BellOff, MapPin, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,21 +15,21 @@ export default function BOLOAlerts() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    legacyApi.auth.me().then(u => {
       if (u) setCurrentUser(u);
     });
   }, []);
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ['bolo-alerts'],
-    queryFn: () => base44.entities.BOLOAlert.filter({ status: 'active' }, '-created_date', 50),
+    queryFn: () => legacyApi.entities.BOLOAlert.filter({ status: 'active' }, '-created_date', 50),
   });
 
   const { data: myLocation } = useQuery({
     queryKey: ['my-location'],
     queryFn: async () => {
       if (!currentUser) return null;
-      const locs = await base44.entities.UserLocation.filter({ user_email: currentUser.email });
+      const locs = await legacyApi.entities.UserLocation.filter({ user_email: currentUser.email });
       return locs[0] || null;
     },
     enabled: !!currentUser,
@@ -48,9 +48,9 @@ export default function BOLOAlerts() {
           bolo_notifications_enabled: true,
         };
         if (myLocation) {
-          await base44.entities.UserLocation.update(myLocation.id, data);
+          await legacyApi.entities.UserLocation.update(myLocation.id, data);
         } else {
-          await base44.entities.UserLocation.create(data);
+          await legacyApi.entities.UserLocation.create(data);
         }
         queryClient.invalidateQueries({ queryKey: ['my-location'] });
         setSavingLocation(false);
@@ -64,7 +64,7 @@ export default function BOLOAlerts() {
 
   const handleToggleNotifications = async () => {
     if (!myLocation) return;
-    await base44.entities.UserLocation.update(myLocation.id, {
+    await legacyApi.entities.UserLocation.update(myLocation.id, {
       bolo_notifications_enabled: !myLocation.bolo_notifications_enabled,
     });
     queryClient.invalidateQueries({ queryKey: ['my-location'] });
@@ -177,3 +177,4 @@ export default function BOLOAlerts() {
     </div>
   );
 }
+

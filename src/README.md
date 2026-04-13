@@ -20,10 +20,10 @@ A cutting-edge platform for trading card collectors to register, track, and shar
 - **Frontend**: React 18 with Vite
 - **Styling**: Tailwind CSS with shadcn/ui components
 - **State Management**: TanStack React Query
-- **Backend**: Base44 serverless functions (Deno)
-- **Database**: Base44 entities
+- **Backend**: Supabase serverless functions / API
+- **Database**: Supabase Postgres
 - **Payments**: Stripe
-- **Authentication**: Base44 Auth
+- **Authentication**: Supabase Auth
 - **Animations**: Framer Motion
 
 ## Getting Started
@@ -43,8 +43,8 @@ npm install
 Create a `.env.local` file in the root directory:
 
 ```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=https://yourapp.com
+VITE_SUPABASE_URL=https://your-supabase-url
+VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 ### Development

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Loader2, Save, Camera, Award } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,7 +76,7 @@ export default function EditCardModal({ card, onClose }) {
     if (!file) return;
     if (side === 'front') setUploadingFront(true);
     else setUploadingBack(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const { file_url } = await legacyApi.integrations.Core.UploadFile({ file });
     update(side === 'front' ? 'image_url' : 'image_back_url', file_url);
     if (side === 'front') setUploadingFront(false);
     else setUploadingBack(false);
@@ -233,3 +233,4 @@ export default function EditCardModal({ card, onClose }) {
     </AnimatePresence>
   );
 }
+

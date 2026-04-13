@@ -6,15 +6,20 @@ export const mapCardRecord = (supabaseCard) => {
     player_name: supabaseCard.player_name,
     year: supabaseCard.year,
     brand: supabaseCard.brand,
-    // Add safe defaults for missing fields
     set_name: supabaseCard.set_name || '',
-    sport: supabaseCard.sport || 'baseball', // default
+    sport: supabaseCard.sport || 'baseball',
     grading_company: supabaseCard.grading_company || '',
     grade: supabaseCard.grade || '',
     estimated_value: supabaseCard.estimated_value || 0,
     status: supabaseCard.status || 'owned',
-    created_date: supabaseCard.created_at,
+    description: supabaseCard.description || '',
+    image_url: supabaseCard.image_url || '',
+    card_number: supabaseCard.card_number || '',
+    user_id: supabaseCard.user_id || null,
+    created_by: supabaseCard.created_by || null,
+    unique_code: supabaseCard.unique_code || null,
     qr_code: supabaseCard.qr_code || '',
-    // Map other fields as needed
+    created_date: supabaseCard.created_at,
+    created_at: supabaseCard.created_at,
   };
 };

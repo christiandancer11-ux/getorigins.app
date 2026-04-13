@@ -12,7 +12,7 @@ export default function ScanSpeedHero() {
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
       >
-        <source src="https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/scanning-demo.mp4" type="video/mp4" />
+        <source src="https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/scanning-demo.mp4" type="video/mp4" />
         {/* Fallback: gradient animation to simulate scanning speed */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse" />
       </video>

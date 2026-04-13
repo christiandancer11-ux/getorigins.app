@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { legacyApi } from '@/api/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -62,36 +62,36 @@ export default function UserSearch() {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => {});
+    legacyApi.auth.me().then(setCurrentUser).catch(() => {});
   }, []);
 
   const { data: allUsers = [], isLoading } = useQuery({
     queryKey: ['all-users'],
-    queryFn: () => base44.entities.User.list('-created_date', 200),
+    queryFn: () => legacyApi.entities.User.list('-created_date', 200),
   });
 
   const { data: myFollows = [] } = useQuery({
     queryKey: ['my-follows', currentUser?.email],
-    queryFn: () => base44.entities.UserFollow.filter({ follower_email: currentUser.email }),
+    queryFn: () => legacyApi.entities.UserFollow.filter({ follower_email: currentUser.email }),
     enabled: !!currentUser,
   });
 
   const { data: myFollowers = [] } = useQuery({
     queryKey: ['my-followers', currentUser?.email],
-    queryFn: () => base44.entities.UserFollow.filter({ following_email: currentUser.email }),
+    queryFn: () => legacyApi.entities.UserFollow.filter({ following_email: currentUser.email }),
     enabled: !!currentUser,
   });
 
   const followMutation = useMutation({
     mutationFn: ({ targetEmail }) =>
-      base44.entities.UserFollow.create({ follower_email: currentUser.email, following_email: targetEmail }),
+      legacyApi.entities.UserFollow.create({ follower_email: currentUser.email, following_email: targetEmail }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-follows'] }),
   });
 
   const unfollowMutation = useMutation({
     mutationFn: async ({ targetEmail }) => {
-      const existing = await base44.entities.UserFollow.filter({ follower_email: currentUser.email, following_email: targetEmail });
-      if (existing[0]) await base44.entities.UserFollow.delete(existing[0].id);
+      const existing = await legacyApi.entities.UserFollow.filter({ follower_email: currentUser.email, following_email: targetEmail });
+      if (existing[0]) await legacyApi.entities.UserFollow.delete(existing[0].id);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-follows'] }),
   });
@@ -205,3 +205,4 @@ export default function UserSearch() {
     </div>
   );
 }
+

@@ -1,13 +1,13 @@
 const LOGOS = [
-  { name: 'Topps',              url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/2b518bef1_topps.png' },
-  { name: 'Panini',             url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/029af84a9_panini.png' },
-  { name: 'Fanatics',           url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/21e9a119b_fanatics.png' },
-  { name: 'Upper Deck',         url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/6826a0110_upper_deck.png' },
-  { name: 'Leaf',               url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/5f190d727_leaf.png' },
-  { name: 'Pokémon TCG',        url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/1019ad6e3_pokemon_tcg.png' },
-  { name: 'Wizards of the Coast',url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/fa491c53d_wizards_of_the_coast.png' },
-  { name: 'Konami',             url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/b704d0e09_konami.png' },
-  { name: 'Bandai',             url: 'https://media.base44.com/images/public/69ceb0c6913655f4b9105f84/833d52395_bandai.png' },
+  { name: 'Topps',              url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/2b518bef1_topps.png' },
+  { name: 'Panini',             url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/029af84a9_panini.png' },
+  { name: 'Fanatics',           url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/21e9a119b_fanatics.png' },
+  { name: 'Upper Deck',         url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/6826a0110_upper_deck.png' },
+  { name: 'Leaf',               url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/5f190d727_leaf.png' },
+  { name: 'Pokémon TCG',        url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/1019ad6e3_pokemon_tcg.png' },
+  { name: 'Wizards of the Coast',url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/fa491c53d_wizards_of_the_coast.png' },
+  { name: 'Konami',             url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/b704d0e09_konami.png' },
+  { name: 'Bandai',             url: 'https://media.legacyApi.com/images/public/69ceb0c6913655f4b9105f84/833d52395_bandai.png' },
 ];
 
 export default function BrandLogos() {

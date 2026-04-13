@@ -35,6 +35,7 @@ import Pricing from './pages/Pricing';
 import AICardGrading from './pages/AICardGrading.jsx';
 import BulkDealCalculator from './pages/BulkDealCalculator';
 import AdminCardKnowledge from './pages/AdminCardKnowledge';
+import AdminSubscriptions from './pages/AdminSubscriptions';
 import LoadTestResults from './pages/LoadTestResults';
 import CardWatchlist from './pages/CardWatchlist';
 import LearningCenter from './pages/LearningCenter';
@@ -92,6 +93,7 @@ const AuthenticatedApp = () => {
         <Route path="/ai-grading" element={<AICardGrading />} />
         <Route path="/bulk-calculator" element={<BulkDealCalculator />} />
         <Route path="/admin/card-knowledge" element={<AdminCardKnowledge />} />
+        <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
         <Route path="/admin/load-test" element={<LoadTestResults />} />
         <Route path="/admin/health-check" element={<SystemHealthCheck />} />
         <Route path="/watchlist" element={<CardWatchlist />} />

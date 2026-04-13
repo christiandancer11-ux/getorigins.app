@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { createOwnershipRequest } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +8,7 @@ import { ShoppingBag, DollarSign, CheckCircle2, Loader2, User, Mail } from 'luci
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function BuyFromOwnerPanel({ card }) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState('form'); // 'form' | 'success'
   const [loading, setLoading] = useState(false);
@@ -18,23 +20,20 @@ export default function BuyFromOwnerPanel({ card }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!user) {
+      setError('Please sign in to request ownership.');
+      return;
+    }
     if (!form.buyer_email) { setError('Please enter your email.'); return; }
 
     setLoading(true);
-    // Create the ownership request
-    const request = await base44.entities.CardOwnershipRequest.create({
-      card_id: card.id,
-      card_name: card.name,
-      card_image_url: card.image_url,
-      owner_email: card.created_by,
-      buyer_email: form.buyer_email,
-      buyer_name: form.buyer_name,
-      sale_price: form.sale_price ? parseFloat(form.sale_price) : undefined,
-      status: 'pending',
-    });
 
-    // Send notification email to owner
-    await base44.functions.invoke('sendOwnershipNotification', { request_id: request.id });
+    await createOwnershipRequest({
+      card_id: card.id,
+      requester_id: user.id,
+      owner_id: card.user_id || null,
+      message: `Buyer: ${form.buyer_name || form.buyer_email}. Notes: ${form.sale_price ? `$${parseFloat(form.sale_price).toFixed(2)}` : 'no price provided'}`,
+    });
 
     setLoading(false);
     setStep('success');
@@ -144,3 +143,4 @@ export default function BuyFromOwnerPanel({ card }) {
     </div>
   );
 }
+

@@ -12,6 +12,7 @@ import SoldTradedGrid from '../components/dashboard/SoldTradedGrid';
 import MarkSoldModal from '../components/dashboard/MarkSoldModal';
 import OwnershipRequests from '../components/dashboard/OwnershipRequests';
 import MarketPicksWidget from '../components/dashboard/MarketPicksWidget';
+import CollectionValueWidget from '../components/dashboard/CollectionValueWidget';
 import ListToStoreModal from '../components/dashboard/ListToStoreModal';
 import { usePullToRefresh } from '../hooks/usePullToRefresh.jsx';
 import { useSubscription } from '../hooks/useSubscription';
@@ -107,7 +108,7 @@ export default function Dashboard() {
     }));
     // TODO: Migrate cardSignals to Supabase
     // Temporarily skip signals during migration
-    // base44.functions.invoke('cardSignals', { cards: cardPayload })
+    // legacyApi.functions.invoke('cardSignals', { cards: cardPayload })
     //   .then(res => {
     //     if (res.data?.signals) {
     //       const map = {};
@@ -134,6 +135,11 @@ export default function Dashboard() {
 
         {/* AI Market Picks Widget */}
         <MarketPicksWidget isPro={isPro} />
+
+        {/* Market analytics widget */}
+        <div className="mt-6">
+          <CollectionValueWidget userEmail={currentUserEmail} />
+        </div>
 
         {/* Header with Quick Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
