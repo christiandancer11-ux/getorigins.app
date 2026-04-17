@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import Auth from './pages/Auth';
 
 import AppLayout from './components/layout/AppLayout';
 import Landing from './pages/Landing';
@@ -100,6 +101,7 @@ const AuthenticatedApp = () => {
         <Route path="/learn" element={<LearningCenter />} />
         <Route path="/discord" element={<DiscordSetup />} />
       </Route>
+      <Route path="/login" element={<Auth />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -107,14 +109,14 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
           <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
+          <Toaster />
+        </QueryClientProvider>
+      </AuthProvider>
+    </Router>
   )
 }
 
