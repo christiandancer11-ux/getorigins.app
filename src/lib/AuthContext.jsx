@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 
 const AuthContext = createContext(null)
@@ -9,6 +10,8 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
   const [authError, setAuthError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     let mounted = true
@@ -31,6 +34,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       setIsLoadingAuth(false)
+      setAuthChecked(true)
     }
 
     loadSession()
@@ -40,6 +44,7 @@ export const AuthProvider = ({ children }) => {
       setUser(newSession?.user ?? null)
       setIsAuthenticated(!!newSession?.user)
       setIsLoadingAuth(false)
+      setAuthChecked(true)
     })
 
     return () => {
@@ -47,6 +52,27 @@ export const AuthProvider = ({ children }) => {
       listener.subscription.unsubscribe()
     }
   }, [])
+
+  const checkUserAuth = useCallback(async () => {
+    setIsLoadingAuth(true)
+    const { data, error } = await supabase.auth.getSession()
+    if (error) {
+      setAuthError({ type: 'auth_error', message: error.message })
+      setSession(null)
+      setUser(null)
+      setIsAuthenticated(false)
+    } else {
+      setSession(data.session ?? null)
+      setUser(data.session?.user ?? null)
+      setIsAuthenticated(!!data.session?.user)
+    }
+    setIsLoadingAuth(false)
+    setAuthChecked(true)
+  }, [])
+
+  const navigateToLogin = useCallback(() => {
+    navigate('/login')
+  }, [navigate])
 
   const signUp = async ({ email, password, options = {} }) => {
     setAuthError(null)
@@ -69,10 +95,14 @@ export const AuthProvider = ({ children }) => {
         session,
         isAuthenticated,
         isLoadingAuth,
+        authChecked,
         authError,
+        isLoadingPublicSettings: false,
         signUp,
         signIn,
         signOut,
+        checkUserAuth,
+        navigateToLogin,
       }}
     >
       {children}
